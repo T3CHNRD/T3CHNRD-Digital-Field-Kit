@@ -21,11 +21,14 @@ See `PROJECT-VISION.md` for the shared Windows / Intel macOS / Apple Silicon pro
 ## Active - Windows stabilization
 
 - [ ] Complete Windows runtime field testing for every tool category on Windows 10 and Windows 11.
-- [ ] Prove the v10.1 embedded runner on a real Windows machine with **Embedded Runner Self-Test**, Device Information Report, Defender Audit and Security Baseline Audit.
+- [ ] Fix and prove the v10.2 startup broker / embedded runner on a real Windows machine with **Embedded Runner Self-Test**, Device Information Report, Defender Audit and Security Baseline Audit.
+- [ ] Fix the v10.2 launcher error-text encoding mismatch so broker errors display as readable English instead of mojibake/CJK-looking text.
+- [ ] Add runner diagnostics that distinguish: broker startup, `cmd.exe` child launch, PowerShell process launch, PowerShell `-Command`, and PowerShell `-File` execution.
 - [ ] Prove portable window minimize / maximize / resize / close behavior.
 - [ ] Prove Windows installer / uninstaller behavior.
 - [ ] Prove Deployment **Install All Apps** behavior; it must install Chrome, Firefox, Malwarebytes, AVG and CCleaner while excluding Win11Debloat and all WinUtil workflows.
 - [ ] Confirm All Tools scrolling/search performance is acceptable on the field machine.
+- [ ] Confirm taskbar/app icon behavior in portable and installed modes.
 
 ## Runbook - after Windows stabilization
 
