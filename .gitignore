@@ -1,0 +1,133 @@
+# T3CHNRD Digital Field Kit
+# Keep source in Git; exclude field data, generated output, caches, large third-party payloads, and secrets.
+
+# --- Diagnostic/runtime output ---
+Diagnostic-Reports/
+**/Diagnostic-Reports/
+Reports/
+**/Reports/
+Logs/
+**/Logs/
+*.log
+*.etl
+*.evtx
+*.dmp
+*.mdmp
+*.dump
+*.trace
+*.tmp
+*.temp
+*.pid
+*.lock
+
+# --- Runtime/broker state ---
+*.runner.txt
+*.runner.log
+*.done
+*.ready
+*.cancel
+*.heartbeat
+*.request
+broker.error
+broker.ready
+heartbeat.txt
+shutdown.txt
+
+# --- Runbook field/company content ---
+# The Runbook engine/templates belong in Git; technician/company documents do not.
+Runbook/
+runbook project/
+**/Runbook/Attachments/
+**/Runbook/Imported/
+
+# --- Local AI payloads ---
+*.gguf
+*.ggml
+*.safetensors
+AI/models/
+ai/models/
+AI/runtime/
+ai/runtime/
+
+# --- Python ---
+.venv/
+.venv*/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Node / Electron future shell ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.electron/
+dist/
+out/
+release/
+
+# --- .NET / build output ---
+bin/
+obj/
+[Bb]uild/
+[Bb]uilds/
+*.user
+*.suo
+*.pdb
+*.ilk
+*.cache
+
+# --- Installer/build artifacts ---
+Installer/Output/
+**/Installer/Output/
+*.msi
+*.msix
+*.appx
+*.appxbundle
+*.dmg
+*.pkg
+
+# --- Third-party redistributables / large binary setup payloads ---
+# Keep manifests, download/build instructions, licenses, and checksums in Git instead.
+R/Setup/Apps/*.exe
+R/Setup/Apps/*.msi
+R/Setup/WinUtil/**/bin/
+ThirdParty/Binaries/
+third_party/binaries/
+
+# --- Secrets / local configuration ---
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.pfx
+*.p12
+secrets/
+Secrets/
+local.settings.json
+
+# --- Editor / OS clutter ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+
+# --- Archives generated for field testing ---
+*.zip
+*.7z
+*.rar
+
+# Keep repository documentation and source manifests tracked.
+!docs/
+!Docs/
+!**/*.md
+!**/*.txt
