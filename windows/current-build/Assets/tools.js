@@ -571,6 +571,16 @@ var TOOLS = [
   },
   {
     "category": "Advanced",
+    "name": "Embedded Runner Self-Test",
+    "description": "Verify that the app can launch hidden Windows PowerShell and receive a completed result through the Run Center.",
+    "path": "App\\Embedded-Runner-SelfTest.ps1",
+    "risk": "ReadOnly",
+    "interactive": false,
+    "args": [],
+    "icon": "terminal"
+  },
+  {
+    "category": "Advanced",
     "name": "Toolkit Integrity Self-Test",
     "description": "Parse every PowerShell script and verify required toolkit files and Windows commands.",
     "path": "Scripts\\Core\\Test-ToolkitIntegrity.ps1",
