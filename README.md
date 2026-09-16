@@ -2,9 +2,44 @@
 
 **T3CHNRD Digital Field Kit** is a portable and installable technician toolkit for Windows diagnostics, troubleshooting, evidence collection, security review, repair workflows, deployment/setup tasks, documentation, and future offline AI-assisted diagnosis.
 
-> Current development priority: stabilize the Windows application shell and installer first. Runbook integration comes next, followed by the macOS collectors, then the local AI/LLM subsystem.
+## End state
 
-## What the app does
+The goal is **one T3CHNRD Digital Field Kit on one external drive**, with platform-aware launchers and one shared experience across:
+
+- Windows
+- Intel macOS
+- Apple Silicon macOS
+
+with shared:
+
+- UI concepts
+- Runbook/wiki
+- diagnostic report structure
+- future offline AI/LLM analysis
+
+and platform-specific diagnostic engines underneath.
+
+The drive will contain one product, while the launcher/runtime selects the correct Windows, Intel macOS, or Apple Silicon macOS engine after launch. Windows and macOS may require separate native launchers/installers, but they remain parts of the same toolkit and share documentation, reports, evidence concepts, and future AI features.
+
+## Required work order
+
+1. **Finish/stabilize the Windows app**
+2. **Runbook integration**
+3. **macOS support**
+   - `system_profiler`
+   - Activity Monitor / memory pressure
+   - DiagnosticReports
+   - `diskutil` / APFS
+   - FileVault
+   - Gatekeeper/XProtect
+   - `networksetup` / `scutil`
+   - `softwareupdate`
+   - LaunchAgents / LaunchDaemons
+4. **Local AI/LLM integration**
+
+A fresh downloadable test build is produced after completed code/debug changes so field testing does not depend on a local development environment.
+
+## What the Windows app does
 
 The Windows edition provides one graphical interface for a growing set of IT support and field-service tools. The goal is to carry the toolkit on a USB drive or external SSD, launch it on a problem computer, collect evidence, run technician-selected diagnostics, and keep the resulting reports together in one session.
 
@@ -28,17 +63,33 @@ Current capabilities include:
 - In-app Run Center for scripts that do not require direct console input
 - Per-session diagnostic reports
 
+## Current Windows stabilization line
+
+The current test line is **v10 Windows stabilization**. This pass focuses on the application shell and does **not** rewrite the existing diagnostic scripts.
+
+Current v10 work includes:
+
+- normal resizable window behavior with minimize, maximize, close, and sizing controls
+- revised embedded runner completion/status protocol
+- direct Windows PowerShell child-process execution without the earlier nested encoded-command layer
+- an **Embedded Runner Self-Test** under System Management
+- a Deployment **Install All Apps** action that installs Chrome, Firefox, Malwarebytes, AVG, and CCleaner while deliberately excluding Win11Debloat and WinUtil
+- lighter All Tools card rendering and debounced search for smoother scrolling
+- Runbook filtering that removes development/runtime content from the technician document list
+- direct **Add Document** file-picker behavior in the Runbook
+- less crowded header/platform/search layout
+
 ## User interface
 
 The GUI combines Windows Vista-style glass/chrome, Android 5/Lollipop-inspired navigation, and classic Windows XP-style utility icons.
 
-The application is designed to run without leaving a PowerShell console open behind the main window. Most compatible scripts execute through the hidden runner and feed output into the in-app **Run Center**. Scripts that genuinely require `Read-Host` or other direct technician input remain interactive so their original behavior is preserved.
+The application is designed to run without leaving a PowerShell console open behind the main window. Most compatible scripts execute through the hidden runner and feed status/output into the in-app **Run Center**. Scripts that genuinely require `Read-Host` or other direct technician input remain interactive so their original behavior is preserved.
 
 ## Safety model
 
-Read-only diagnostics are separated from actions that can modify a machine. Repair, cleanup, network reset, encryption changes, updates, firmware/BIOS workflows, and other higher-impact actions require explicit technician selection/confirmation.
+Read-only diagnostics are separated from actions that can modify a machine. Repair, cleanup, network reset, encryption changes, updates, firmware/BIOS workflows, installers, and other higher-impact actions require explicit technician selection/confirmation.
 
-The current stabilization work intentionally avoids rewriting working diagnostic scripts. The application shell, runner, installer, path handling, and script wiring are being fixed around those scripts instead.
+The stabilization work intentionally avoids rewriting working diagnostic scripts. The application shell, runner, installer, path handling, and script wiring are fixed around those scripts instead.
 
 ## Portable use
 
@@ -50,17 +101,15 @@ OPEN-ME-GUI.vbs
 
 ## Installed use
 
-The graphical installer entry point is:
+The graphical Windows installer entry point is:
 
 ```text
 INSTALL-T3DFK.vbs
 ```
 
-The installer is intended to ask for the destination, offer shortcut options, copy with visible progress, verify GUI tool targets, create shortcuts, and register uninstall support.
+The installer asks for the destination, offers shortcut options, copies with visible progress, verifies GUI tool targets and required app helpers, creates shortcuts, and registers uninstall support.
 
 ## Source layout
-
-The GitHub repository now mirrors the first-party source used by the downloadable Windows test build rather than containing only a few shell files.
 
 ```text
 windows/current-build/
@@ -74,40 +123,25 @@ windows/current-build/
 └── launch/install helpers
 ```
 
-Large third-party redistributables and optional setup payloads are intentionally kept separate from the normal first-party source tree. The downloadable test build may contain runtime payloads that are not duplicated in Git when redistribution or repository size would be inappropriate.
+Large third-party redistributables and optional setup payloads are intentionally kept separate from the normal first-party source tree when redistribution or repository size would be inappropriate. The downloadable field-test package can therefore contain runtime payloads that are not all duplicated as normal source files in Git.
 
-## Related earlier project
+## Runbook direction
 
-The older **`T3CHNRD/windows-tool-kit-`** project is closely related. It includes a PowerShell/WinForms launcher, background execution, modules, build scripts, legacy scripts, and overlapping maintenance/security/network functions.
+The Runbook is intended to become a portable local company troubleshooting wiki for recurring problems and commonly broken systems.
 
-For now it is being treated as a **reference source**, not blindly merged. The active Digital Field Kit has a different GUI/runtime architecture and the immediate priority is stabilizing the current Windows app without introducing unrelated regressions. Useful pieces can be migrated deliberately after the current app passes runtime testing.
+Planned capabilities include:
 
-## Roadmap / required work order
-
-### 1. Windows main application — current
-
-- stabilize embedded script execution
-- stabilize portable launcher/elevation
-- stabilize installer/uninstaller
-- verify every GUI tool mapping
-- preserve working script behavior
-
-### 2. Runbook integration
-
-Build the Runbook into a local wiki-style documentation system for commonly broken systems and recurring support procedures.
-
-Planned capabilities:
-
-- browse/search all Runbook articles
-- add/import documentation
+- browse/search all technician documentation
+- add/import documents
 - standardized article format
+- platform metadata such as Windows, macOS, or Any
 - link diagnostic findings to relevant Runbook procedures
-- allow future AI to search the Runbook as supporting evidence
-- future AI-generated **Draft** Runbook articles for newly solved issues, requiring technician review before becoming **Verified**
+- allow the future local AI to search the Runbook for supporting information
+- allow future AI to create a **Draft** Runbook article after a newly solved issue, with technician review required before the article becomes **Verified**
 
-### 3. macOS edition
+## macOS direction
 
-Planned collector order:
+The macOS engine will be implemented after Windows stabilization and Runbook integration, in this order:
 
 1. System Information / `system_profiler`
 2. Activity Monitor and memory pressure
@@ -119,7 +153,9 @@ Planned collector order:
 8. `softwareupdate`
 9. LaunchAgents / LaunchDaemons
 
-### 4. Offline AI / LLM assistant
+The Windows and macOS engines should eventually normalize evidence into a shared diagnostic schema so the Runbook and AI layers can reason over either platform consistently.
+
+## Offline AI / LLM direction
 
 Planned AI goals:
 
@@ -134,9 +170,11 @@ Planned AI goals:
 
 A likely runtime direction is `llama.cpp` plus a quantized GGUF model with a rules-only fallback for low-memory machines.
 
-## Current status
+## Related earlier project
 
-The current Windows test line is **v9 main-app stabilization**. Source synchronization is being expanded so GitHub tracks the same first-party application code shipped in the downloadable test package.
+The older **`T3CHNRD/windows-tool-kit-`** project is closely related. It includes a PowerShell/WinForms launcher, background execution, modules, build scripts, legacy scripts, and overlapping maintenance/security/network functions.
+
+For now it is treated as a reference source rather than blindly merged. Useful components can be migrated deliberately after the active Windows app passes runtime testing.
 
 ## Project name
 
