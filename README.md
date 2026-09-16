@@ -65,19 +65,20 @@ Current capabilities include:
 
 ## Current Windows stabilization line
 
-The current test line is **v10 Windows stabilization**. This pass focuses on the application shell and does **not** rewrite the existing diagnostic scripts.
+The current test line is **v10.1 Windows stabilization**. This pass focuses on the application shell and does **not** rewrite the existing diagnostic scripts.
 
-Current v10 work includes:
+Current v10.1 work includes:
 
 - normal resizable window behavior with minimize, maximize, close, and sizing controls
-- revised embedded runner completion/status protocol
-- direct Windows PowerShell child-process execution without the earlier nested encoded-command layer
+- revised embedded runner completion/status protocol with child PID tracking and cancel support
+- direct hidden Windows PowerShell child-process execution while preserving the existing diagnostic scripts
 - an **Embedded Runner Self-Test** under System Management
 - a Deployment **Install All Apps** action that installs Chrome, Firefox, Malwarebytes, AVG, and CCleaner while deliberately excluding Win11Debloat and WinUtil
-- lighter All Tools card rendering and debounced search for smoother scrolling
-- Runbook filtering that removes development/runtime content from the technician document list
-- direct **Add Document** file-picker behavior in the Runbook
+- lighter All Tools card rendering, compact cards, DocumentFragment rendering, and debounced search for smoother scrolling
+- Runbook filtering that removes development/runtime content from the technician document list, including `.venv312`, `ai_cowork`, `apps`, `General`, `deps.txt`, `static`, `templates`, `tmp-lo-test2`, `tmp_backend.html`, and `tmp_backend_v.txt`
+- a native Windows **Add Document** picker for importing Markdown, text, HTML, PDF, Word, and RTF documentation into the Runbook
 - less crowded header/platform/search layout
+- installer verification for the runner, deployment helper, self-test, and Runbook document picker
 
 ## User interface
 
