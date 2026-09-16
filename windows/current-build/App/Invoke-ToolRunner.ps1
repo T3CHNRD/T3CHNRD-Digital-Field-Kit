@@ -1,155 +1,96 @@
 #Requires -Version 5.1
 [CmdletBinding()]
-param(
-    [Parameter(Mandatory = $true)]
-    [string]$ManifestPath
-)
+param([Parameter(Mandatory=$true)][string]$ManifestPath)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-function ConvertFrom-RunnerManifest {
-    param([Parameter(Mandatory = $true)][string]$Path)
-
-    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
-        throw "Runner manifest not found: $Path"
-    }
-
+function Read-RunnerManifest {
+    param([string]$Path)
+    if(-not (Test-Path -LiteralPath $Path -PathType Leaf)){ throw "Runner manifest not found: $Path" }
     $argsList = New-Object 'System.Collections.Generic.List[string]'
-    $data = [ordered]@{
-        ScriptPath  = $null
-        ToolkitRoot = $null
-        ReportDir   = $null
-        LogPath     = $null
-        ErrorPath   = $null
-        Args        = $argsList
-    }
-
-    foreach ($line in Get-Content -LiteralPath $Path -ErrorAction Stop) {
-        if ([string]::IsNullOrWhiteSpace($line)) { continue }
-        $idx = $line.IndexOf('=')
-        if ($idx -lt 1) { continue }
-
-        $key = $line.Substring(0, $idx)
-        $value = $line.Substring($idx + 1)
-
-        switch ($key) {
-            'ScriptPath'  { $data.ScriptPath  = $value }
-            'ToolkitRoot' { $data.ToolkitRoot = $value }
-            'ReportDir'   { $data.ReportDir   = $value }
-            'LogPath'     { $data.LogPath     = $value }
-            'ErrorPath'   { $data.ErrorPath   = $value }
-            'Arg'         { $data.Args.Add($value) }
+    $data=[ordered]@{ScriptPath=$null;ToolkitRoot=$null;ReportDir=$null;LogPath=$null;ErrorPath=$null;DonePath=$null;StartedPath=$null;Args=$argsList}
+    foreach($line in Get-Content -LiteralPath $Path -ErrorAction Stop){
+        if([string]::IsNullOrWhiteSpace($line)){continue}
+        $idx=$line.IndexOf('='); if($idx -lt 1){continue}
+        $key=$line.Substring(0,$idx); $value=$line.Substring($idx+1)
+        switch($key){
+            'ScriptPath' {$data.ScriptPath=$value}
+            'ToolkitRoot' {$data.ToolkitRoot=$value}
+            'ReportDir' {$data.ReportDir=$value}
+            'LogPath' {$data.LogPath=$value}
+            'ErrorPath' {$data.ErrorPath=$value}
+            'DonePath' {$data.DonePath=$value}
+            'StartedPath' {$data.StartedPath=$value}
+            'Arg' {$data.Args.Add($value)}
         }
     }
-
-    return [pscustomobject]$data
+    [pscustomobject]$data
 }
 
-function ConvertTo-SingleQuotedPowerShellLiteral {
-    param([AllowNull()][string]$Text)
-    if ($null -eq $Text) { return "''" }
-    return "'" + $Text.Replace("'", "''") + "'"
-}
-
-function Resolve-64BitWindowsPowerShell {
-    $windows = $env:WINDIR
-
-    if ([Environment]::Is64BitOperatingSystem -and -not [Environment]::Is64BitProcess) {
-        $sysnative = Join-Path $windows 'Sysnative\WindowsPowerShell\v1.0\powershell.exe'
-        if (Test-Path -LiteralPath $sysnative -PathType Leaf) { return $sysnative }
+function Resolve-WindowsPowerShell {
+    $win=$env:WINDIR
+    if([Environment]::Is64BitOperatingSystem -and -not [Environment]::Is64BitProcess){
+        $p=Join-Path $win 'Sysnative\WindowsPowerShell\v1.0\powershell.exe'
+        if(Test-Path -LiteralPath $p -PathType Leaf){return $p}
     }
-
-    $system32 = Join-Path $windows 'System32\WindowsPowerShell\v1.0\powershell.exe'
-    if (Test-Path -LiteralPath $system32 -PathType Leaf) { return $system32 }
-
-    return 'powershell.exe'
+    $p=Join-Path $win 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    if(Test-Path -LiteralPath $p -PathType Leaf){return $p}
+    'powershell.exe'
 }
 
-$manifest = ConvertFrom-RunnerManifest -Path $ManifestPath
-
-foreach ($required in 'ScriptPath','ToolkitRoot','ReportDir','LogPath','ErrorPath') {
-    if ([string]::IsNullOrWhiteSpace([string]$manifest.$required)) {
-        throw "Runner manifest is missing required value: $required"
-    }
+function Quote-ProcessArgument {
+    param([AllowEmptyString()][string]$Value)
+    '"' + ($Value -replace '"','\"') + '"'
 }
 
-if (-not (Test-Path -LiteralPath $manifest.ScriptPath -PathType Leaf)) {
-    throw "Tool script not found: $($manifest.ScriptPath)"
-}
-
-if (-not (Test-Path -LiteralPath $manifest.ToolkitRoot -PathType Container)) {
-    throw "Toolkit root not found: $($manifest.ToolkitRoot)"
-}
-
-New-Item -Path $manifest.ReportDir -ItemType Directory -Force | Out-Null
-Set-Content -LiteralPath $manifest.LogPath -Value '' -Encoding Unicode
-Set-Content -LiteralPath $manifest.ErrorPath -Value '' -Encoding Unicode
-
-$scriptLiteral = ConvertTo-SingleQuotedPowerShellLiteral $manifest.ScriptPath
-$rootLiteral   = ConvertTo-SingleQuotedPowerShellLiteral $manifest.ToolkitRoot
-$reportLiteral = ConvertTo-SingleQuotedPowerShellLiteral $manifest.ReportDir
-$logLiteral    = ConvertTo-SingleQuotedPowerShellLiteral $manifest.LogPath
-$errLiteral    = ConvertTo-SingleQuotedPowerShellLiteral $manifest.ErrorPath
-
-$argTokens = New-Object 'System.Collections.Generic.List[string]'
-foreach ($arg in $manifest.Args) {
-    if ($arg -match '^-[A-Za-z][A-Za-z0-9_-]*$') {
-        $argTokens.Add($arg)
-    }
-    else {
-        $argTokens.Add((ConvertTo-SingleQuotedPowerShellLiteral $arg))
-    }
-}
-$argumentText = $argTokens -join ' '
-
-$childCommand = @"
-Set-Location -LiteralPath $rootLiteral
-`$env:TTK_TOOLKIT_ROOT = $rootLiteral
-`$env:TTK_REPORT_DIR = $reportLiteral
-`$ProgressPreference = 'Continue'
+$m=$null
+$exitCode=1
 try {
-    & $scriptLiteral $argumentText *>&1 |
-        Out-String -Stream -Width 4096 |
-        ForEach-Object {
-            `$_ | Out-File -LiteralPath $logLiteral -Append -Encoding Unicode
-        }
-    exit 0
+    $m=Read-RunnerManifest -Path $ManifestPath
+    foreach($name in 'ScriptPath','ToolkitRoot','ReportDir','LogPath','ErrorPath','DonePath','StartedPath'){
+        if([string]::IsNullOrWhiteSpace([string]$m.$name)){throw "Runner manifest missing: $name"}
+    }
+    if(-not (Test-Path -LiteralPath $m.ScriptPath -PathType Leaf)){throw "Tool script not found: $($m.ScriptPath)"}
+    New-Item -Path $m.ReportDir -ItemType Directory -Force | Out-Null
+    Set-Content -LiteralPath $m.LogPath -Value ("Runner started: {0}`r`nScript: {1}`r`n" -f (Get-Date),$m.ScriptPath) -Encoding Unicode
+    Set-Content -LiteralPath $m.ErrorPath -Value '' -Encoding Unicode
+    Set-Content -LiteralPath $m.StartedPath -Value (Get-Date).ToString('o') -Encoding ASCII
+
+    $psi=New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName=Resolve-WindowsPowerShell
+    $argList=New-Object 'System.Collections.Generic.List[string]'
+    foreach($a in @('-NoLogo','-NoProfile','-STA','-ExecutionPolicy','Bypass','-File',$m.ScriptPath)){[void]$argList.Add((Quote-ProcessArgument $a))}
+    foreach($a in $m.Args){[void]$argList.Add((Quote-ProcessArgument $a))}
+    $psi.Arguments=($argList -join ' ')
+    $psi.WorkingDirectory=$m.ToolkitRoot
+    $psi.UseShellExecute=$false
+    $psi.CreateNoWindow=$true
+    $psi.WindowStyle=[System.Diagnostics.ProcessWindowStyle]::Hidden
+    $psi.RedirectStandardOutput=$true
+    $psi.RedirectStandardError=$true
+    $psi.EnvironmentVariables['TTK_TOOLKIT_ROOT']=$m.ToolkitRoot
+    $psi.EnvironmentVariables['TTK_REPORT_DIR']=$m.ReportDir
+
+    $p=New-Object System.Diagnostics.Process
+    $p.StartInfo=$psi
+    if(-not $p.Start()){throw 'PowerShell child process did not start.'}
+
+    $outTask=$p.StandardOutput.ReadToEndAsync()
+    $errTask=$p.StandardError.ReadToEndAsync()
+    $p.WaitForExit()
+    $stdout=$outTask.Result
+    $stderr=$errTask.Result
+    if($stdout){Add-Content -LiteralPath $m.LogPath -Value $stdout -Encoding Unicode}
+    if($stderr){Add-Content -LiteralPath $m.ErrorPath -Value $stderr -Encoding Unicode}
+    $exitCode=[int]$p.ExitCode
+    $p.Dispose()
 }
 catch {
-    (`$_ | Out-String -Width 4096) | Out-File -LiteralPath $errLiteral -Append -Encoding Unicode
-    exit 1
-}
-"@
-
-$encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($childCommand))
-$powerShell = Resolve-64BitWindowsPowerShell
-
-$psi = New-Object System.Diagnostics.ProcessStartInfo
-$psi.FileName = $powerShell
-$psi.Arguments = "-NoLogo -NoProfile -STA -ExecutionPolicy Bypass -EncodedCommand $encoded"
-$psi.WorkingDirectory = $manifest.ToolkitRoot
-$psi.UseShellExecute = $false
-$psi.CreateNoWindow = $true
-$psi.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
-
-$process = New-Object System.Diagnostics.Process
-$process.StartInfo = $psi
-
-try {
-    if (-not $process.Start()) {
-        throw 'Windows PowerShell child process did not start.'
-    }
-    $process.WaitForExit()
-    exit [int]$process.ExitCode
-}
-catch {
-    try {
-        $_ | Out-String -Width 4096 | Out-File -LiteralPath $manifest.ErrorPath -Append -Encoding Unicode
-    }
-    catch {}
-    exit 1
+    try{Add-Content -LiteralPath $m.ErrorPath -Value ($_ | Out-String -Width 4096) -Encoding Unicode}catch{}
+    $exitCode=1
 }
 finally {
-    if ($process) { $process.Dispose() }
+    try{if($m -and $m.DonePath){Set-Content -LiteralPath $m.DonePath -Value ([string]$exitCode) -Encoding ASCII}}catch{}
 }
+exit $exitCode
