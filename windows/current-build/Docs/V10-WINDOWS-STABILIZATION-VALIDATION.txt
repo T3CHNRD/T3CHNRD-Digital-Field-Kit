@@ -1,0 +1,69 @@
+T3CHNRD Digital Field Kit v10 - Windows Stabilization Validation
+========================================================================
+
+Generated: 2026-09-16 13:50:55
+
+SUMMARY
+-------
+Scripts unchanged: PASS
+All GUI targets present: PASS
+No Read-Host mismatch: PASS
+BORDER thick: PASS
+WINDOWSTATE normal: PASS
+minimize enabled: PASS
+maximize enabled: PASS
+system menu enabled: PASS
+no forced fullscreen resize: PASS
+duplicate top-right brand hidden: PASS
+StartedPath manifest: PASS
+DonePath manifest: PASS
+direct child ProcessStartInfo: PASS
+stdout redirected: PASS
+stderr redirected: PASS
+TTK_TOOLKIT_ROOT set: PASS
+TTK_REPORT_DIR set: PASS
+done marker finally: PASS
+nested encoded child command removed: PASS
+Install-all exclusions: PASS
+Runbook exclusions: PASS
+Runbook picker: PASS
+Runbook root grouping: PASS
+All Tools DocumentFragment: PASS
+Debounced search: PASS
+Lightweight cards: PASS
+Installer v10 metadata: PASS
+Installer verifies install-all helper: PASS
+Installer verifies runner self-test: PASS
+Required package files: PASS
+Tool-target list complete: PASS
+
+DETAILS
+-------
+GUI tool records: 59
+Unique tool-target entries: 58
+Original Scripts files: 56
+Changed Scripts files: 0
+Missing GUI targets: 0
+Noninteractive PowerShell tools containing Read-Host: 0
+Bundled install-all apps missing: 0
+Requested Runbook filter terms missing: none
+Required package files missing: none
+Simulated installed target files missing: 0
+Runtime files counted: 582
+Longest internal relative path: 106 characters
+Longest path: R/Setup/Debloat/Regfiles/Sysprep/Hide_duplicate_removable_drives_from_navigation_pane_of_File_Explorer.reg
+
+CATEGORY COUNTS
+---------------
+Advanced: 9
+BitLocker: 3
+Diagnostics: 7
+Network: 7
+Security: 13
+Setup: 9
+Storage: 5
+Updates: 6
+
+WINDOWS RUNTIME LIMITATION
+--------------------------
+The build environment cannot execute Windows HTA/ActiveX, UAC, Windows PowerShell 5.1, Defender, CIM/WMI, BitLocker, or the bundled Windows installer EXEs. Static wiring, source preservation, JavaScript syntax, marker-protocol logic, simulated installation, and package integrity were validated. Use System Management > Embedded Runner Self-Test first on the Windows field-test machine to validate the actual execution channel.
