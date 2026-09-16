@@ -55,3 +55,4 @@ Scripts\Updates\Invoke-UpdateAllApps.ps1
 Scripts\Updates\Invoke-WindowsUpdateTool.ps1
 Scripts\Utilities\Invoke-KillerEncryptionHelper.ps1
 Scripts\Utilities\Invoke-ps2exe-Portable.ps1
+App\Embedded-Runner-SelfTest.ps1
