@@ -70,10 +70,30 @@ try {
 
     $psi=New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName=Resolve-WindowsPowerShell
-    $argList=New-Object 'System.Collections.Generic.List[string]'
-    foreach($a in @('-NoLogo','-NoProfile','-STA','-ExecutionPolicy','Bypass','-File',$m.ScriptPath)){[void]$argList.Add((Quote-ProcessArgument $a))}
-    foreach($a in $m.Args){[void]$argList.Add((Quote-ProcessArgument $a))}
-    $psi.Arguments=($argList -join ' ')
+
+    # Use an encoded PowerShell command instead of powershell.exe -File. The field
+    # diagnostic proved that powershell.exe -Command starts correctly on the target
+    # machine while -File returns exit code 1 before the broker can become ready.
+    # This still invokes the original .ps1 by path, so normal PowerShell policy and
+    # script errors remain visible; it does not replace or rewrite the tool script.
+    function ConvertTo-PsLiteral {
+        param([AllowNull()][string]$Text)
+        if($null -eq $Text){ return "''" }
+        return "'" + $Text.Replace("'","''") + "'"
+    }
+    $scriptLiteral=ConvertTo-PsLiteral $m.ScriptPath
+    $argTokens=New-Object 'System.Collections.Generic.List[string]'
+    foreach($a in $m.Args){
+        if($a -match '^-[A-Za-z][A-Za-z0-9_-]*$'){
+            [void]$argTokens.Add($a)
+        } else {
+            [void]$argTokens.Add((ConvertTo-PsLiteral $a))
+        }
+    }
+    $argText=$argTokens -join ' '
+    $toolCommand="& $scriptLiteral $argText *>&1"
+    $encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($toolCommand))
+    $psi.Arguments="-NoLogo -NoProfile -STA -ExecutionPolicy Bypass -EncodedCommand $encoded"
     $psi.WorkingDirectory=$m.ToolkitRoot
     $env:TTK_TOOLKIT_ROOT=$m.ToolkitRoot
     $env:TTK_REPORT_DIR=$m.ReportDir
