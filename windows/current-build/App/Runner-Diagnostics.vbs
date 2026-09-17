@@ -10,7 +10,7 @@ reportPath = WScript.Arguments(1)
 tempDir = fso.GetParentFolderName(reportPath)
 If Not fso.FolderExists(tempDir) Then fso.CreateFolder tempDir
 
-WriteReport "T3CHNRD Digital Field Kit - Runner Diagnostics v10.2.3"
+WriteReport "T3CHNRD Digital Field Kit - Runner Diagnostics v10.2.4"
 AppendReport "Generated: " & CStr(Now)
 AppendReport "Root: " & root
 AppendReport "WScript: " & WScript.FullName
@@ -130,7 +130,7 @@ AppendReport "- PowerShell -Command=false: PowerShell itself is blocked or unava
 AppendReport "- -File=false but script-invocation=true: use command-based script invocation; powershell.exe -File is the failing boundary."
 AppendReport "- Both script tests=false: use the captured execution-policy/Zone.Identifier/error detail to identify the block."
 AppendReport "- If a PowerShell exception is present below, that exception is the root diagnostic signal; do not infer policy/EDR without it."
-AppendReport "- Script-invocation=true: the broker can use the v10.2.3 command-based runner path."
+AppendReport "- PowerShell -Command=true is the broker readiness requirement in v10.2.4; local script failures are reported per tool instead of disabling the entire app."
 
 WScript.Quit 0
 
