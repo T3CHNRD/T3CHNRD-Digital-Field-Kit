@@ -1,5 +1,9 @@
 Option Explicit
 
+If WScript.Arguments.Count > 0 Then
+  If LCase(WScript.Arguments(0)) = "/syntax-only" Then WScript.Quit 0
+End If
+
 Dim fso, sh, app, root, hta, broker, elevated, queue, token, readyPath, errorPath, warningPath, i
 Dim mshta, diagScript, diagReport, ps, iconPath, detail, ts, degraded, dts, brokerCmd
 Set fso = CreateObject("Scripting.FileSystemObject")
@@ -21,7 +25,7 @@ If Not fso.FileExists(broker) Then
   WScript.Quit 1
 End If
 
-' Keep the existing elevated field-test mode for v10.2.4 while the Windows runner
+' Keep the existing elevated field-test mode for v10.2.7 while the Windows runner
 ' is being stabilized. Per-tool elevation remains a later cleanup once the shared
 ' runner path is proven.
 elevated = False
@@ -33,9 +37,6 @@ If Not elevated Then
   WScript.Quit 0
 End If
 
-' Files extracted from a downloaded ZIP can inherit Mark-of-the-Web. Remove only
-' Zone.Identifier metadata from this toolkit tree. This does not alter Windows
-' policy, registry, services, or files outside the toolkit folder.
 ps = ResolvePowerShell()
 Call UnblockToolkit(ps, root)
 
@@ -65,10 +66,7 @@ Next
 
 If Not fso.FileExists(readyPath) Then
   detail = "The background runner broker did not become ready. T3CHNRD will open in diagnostic mode so the application can still be used while the runner problem is investigated."
-  If fso.FileExists(errorPath) Then
-    detail = detail & vbCrLf & vbCrLf & "Broker detail:" & vbCrLf & ReadUnicodeOrAnsi(errorPath)
-  End If
-
+  If fso.FileExists(errorPath) Then detail = detail & vbCrLf & vbCrLf & "Broker detail:" & vbCrLf & ReadUnicodeOrAnsi(errorPath)
   diagReport = fso.BuildPath(sh.ExpandEnvironmentStrings("%TEMP%"), "T3DFK-Runner-Diagnostics-" & token & ".txt")
   If fso.FileExists(diagScript) Then
     On Error Resume Next
@@ -76,12 +74,9 @@ If Not fso.FileExists(readyPath) Then
     Err.Clear
     On Error GoTo 0
   End If
-  If fso.FileExists(diagReport) Then
-    detail = detail & vbCrLf & vbCrLf & "Runner diagnostics:" & vbCrLf & ReadUnicodeOrAnsi(diagReport)
-  End If
+  If fso.FileExists(diagReport) Then detail = detail & vbCrLf & vbCrLf & "Runner diagnostics:" & vbCrLf & ReadUnicodeOrAnsi(diagReport)
   detail = detail & vbCrLf & vbCrLf & "Diagnostic report: " & diagReport
   sh.Environment("PROCESS")("T3DFK_BROKER_DIAG_REPORT") = diagReport
-
   degraded = fso.BuildPath(queue, "broker.degraded")
   On Error Resume Next
   Set dts = fso.CreateTextFile(degraded, True, True)
@@ -125,7 +120,6 @@ Sub LaunchToolkitWindow(ByVal toolkitRoot, ByVal htaPath, ByVal icoPath)
   EnsureFolder runtimeRoot
   hostExe = fso.BuildPath(runtimeRoot, "T3DFK-WindowHost.exe")
   useHost = False
-
   If fso.FileExists(hostSource) And fso.FileExists(icoPath) Then
     If (Not fso.FileExists(hostExe)) Or (fso.GetFile(hostSource).DateLastModified > fso.GetFile(hostExe).DateLastModified) Then
       csc = FindCsc()
@@ -142,7 +136,6 @@ Sub LaunchToolkitWindow(ByVal toolkitRoot, ByVal htaPath, ByVal icoPath)
     End If
     If fso.FileExists(hostExe) Then useHost = True
   End If
-
   If useHost Then
     sh.Run Q(hostExe) & " " & Q(htaPath) & " " & Q(icoPath), 1, False
   Else
