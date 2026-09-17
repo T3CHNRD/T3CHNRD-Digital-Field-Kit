@@ -13,24 +13,24 @@ heartbeatPath = fso.BuildPath(queue, "heartbeat.txt")
 
 If Not fso.FolderExists(queue) Then fso.CreateFolder queue
 
-Dim brokerTest, psReady, psCommandReady, psError, psDetail, ps, commandCmd, scriptCmd, rc
-brokerTest = fso.BuildPath(root, "App\Broker-PowerShell-SelfTest.ps1")
-psReady = fso.BuildPath(queue, "powershell-script.ready")
+Dim ps, psCommandReady, psError, psWarning, rc, commandCmd, warnText
+ps = ResolvePowerShell()
 psCommandReady = fso.BuildPath(queue, "powershell-command.ready")
 psError = fso.BuildPath(queue, "broker.error")
-psDetail = fso.BuildPath(queue, "broker-powershell-detail.txt")
+psWarning = fso.BuildPath(queue, "broker.warning")
+DeleteIfExists psCommandReady
+DeleteIfExists psError
+DeleteIfExists psWarning
 
-If Not fso.FileExists(brokerTest) Then
-  WriteUnicodeText psError, "Broker PowerShell self-test is missing: " & brokerTest
-  WScript.Quit 3
-End If
-
-ps = ResolvePowerShell()
-
-' Stage 1: prove powershell.exe can execute an inline command.
+' Broker readiness proves the exact primitive the current pipeline depends on:
+' Windows PowerShell can execute an inline command. The previous -File self-test
+' was not representative of the v10.2.4 pipeline and incorrectly forced the
+' entire application into diagnostic mode on systems where -Command worked.
 Dim commandLiteral
 commandLiteral = PsLiteral(psCommandReady)
-commandCmd = Q(ps) & " -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command " & Q("[IO.File]::WriteAllText(" & commandLiteral & ",'ok',[Text.Encoding]::ASCII)")
+commandCmd = Q(ps) & " -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command " & _
+  Q("[IO.File]::WriteAllText(" & commandLiteral & ",'ok',[Text.Encoding]::ASCII);exit 0")
+
 On Error Resume Next
 rc = sh.Run(commandCmd, 0, True)
 If Err.Number <> 0 Then
@@ -41,39 +41,38 @@ If Err.Number <> 0 Then
 End If
 On Error GoTo 0
 If rc <> 0 Or Not fso.FileExists(psCommandReady) Then
-  WriteUnicodeText psError, "Windows PowerShell failed the inline -Command startup test. Exit code: " & CStr(rc)
+  WriteUnicodeText psError, "Windows PowerShell failed the inline startup test. Exit code: " & CStr(rc)
   WScript.Quit 5
 End If
 
-' Stage 2: invoke a real local .ps1 from a PowerShell command and capture the exact exception.
-' This avoids depending on powershell.exe -File parsing for the broker bootstrap while still
-' exercising normal PowerShell script invocation and execution-policy enforcement.
+' Optional compatibility diagnostic only. A failure here no longer disables the
+' broker because the actual runner is loaded as an in-memory ScriptBlock and tool
+' execution reports its own real error/output through the Run Center.
+Dim brokerTest, psReady, psDetail, scriptCmd
+brokerTest = fso.BuildPath(root, "App\Broker-PowerShell-SelfTest.ps1")
+psReady = fso.BuildPath(queue, "powershell-script.ready")
+psDetail = fso.BuildPath(queue, "broker-powershell-detail.txt")
 DeleteIfExists psReady
 DeleteIfExists psDetail
-scriptCmd = BuildScriptInvocationCommand(ps, brokerTest, psReady, psDetail)
-On Error Resume Next
-rc = sh.Run(scriptCmd, 0, True)
-If Err.Number <> 0 Then
-  WriteUnicodeText psError, "PowerShell launched, but the broker could not start the script invocation self-test: " & CStr(Err.Number) & " - " & Err.Description
-  Err.Clear
+If fso.FileExists(brokerTest) Then
+  scriptCmd = BuildScriptInvocationCommand(ps, brokerTest, psReady, psDetail)
+  On Error Resume Next
+  rc = sh.Run(scriptCmd, 0, True)
+  If Err.Number <> 0 Then
+    WriteUnicodeText psWarning, "Local script compatibility test could not be launched: " & CStr(Err.Number) & " - " & Err.Description
+    Err.Clear
+  ElseIf rc <> 0 Or Not fso.FileExists(psReady) Then
+    warnText = "Local script compatibility test failed. Exit code: " & CStr(rc)
+    If fso.FileExists(psDetail) Then warnText = warnText & vbCrLf & vbCrLf & ReadTextUnicodeFirst(psDetail)
+    WriteUnicodeText psWarning, warnText
+  End If
   On Error GoTo 0
-  WScript.Quit 6
-End If
-On Error GoTo 0
-
-If rc <> 0 Or Not fso.FileExists(psReady) Then
-  Dim detail
-  detail = "PowerShell -Command works, but invoking a local .ps1 failed. Exit code: " & CStr(rc)
-  If fso.FileExists(psDetail) Then detail = detail & vbCrLf & vbCrLf & ReadTextAnsiOrUnicode(psDetail)
-  WriteUnicodeText psError, detail
-  WScript.Quit 7
 End If
 
 WriteAnsiText readyPath, CStr(Now)
 
 Dim idleSeconds
 idleSeconds = 0
-
 Do
   If fso.FileExists(shutdownPath) Then Exit Do
 
@@ -113,7 +112,7 @@ Sub ProcessRequests(ByVal q, ByVal toolkitRoot)
   For Each file In folder.Files
     name = LCase(file.Name)
     If Left(name, 8) = "request-" And Right(name, 4) = ".txt" Then
-      manifest = ReadTextAnsiOrUnicode(file.Path)
+      manifest = ReadTextUnicodeFirst(file.Path)
       On Error Resume Next
       fso.DeleteFile file.Path, True
       On Error GoTo 0
@@ -124,9 +123,8 @@ Sub ProcessRequests(ByVal q, ByVal toolkitRoot)
 End Sub
 
 Sub LaunchManifest(ByVal manifestPath, ByVal toolkitRoot)
-  Dim runner, psLocal, cmd, startedPath, launchErrorPath, cancelPath, donePath, launchErr, runnerDetail
+  Dim runner, psLocal, cmd, launchErrorPath, cancelPath, donePath, launchErr
   runner = fso.BuildPath(toolkitRoot, "App\Invoke-ToolRunner.ps1")
-  startedPath = ManifestValue(manifestPath, "StartedPath")
   launchErrorPath = ManifestValue(manifestPath, "LaunchErrorPath")
   cancelPath = ManifestValue(manifestPath, "CancelPath")
   donePath = ManifestValue(manifestPath, "DonePath")
@@ -145,8 +143,7 @@ Sub LaunchManifest(ByVal manifestPath, ByVal toolkitRoot)
   End If
 
   psLocal = ResolvePowerShell()
-  runnerDetail = launchErrorPath
-  cmd = BuildRunnerInvocationCommand(psLocal, runner, manifestPath, runnerDetail)
+  cmd = BuildRunnerInvocationCommand(psLocal, runner, manifestPath, launchErrorPath)
 
   On Error Resume Next
   sh.Run cmd, 0, False
@@ -169,7 +166,7 @@ End Function
 
 Function BuildRunnerInvocationCommand(ByVal psExe, ByVal runnerPath, ByVal manifestPath, ByVal detailPath)
   Dim commandText
-  commandText = "$ErrorActionPreference='Stop';try{& " & PsLiteral(runnerPath) & " -ManifestPath " & PsLiteral(manifestPath) & ";exit $LASTEXITCODE}catch{($_ | Format-List * -Force | Out-String -Width 4096) | Set-Content -LiteralPath " & PsLiteral(detailPath) & " -Encoding Unicode;exit 1}"
+  commandText = "$ErrorActionPreference='Stop';try{$code=[IO.File]::ReadAllText(" & PsLiteral(runnerPath) & ");$sb=[ScriptBlock]::Create($code);& $sb -ManifestPath " & PsLiteral(manifestPath) & ";if($LASTEXITCODE -ne $null){exit [int]$LASTEXITCODE}else{exit 0}}catch{($_ | Format-List * -Force | Out-String -Width 4096) | Set-Content -LiteralPath " & PsLiteral(detailPath) & " -Encoding Unicode;exit 1}"
   BuildRunnerInvocationCommand = Q(psExe) & " -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command " & Q(commandText)
 End Function
 
@@ -209,9 +206,9 @@ Function ManifestValue(ByVal path, ByVal wantedKey)
   ts.Close
 End Function
 
-Function ReadTextAnsiOrUnicode(ByVal path)
+Function ReadTextUnicodeFirst(ByVal path)
   Dim ts
-  ReadTextAnsiOrUnicode = ""
+  ReadTextUnicodeFirst = ""
   On Error Resume Next
   Set ts = fso.OpenTextFile(path, 1, False, -1)
   If Err.Number <> 0 Then
@@ -223,7 +220,7 @@ Function ReadTextAnsiOrUnicode(ByVal path)
     Exit Function
   End If
   On Error GoTo 0
-  ReadTextAnsiOrUnicode = ts.ReadAll
+  ReadTextUnicodeFirst = ts.ReadAll
   ts.Close
 End Function
 
