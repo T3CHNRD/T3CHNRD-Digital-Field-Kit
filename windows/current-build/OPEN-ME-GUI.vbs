@@ -4,8 +4,9 @@ If WScript.Arguments.Count > 0 Then
   If LCase(WScript.Arguments(0)) = "/syntax-only" Then WScript.Quit 0
 End If
 
+
 Dim fso, sh, app, root, hta, broker, elevated, queue, token, readyPath, errorPath, warningPath, i
-Dim mshta, diagScript, diagReport, ps, iconPath, detail, ts, degraded, dts, brokerCmd
+Dim mshta, diagScript, diagReport, ps, iconPath, detail, ts, degraded, dts, brokerCmd, missingHostTest
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set sh = CreateObject("WScript.Shell")
 Set app = CreateObject("Shell.Application")
@@ -25,7 +26,19 @@ If Not fso.FileExists(broker) Then
   WScript.Quit 1
 End If
 
-' Keep the existing elevated field-test mode for v10.2.7 while the Windows runner
+If WScript.Arguments.Count > 0 Then
+  If LCase(WScript.Arguments(0)) = "/host-self-test" Then
+    missingHostTest = fso.BuildPath(sh.ExpandEnvironmentStrings("%TEMP%"), "T3DFK-WindowHost-selftest-missing.exe")
+    If fso.FileExists(missingHostTest) Then fso.DeleteFile missingHostTest, True
+    If HostNeedsCompile(fso.BuildPath(root, "App\WindowHost.cs"), missingHostTest) Then
+      WScript.Quit 0
+    Else
+      WScript.Quit 5
+    End If
+  End If
+End If
+
+' Keep the existing elevated field-test mode for v10.2.8 while the Windows runner
 ' is being stabilized. Per-tool elevation remains a later cleanup once the shared
 ' runner path is proven.
 elevated = False
@@ -37,6 +50,9 @@ If Not elevated Then
   WScript.Quit 0
 End If
 
+' Files extracted from a downloaded ZIP can inherit Mark-of-the-Web. Remove only
+' Zone.Identifier metadata from this toolkit tree. This does not alter Windows
+' policy, registry, services, or files outside the toolkit folder.
 ps = ResolvePowerShell()
 Call UnblockToolkit(ps, root)
 
@@ -66,7 +82,10 @@ Next
 
 If Not fso.FileExists(readyPath) Then
   detail = "The background runner broker did not become ready. T3CHNRD will open in diagnostic mode so the application can still be used while the runner problem is investigated."
-  If fso.FileExists(errorPath) Then detail = detail & vbCrLf & vbCrLf & "Broker detail:" & vbCrLf & ReadUnicodeOrAnsi(errorPath)
+  If fso.FileExists(errorPath) Then
+    detail = detail & vbCrLf & vbCrLf & "Broker detail:" & vbCrLf & ReadUnicodeOrAnsi(errorPath)
+  End If
+
   diagReport = fso.BuildPath(sh.ExpandEnvironmentStrings("%TEMP%"), "T3DFK-Runner-Diagnostics-" & token & ".txt")
   If fso.FileExists(diagScript) Then
     On Error Resume Next
@@ -74,9 +93,12 @@ If Not fso.FileExists(readyPath) Then
     Err.Clear
     On Error GoTo 0
   End If
-  If fso.FileExists(diagReport) Then detail = detail & vbCrLf & vbCrLf & "Runner diagnostics:" & vbCrLf & ReadUnicodeOrAnsi(diagReport)
+  If fso.FileExists(diagReport) Then
+    detail = detail & vbCrLf & vbCrLf & "Runner diagnostics:" & vbCrLf & ReadUnicodeOrAnsi(diagReport)
+  End If
   detail = detail & vbCrLf & vbCrLf & "Diagnostic report: " & diagReport
   sh.Environment("PROCESS")("T3DFK_BROKER_DIAG_REPORT") = diagReport
+
   degraded = fso.BuildPath(queue, "broker.degraded")
   On Error Resume Next
   Set dts = fso.CreateTextFile(degraded, True, True)
@@ -120,8 +142,9 @@ Sub LaunchToolkitWindow(ByVal toolkitRoot, ByVal htaPath, ByVal icoPath)
   EnsureFolder runtimeRoot
   hostExe = fso.BuildPath(runtimeRoot, "T3DFK-WindowHost.exe")
   useHost = False
+
   If fso.FileExists(hostSource) And fso.FileExists(icoPath) Then
-    If (Not fso.FileExists(hostExe)) Or (fso.GetFile(hostSource).DateLastModified > fso.GetFile(hostExe).DateLastModified) Then
+    If HostNeedsCompile(hostSource, hostExe) Then
       csc = FindCsc()
       If Len(csc) > 0 Then
         compileCmd = Q(csc) & " /nologo /target:winexe /r:System.Windows.Forms.dll /win32icon:" & Q(icoPath) & " /out:" & Q(hostExe) & " " & Q(hostSource)
@@ -136,6 +159,7 @@ Sub LaunchToolkitWindow(ByVal toolkitRoot, ByVal htaPath, ByVal icoPath)
     End If
     If fso.FileExists(hostExe) Then useHost = True
   End If
+
   If useHost Then
     sh.Run Q(hostExe) & " " & Q(htaPath) & " " & Q(icoPath), 1, False
   Else
@@ -144,6 +168,14 @@ Sub LaunchToolkitWindow(ByVal toolkitRoot, ByVal htaPath, ByVal icoPath)
     sh.Run Q(mshta) & " " & Q(htaPath), 1, False
   End If
 End Sub
+
+Function HostNeedsCompile(ByVal hostSource, ByVal hostExe)
+  If Not fso.FileExists(hostExe) Then
+    HostNeedsCompile = True
+    Exit Function
+  End If
+  HostNeedsCompile = (fso.GetFile(hostSource).DateLastModified > fso.GetFile(hostExe).DateLastModified)
+End Function
 
 Function FindCsc()
   Dim p
