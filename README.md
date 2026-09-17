@@ -1,6 +1,6 @@
 # T3CHNRD Digital Field Kit
 
-**T3CHNRD Digital Field Kit** is a portable, installable field-service toolkit for diagnosing, troubleshooting, repairing, documenting, and eventually AI-assisting common computer problems.
+**T3CHNRD Digital Field Kit** is a portable and installable field-service toolkit for diagnosing, troubleshooting, repairing, documenting, and eventually AI-assisting common computer problems.
 
 ## End goal
 
@@ -55,34 +55,37 @@ The Windows edition provides a single GUI for technician diagnostics and support
 
 The existing diagnostic PowerShell scripts are treated as working source and are not rewritten merely to fit the GUI. The application shell, runner, installer, path handling, and tool mappings are built around them.
 
-## Current stabilization line: v10.2.1
+## Current stabilization line: v10.2.4
 
-The current Windows test build focuses on the runner/startup problem seen during field testing.
+The v10.2.4 Windows field-test build specifically targets the shared failures observed on the real workstation.
 
-Key v10.2.1 changes:
+Verified field evidence showed that `cmd.exe` and `powershell.exe -Command` work on the affected computer, while the older `powershell.exe -File` script self-test returns exit code 1. The application therefore no longer treats the failing legacy `-File` self-test as proof that the entire runner is unavailable.
 
-- fixes an ANSI/Unicode mismatch that made broker error text appear as Chinese/CJK-looking gibberish even though the original message was English
-- adds a two-stage runner startup test:
-  1. verify `powershell.exe -Command`
-  2. verify `powershell.exe -File`
-- adds standalone runner diagnostics that independently test `cmd.exe`, PowerShell command execution, and PowerShell script-file execution
-- opens the main GUI in **diagnostic mode** if the PowerShell broker cannot become ready instead of refusing to open the toolkit entirely
-- preserves the existing PowerShell diagnostic script tree byte-for-byte relative to the v10.2 package
-- keeps the current cancel/process-tree handling and in-app Run Center architecture
+Key v10.2.4 changes:
 
-The startup diagnostics report is written under `%TEMP%` as `T3DFK-Runner-Diagnostics-*.txt`.
+- broker readiness is based on the PowerShell inline-command primitive that is proven to work on the affected Windows machine
+- the older local-script compatibility check is retained as a diagnostic warning instead of globally forcing the application into Runner Diagnostic Mode
+- `Invoke-ToolRunner.ps1` is loaded into the broker PowerShell process from source using a ScriptBlock, while the actual diagnostic scripts under `Scripts\` remain unchanged
+- normal tool scripts are launched through an encoded command that invokes the original `.ps1` by path, preserving script paths and normal tool behavior
+- the launcher removes only `Zone.Identifier` / Mark-of-the-Web metadata from files inside the extracted toolkit tree before startup; it does not change machine execution policy or security configuration
+- the graphical installer bootstrap no longer depends on `powershell.exe -File`; it loads the installer source through the command path and reports startup errors to `%TEMP%\T3DFK-Install-Launcher-Error.txt`
+- the graphical installer copies the complete toolkit with real progress, verifies application files and GUI tool targets, creates Start Menu/optional desktop shortcuts, and registers uninstall information
+- `App\WindowHost.cs` provides a native Windows helper that applies `Toolkit.ico` to the actual HTA window/taskbar entry when the local .NET Framework compiler is available
+- the header layout separates platform selection from search/navigation, removes the redundant in-app Close control, and includes narrower-window breakpoints
+- runner diagnostics retain the original `-File` test for troubleshooting, but explicitly distinguish it from the broker readiness requirement
+- all 56 files under the diagnostic `Scripts\` tree remain unchanged in this stabilization line
+
+The current build is package/static tested here, but Windows-only behavior such as HTA hosting, UAC, taskbar icon assignment, Defender/WMI/CIM calls, and the installer still requires field testing on Windows before being called proven.
 
 ## Portable Windows use
 
-Extract the complete package and run:
+Extract the complete package into a fresh folder and run:
 
 ```text
 OPEN-ME-GUI.vbs
 ```
 
-If the PowerShell runner cannot initialize, the app opens in diagnostic mode and reports which process-launch stage failed.
-
-A standalone test is also available:
+The portable launcher starts the background broker, establishes the per-session queue, and then opens the GUI. A standalone runner diagnostic remains available:
 
 ```text
 RUN-RUNNER-DIAGNOSTICS.vbs
@@ -96,11 +99,13 @@ The primary installer launcher is:
 INSTALL-T3DFK.vbs
 ```
 
-The installer is intended to choose the install destination, create shortcuts, copy/verify the application, register uninstall support, and use the T3CHNRD application icon.
+The installer asks for the destination, shows copy/verification progress, can create a desktop shortcut, creates a Start Menu shortcut, registers uninstall support, and uses the T3CHNRD application icon.
 
 ## Safety model
 
 Read-only diagnostics are separated from actions that modify the machine. Repair, cleanup, network reset, encryption changes, updates, firmware/BIOS workflows, installers, and other higher-impact actions require deliberate technician selection/confirmation.
+
+The current stabilization work does not change PowerShell execution policy, registry security policy, Windows services, scheduled tasks, or unrelated system files merely to make the runner appear healthy.
 
 ## Source layout
 
@@ -111,13 +116,17 @@ windows/current-build/
 │   ├── RunnerBroker.vbs
 │   ├── Runner-Diagnostics.vbs
 │   ├── Broker-PowerShell-SelfTest.ps1
-│   └── Invoke-ToolRunner.ps1
+│   ├── Invoke-ToolRunner.ps1
+│   ├── WindowHost.cs
+│   └── other app integration helpers
 ├── Assets/
 ├── Config/
 ├── Installer/
+│   └── Install-Wizard.ps1
 ├── Scripts/
 ├── Docs/
 ├── OPEN-ME-GUI.vbs
+├── RUN-PORTABLE.vbs
 ├── RUN-RUNNER-DIAGNOSTICS.vbs
 └── install/launch helpers
 ```
