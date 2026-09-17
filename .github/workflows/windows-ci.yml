@@ -1,0 +1,21 @@
+name: Windows App CI
+
+on:
+  push:
+    paths:
+      - 'windows/current-build/**'
+      - '.github/workflows/windows-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  windows-smoke:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Windows PowerShell / WSH smoke tests
+        shell: powershell
+        run: |
+          Set-ExecutionPolicy -Scope Process Bypass -Force
+          & .\windows\current-build\Tests\Windows-CI-Smoke.ps1
