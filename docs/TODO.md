@@ -21,14 +21,15 @@ See `PROJECT-VISION.md` for the shared Windows / Intel macOS / Apple Silicon pro
 ## Active - Windows stabilization
 
 - [ ] Complete Windows runtime field testing for every tool category on Windows 10 and Windows 11.
-- [ ] Prove the **v10.2.4** startup broker / embedded runner on a real Windows machine with **Embedded Runner Self-Test**, Device Information Report, BSOD / Crash Report, Launch Diagnostic Consoles, Defender Audit, and Security Baseline Audit.
+- [ ] Prove the **v10.2.6** startup broker / embedded runner on a real Windows machine with **Embedded Runner Self-Test**, Device Information Report, BSOD / Crash Report, Launch Diagnostic Consoles, Defender Audit, and Security Baseline Audit.
 - [x] Preserve field evidence that `cmd.exe` and Windows PowerShell `-Command` work while the older `powershell.exe -File` self-test returns exit code 1 on the affected workstation.
-- [x] Stop treating the old `-File` compatibility self-test as the broker readiness gate. In v10.2.4 it is diagnostic-only and cannot falsely take the entire runner offline when `-Command` is healthy.
-- [x] Correct the v10.2.2 VBScript `800A0005` error-reporting/encoding failure; broker and diagnostic error detail now use Unicode-safe paths.
+- [x] Stop treating the old `-File` compatibility self-test as the broker readiness gate; it is diagnostic-only and cannot falsely take the entire runner offline when `-Command` is healthy.
+- [x] Correct the v10.2.2 VBScript `800A0005` error-reporting/encoding failure; broker and diagnostic error detail use Unicode-safe paths.
 - [x] Change the primary installer bootstrap so it no longer depends on `powershell.exe -File` on the affected field PC.
-- [ ] Field-test the v10.2.4 graphical installer destination selection, progress, verification, shortcuts, installed launch, and uninstall entry.
+- [x] Correct the v10.2.5 Windows Script Host compile failure: generated infrastructure files contained `CRCRLF` (`0D 0D 0A`) line endings. Because the launchers/broker use VBScript underscore continuations, the extra carriage return created a blank physical line and caused WSH error `800A03EA`. v10.2.6 canonicalizes infrastructure text to exact CRLF; VBS/CMD files are ASCII with no UTF-8 BOM; diagnostic scripts remain byte-for-byte unchanged.
+- [ ] Field-test the v10.2.6 graphical installer destination selection, progress, verification, shortcuts, installed launch, and uninstall entry.
 - [ ] Field-test the native taskbar/window icon host and confirm `Toolkit.ico` appears for the running app and installed shortcuts.
-- [ ] Field-test the v10.2.4 responsive header at normal width and narrower windows, including Windows display scaling where practical.
+- [ ] Field-test the responsive header at normal width and narrower windows, including Windows display scaling where practical.
 - [ ] Prove portable window minimize / maximize / resize / close behavior.
 - [ ] Prove Deployment **Install All Apps** behavior; it must install Chrome, Firefox, Malwarebytes, AVG and CCleaner while excluding Win11Debloat and all WinUtil workflows.
 - [ ] Confirm All Tools scrolling/search performance is acceptable on the field machine.
