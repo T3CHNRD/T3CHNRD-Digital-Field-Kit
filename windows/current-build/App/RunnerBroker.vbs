@@ -13,61 +13,63 @@ heartbeatPath = fso.BuildPath(queue, "heartbeat.txt")
 
 If Not fso.FolderExists(queue) Then fso.CreateFolder queue
 
-' Prove the process chain in two stages before the GUI relies on it.
-Dim brokerTest, psReady, psCommandReady, psError, ps, testCmd, commandCmd, waitIndex
+Dim brokerTest, psReady, psCommandReady, psError, psDetail, ps, commandCmd, scriptCmd, rc
 brokerTest = fso.BuildPath(root, "App\Broker-PowerShell-SelfTest.ps1")
-psReady = fso.BuildPath(queue, "powershell-file.ready")
+psReady = fso.BuildPath(queue, "powershell-script.ready")
 psCommandReady = fso.BuildPath(queue, "powershell-command.ready")
 psError = fso.BuildPath(queue, "broker.error")
+psDetail = fso.BuildPath(queue, "broker-powershell-detail.txt")
+
 If Not fso.FileExists(brokerTest) Then
-  WriteText psError, "Broker PowerShell self-test is missing: " & brokerTest
+  WriteUnicodeText psError, "Broker PowerShell self-test is missing: " & brokerTest
   WScript.Quit 3
 End If
-ps = sh.ExpandEnvironmentStrings("%WINDIR%") & "\System32\WindowsPowerShell\v1.0\powershell.exe"
-If Not fso.FileExists(ps) Then ps = "powershell.exe"
 
-' Stage 1: prove powershell.exe can execute a simple command.
+ps = ResolvePowerShell()
+
+' Stage 1: prove powershell.exe can execute an inline command.
 Dim commandLiteral
-commandLiteral = Replace(psCommandReady, "'", "''")
-commandCmd = Q(ps) & " -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command " & Q("[IO.File]::WriteAllText('" & commandLiteral & "','ok',[Text.Encoding]::ASCII)")
+commandLiteral = PsLiteral(psCommandReady)
+commandCmd = Q(ps) & " -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command " & Q("[IO.File]::WriteAllText(" & commandLiteral & ",'ok',[Text.Encoding]::ASCII)")
 On Error Resume Next
-sh.Run commandCmd, 0, False
+rc = sh.Run(commandCmd, 0, True)
 If Err.Number <> 0 Then
-  WriteText psError, "Unable to launch Windows PowerShell from the broker: " & CStr(Err.Number) & " - " & Err.Description
+  WriteUnicodeText psError, "Unable to launch Windows PowerShell from the broker: " & CStr(Err.Number) & " - " & Err.Description
   Err.Clear
   On Error GoTo 0
   WScript.Quit 4
 End If
 On Error GoTo 0
-For waitIndex = 1 To 100
-  If fso.FileExists(psCommandReady) Then Exit For
-  WScript.Sleep 100
-Next
-If Not fso.FileExists(psCommandReady) Then
-  WriteText psError, "Windows PowerShell did not complete a simple -Command startup test within 10 seconds. PowerShell may be blocked by Windows security, application control, antivirus/EDR, or system policy."
+If rc <> 0 Or Not fso.FileExists(psCommandReady) Then
+  WriteUnicodeText psError, "Windows PowerShell failed the inline -Command startup test. Exit code: " & CStr(rc)
   WScript.Quit 5
 End If
 
-' Stage 2: prove a local .ps1 can execute with -File.
-testCmd = Q(ps) & " -NoLogo -NoProfile -NonInteractive -STA -ExecutionPolicy Bypass -File " & Q(brokerTest) & " -ReadyPath " & Q(psReady)
+' Stage 2: invoke a real local .ps1 from a PowerShell command and capture the exact exception.
+' This avoids depending on powershell.exe -File parsing for the broker bootstrap while still
+' exercising normal PowerShell script invocation and execution-policy enforcement.
+DeleteIfExists psReady
+DeleteIfExists psDetail
+scriptCmd = BuildScriptInvocationCommand(ps, brokerTest, psReady, psDetail)
 On Error Resume Next
-sh.Run testCmd, 0, False
+rc = sh.Run(scriptCmd, 0, True)
 If Err.Number <> 0 Then
-  WriteText psError, "PowerShell started, but the broker could not launch the script-file self-test: " & CStr(Err.Number) & " - " & Err.Description
+  WriteUnicodeText psError, "PowerShell launched, but the broker could not start the script invocation self-test: " & CStr(Err.Number) & " - " & Err.Description
   Err.Clear
   On Error GoTo 0
   WScript.Quit 6
 End If
 On Error GoTo 0
-For waitIndex = 1 To 100
-  If fso.FileExists(psReady) Then Exit For
-  WScript.Sleep 100
-Next
-If Not fso.FileExists(psReady) Then
-  WriteText psError, "PowerShell -Command works, but PowerShell -File did not complete the local script self-test within 10 seconds. Script execution may be blocked, or the extracted files may be carrying downloaded-file security metadata."
+
+If rc <> 0 Or Not fso.FileExists(psReady) Then
+  Dim detail
+  detail = "PowerShell -Command works, but invoking a local .ps1 failed. Exit code: " & CStr(rc)
+  If fso.FileExists(psDetail) Then detail = detail & vbCrLf & vbCrLf & ReadTextAnsiOrUnicode(psDetail)
+  WriteUnicodeText psError, detail
   WScript.Quit 7
 End If
-WriteText readyPath, CStr(Now)
+
+WriteAnsiText readyPath, CStr(Now)
 
 Dim idleSeconds
 idleSeconds = 0
@@ -111,7 +113,7 @@ Sub ProcessRequests(ByVal q, ByVal toolkitRoot)
   For Each file In folder.Files
     name = LCase(file.Name)
     If Left(name, 8) = "request-" And Right(name, 4) = ".txt" Then
-      manifest = ReadText(file.Path)
+      manifest = ReadTextAnsiOrUnicode(file.Path)
       On Error Resume Next
       fso.DeleteFile file.Path, True
       On Error GoTo 0
@@ -122,7 +124,7 @@ Sub ProcessRequests(ByVal q, ByVal toolkitRoot)
 End Sub
 
 Sub LaunchManifest(ByVal manifestPath, ByVal toolkitRoot)
-  Dim runner, ps, cmd, startedPath, launchErrorPath, cancelPath, donePath, launchErr
+  Dim runner, psLocal, cmd, startedPath, launchErrorPath, cancelPath, donePath, launchErr, runnerDetail
   runner = fso.BuildPath(toolkitRoot, "App\Invoke-ToolRunner.ps1")
   startedPath = ManifestValue(manifestPath, "StartedPath")
   launchErrorPath = ManifestValue(manifestPath, "LaunchErrorPath")
@@ -131,20 +133,20 @@ Sub LaunchManifest(ByVal manifestPath, ByVal toolkitRoot)
 
   If Len(cancelPath) > 0 Then
     If fso.FileExists(cancelPath) Then
-      If Len(donePath) > 0 Then WriteText donePath, "1223"
+      If Len(donePath) > 0 Then WriteAnsiText donePath, "1223"
       Exit Sub
     End If
   End If
 
   If Not fso.FileExists(runner) Then
-    If Len(launchErrorPath) > 0 Then WriteText launchErrorPath, "Runner script missing: " & runner
-    If Len(donePath) > 0 Then WriteText donePath, "1"
+    If Len(launchErrorPath) > 0 Then WriteUnicodeText launchErrorPath, "Runner script missing: " & runner
+    If Len(donePath) > 0 Then WriteAnsiText donePath, "1"
     Exit Sub
   End If
 
-  ps = sh.ExpandEnvironmentStrings("%WINDIR%") & "\System32\WindowsPowerShell\v1.0\powershell.exe"
-  If Not fso.FileExists(ps) Then ps = "powershell.exe"
-  cmd = Q(ps) & " -NoLogo -NoProfile -STA -ExecutionPolicy Bypass -File " & Q(runner) & " -ManifestPath " & Q(manifestPath)
+  psLocal = ResolvePowerShell()
+  runnerDetail = launchErrorPath
+  cmd = BuildRunnerInvocationCommand(psLocal, runner, manifestPath, runnerDetail)
 
   On Error Resume Next
   sh.Run cmd, 0, False
@@ -152,18 +154,41 @@ Sub LaunchManifest(ByVal manifestPath, ByVal toolkitRoot)
     launchErr = Err.Description
     Err.Clear
     On Error GoTo 0
-    If Len(launchErrorPath) > 0 Then WriteText launchErrorPath, "Unable to start PowerShell runner from broker: " & launchErr
-    If Len(donePath) > 0 Then WriteText donePath, "1"
+    If Len(launchErrorPath) > 0 Then WriteUnicodeText launchErrorPath, "Unable to start PowerShell runner from broker: " & launchErr
+    If Len(donePath) > 0 Then WriteAnsiText donePath, "1"
     Exit Sub
   End If
   On Error GoTo 0
 End Sub
+
+Function BuildScriptInvocationCommand(ByVal psExe, ByVal scriptPath, ByVal markerPath, ByVal detailPath)
+  Dim commandText
+  commandText = "$ErrorActionPreference='Stop';try{& " & PsLiteral(scriptPath) & " -ReadyPath " & PsLiteral(markerPath) & ";if(-not $?) { throw 'Self-test script returned failure.' };exit 0}catch{($_ | Format-List * -Force | Out-String -Width 4096) | Set-Content -LiteralPath " & PsLiteral(detailPath) & " -Encoding Unicode;exit 1}"
+  BuildScriptInvocationCommand = Q(psExe) & " -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command " & Q(commandText)
+End Function
+
+Function BuildRunnerInvocationCommand(ByVal psExe, ByVal runnerPath, ByVal manifestPath, ByVal detailPath)
+  Dim commandText
+  commandText = "$ErrorActionPreference='Stop';try{& " & PsLiteral(runnerPath) & " -ManifestPath " & PsLiteral(manifestPath) & ";exit $LASTEXITCODE}catch{($_ | Format-List * -Force | Out-String -Width 4096) | Set-Content -LiteralPath " & PsLiteral(detailPath) & " -Encoding Unicode;exit 1}"
+  BuildRunnerInvocationCommand = Q(psExe) & " -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command " & Q(commandText)
+End Function
+
+Function ResolvePowerShell()
+  Dim p
+  p = sh.ExpandEnvironmentStrings("%WINDIR%") & "\System32\WindowsPowerShell\v1.0\powershell.exe"
+  If Not fso.FileExists(p) Then p = "powershell.exe"
+  ResolvePowerShell = p
+End Function
 
 Function ManifestValue(ByVal path, ByVal wantedKey)
   Dim ts, line, pos, k, v
   ManifestValue = ""
   On Error Resume Next
   Set ts = fso.OpenTextFile(path, 1, False, -1)
+  If Err.Number <> 0 Then
+    Err.Clear
+    Set ts = fso.OpenTextFile(path, 1, False, 0)
+  End If
   If Err.Number <> 0 Then
     Err.Clear
     Exit Function
@@ -184,26 +209,47 @@ Function ManifestValue(ByVal path, ByVal wantedKey)
   ts.Close
 End Function
 
-Function ReadText(ByVal path)
+Function ReadTextAnsiOrUnicode(ByVal path)
   Dim ts
-  ReadText = ""
+  ReadTextAnsiOrUnicode = ""
   On Error Resume Next
   Set ts = fso.OpenTextFile(path, 1, False, -1)
+  If Err.Number <> 0 Then
+    Err.Clear
+    Set ts = fso.OpenTextFile(path, 1, False, 0)
+  End If
   If Err.Number <> 0 Then
     Err.Clear
     Exit Function
   End If
   On Error GoTo 0
-  ReadText = ts.ReadAll
+  ReadTextAnsiOrUnicode = ts.ReadAll
   ts.Close
 End Function
 
-Sub WriteText(ByVal path, ByVal text)
+Sub WriteAnsiText(ByVal path, ByVal text)
   Dim ts
   Set ts = fso.CreateTextFile(path, True, False)
-  ts.Write text
+  ts.Write CStr(text)
   ts.Close
 End Sub
+
+Sub WriteUnicodeText(ByVal path, ByVal text)
+  Dim ts
+  Set ts = fso.CreateTextFile(path, True, True)
+  ts.Write CStr(text)
+  ts.Close
+End Sub
+
+Sub DeleteIfExists(ByVal path)
+  On Error Resume Next
+  If fso.FileExists(path) Then fso.DeleteFile path, True
+  On Error GoTo 0
+End Sub
+
+Function PsLiteral(ByVal s)
+  PsLiteral = "'" & Replace(CStr(s), "'", "''") & "'"
+End Function
 
 Function Q(ByVal s)
   Q = Chr(34) & Replace(CStr(s), Chr(34), "") & Chr(34)
