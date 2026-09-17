@@ -46,7 +46,7 @@ If Not fso.FileExists(readyPath) Then
   detail = "The background runner broker did not become ready. T3CHNRD will open in diagnostic mode so the application can still be used while the runner problem is investigated."
   If fso.FileExists(errorPath) Then
     On Error Resume Next
-    Set ts = fso.OpenTextFile(errorPath, 1, False, 0)
+    Set ts = fso.OpenTextFile(errorPath, 1, False, -1)
     If Err.Number = 0 Then detail = detail & vbCrLf & vbCrLf & "Broker detail:" & vbCrLf & ts.ReadAll
     If Not ts Is Nothing Then ts.Close
     Err.Clear
@@ -62,7 +62,7 @@ If Not fso.FileExists(readyPath) Then
   End If
   If fso.FileExists(diagReport) Then
     On Error Resume Next
-    Set ts = fso.OpenTextFile(diagReport, 1, False, 0)
+    Set ts = fso.OpenTextFile(diagReport, 1, False, -1)
     If Err.Number = 0 Then detail = detail & vbCrLf & vbCrLf & "Runner diagnostics:" & vbCrLf & ts.ReadAll
     If Not ts Is Nothing Then ts.Close
     Err.Clear
@@ -73,7 +73,7 @@ If Not fso.FileExists(readyPath) Then
   On Error Resume Next
   Dim degraded, dts
   degraded = fso.BuildPath(queue, "broker.degraded")
-  Set dts = fso.CreateTextFile(degraded, True, False)
+  Set dts = fso.CreateTextFile(degraded, True, True)
   dts.WriteLine detail
   dts.Close
   On Error GoTo 0
