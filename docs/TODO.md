@@ -21,14 +21,15 @@ See `PROJECT-VISION.md` for the shared Windows / Intel macOS / Apple Silicon pro
 ## Active - Windows stabilization
 
 - [ ] Complete Windows runtime field testing for every tool category on Windows 10 and Windows 11.
-- [ ] Fix and prove the v10.2 startup broker / embedded runner on a real Windows machine with **Embedded Runner Self-Test**, Device Information Report, Defender Audit and Security Baseline Audit.
-- [ ] Fix the v10.2 launcher error-text encoding mismatch so broker errors display as readable English instead of mojibake/CJK-looking text.
-- [ ] Add runner diagnostics that distinguish: broker startup, `cmd.exe` child launch, PowerShell process launch, PowerShell `-Command`, and PowerShell `-File` execution.
+- [ ] Prove the **v10.2.3** startup broker / embedded runner on a real Windows machine with **Embedded Runner Self-Test**, Device Information Report, BSOD / Crash Report, Defender Audit and Security Baseline Audit.
+- [x] Correct the v10.2.2 VBScript `800A0005` crash caused by writing mis-decoded PowerShell detail through an ANSI `TextStream`; v10.2.3 uses Unicode end-to-end for broker/diagnostic error detail.
+- [ ] If v10.2.3 still cannot invoke the local PowerShell self-test, use the preserved PowerShell exception, execution-policy data, `Zone.Identifier`, signature status, and direct invocation result to identify the actual Windows restriction before changing the tool scripts.
 - [ ] Prove portable window minimize / maximize / resize / close behavior.
 - [ ] Prove Windows installer / uninstaller behavior.
 - [ ] Prove Deployment **Install All Apps** behavior; it must install Chrome, Firefox, Malwarebytes, AVG and CCleaner while excluding Win11Debloat and all WinUtil workflows.
 - [ ] Confirm All Tools scrolling/search performance is acceptable on the field machine.
 - [ ] Confirm taskbar/app icon behavior in portable and installed modes.
+- [ ] Finish synchronizing the full first-party Windows application source tree to GitHub so it mirrors the downloadable field-test package (excluding intentionally ignored third-party/runtime payloads).
 
 ## Runbook - after Windows stabilization
 
