@@ -18,6 +18,15 @@
 
 See `PROJECT-VISION.md` for the shared Windows / Intel macOS / Apple Silicon product goal.
 
+## Cross-platform launch/install requirements
+
+- [ ] Add **first-run OS/platform detection** so the field kit determines Windows vs macOS automatically before selecting the platform engine.
+- [ ] On macOS, detect **Intel (`x86_64`) vs Apple Silicon (`arm64`)** automatically and select the correct runtime without requiring the technician to know the CPU architecture.
+- [ ] Keep one portable external-drive product with clearly identified Windows and macOS launchers while presenting one shared product/UX.
+- [ ] Provide a real **portable launch entry point** that is easy to identify on a USB/external SSD and does not depend on the technician building anything locally.
+- [ ] Provide a validated Windows installer/uninstaller and a validated macOS installer/portable launch path. Do not mark the cross-platform installer requirement complete until both platforms have been built and tested on their native OS.
+- [ ] Preserve one shared Runbook/wiki and normalized diagnostic-report structure across Windows, Intel macOS, and Apple Silicon macOS.
+
 ## Active - Windows stabilization
 
 - [ ] Complete Windows runtime field testing for every tool category on Windows 10 and Windows 11.
@@ -55,6 +64,7 @@ See `PROJECT-VISION.md` for the shared Windows / Intel macOS / Apple Silicon pro
 - [ ] `softwareupdate`.
 - [ ] LaunchAgents / LaunchDaemons.
 - [ ] Define shared Windows/macOS diagnostic evidence schema.
+- [ ] Build/test the macOS portable launcher and installer on both Intel macOS and Apple Silicon macOS.
 
 ## AI / LLM - after macOS base collectors
 
