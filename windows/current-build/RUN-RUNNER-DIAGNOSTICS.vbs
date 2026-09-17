@@ -1,4 +1,9 @@
 Option Explicit
+
+If WScript.Arguments.Count > 0 Then
+  If LCase(WScript.Arguments(0)) = "/syntax-only" Then WScript.Quit 0
+End If
+
 Dim fso, sh, root, diag, report, token, cmd
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set sh = CreateObject("WScript.Shell")
