@@ -1,0 +1,61 @@
+name: Windows Package Validation
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify root technician entry points
+        shell: powershell
+        run: |
+          $required=@(
+            'T3CHNRD Digital Field Kit.vbs',
+            'INSTALL T3CHNRD Digital Field Kit.vbs',
+            'UNINSTALL T3CHNRD Digital Field Kit.vbs',
+            'Windows\App\T3DFK-Windows.ps1',
+            'Windows\Installer\Install-Windows.ps1',
+            'Windows\Config\tools.json',
+            'Windows\Config\ORIGINAL-SCRIPTS-GIT-SHA1.txt'
+          )
+          foreach($p in $required){if(-not(Test-Path -LiteralPath $p)){throw "Missing: $p"}}
+      - name: Parse PowerShell source
+        shell: powershell
+        run: |
+          Get-ChildItem Windows -Filter *.ps1 -Recurse | ForEach-Object {
+            $null=[scriptblock]::Create((Get-Content -LiteralPath $_.FullName -Raw))
+            Write-Host "PARSE PASS $($_.FullName)"
+          }
+      - name: Verify immutable original-script manifest
+        shell: powershell
+        run: |
+          Get-Content 'Windows\Config\ORIGINAL-SCRIPTS-GIT-SHA1.txt' | ForEach-Object {
+            if([string]::IsNullOrWhiteSpace($_)){return}
+            $parts=$_ -split '\s+\*',2
+            $expected=$parts[0].Trim()
+            $path=$parts[1].Trim()
+            if(-not(Test-Path -LiteralPath $path)){throw "Missing original script: $path"}
+            $actual=(git hash-object -- "$path").Trim()
+            if($actual -ne $expected){throw "Original script changed: $path"}
+            Write-Host "HASH PASS $path"
+          }
+      - name: Build technician ZIP
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force artifacts | Out-Null
+          $items=@(
+            'T3CHNRD Digital Field Kit.vbs',
+            'INSTALL T3CHNRD Digital Field Kit.vbs',
+            'UNINSTALL T3CHNRD Digital Field Kit.vbs',
+            'README - START HERE.txt',
+            'Windows','Runbook','Diagnostic-Reports','macOS Intel','macOS Apple Silicon','docs'
+          )
+          Compress-Archive -Path $items -DestinationPath 'artifacts\T3CHNRD-Digital-Field-Kit-Windows-Test.zip' -Force
+      - uses: actions/upload-artifact@v4
+        with:
+          name: T3CHNRD-Digital-Field-Kit-Windows-Test
+          path: artifacts/T3CHNRD-Digital-Field-Kit-Windows-Test.zip

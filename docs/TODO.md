@@ -9,7 +9,7 @@ Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIEL
 - [x] STATIC PASS - Original 59-entry GUI tool catalog restored.
 - [x] STATIC PASS - 39 tool entries have exact original PowerShell source restored from authoritative GitHub source.
 - [ ] 15 tool entries still lack an authoritative original script/payload body; they remain visible but disabled and must not be recreated.
-- [ ] Create and enforce SHA-256 manifest for restored original scripts.
+- [x] STATIC PASS - Create and enforce immutable Git blob SHA-1 manifest for restored original scripts.
 - [x] STATIC PASS - Embedded stdout/stderr capture and exit-code display for compatible noninteractive tools.
 - [x] STATIC PASS - Cancel uses taskkill /T /F on the child process tree.
 - [x] STATIC PASS - Interactive tools launch externally rather than blocking the embedded runner.
