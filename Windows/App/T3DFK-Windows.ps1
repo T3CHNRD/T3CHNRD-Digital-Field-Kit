@@ -136,7 +136,12 @@ foreach($n in @('Favorites','Tools','Recent','Runbook','Settings')){
  $b.ForeColor='White'
  $b.Font=New-Object Drawing.Font('Segoe UI',9,[Drawing.FontStyle]::Bold)
  $b.Tag=$n
- $b.Add_Click({ $script:View=$this.Tag; if($script:View -eq 'Tools'){$script:Category='All Tools'}; Update-View }.GetNewClosure())
+ $b.Add_Click({
+  param($sender,$eventArgs)
+  $script:View=[string]$sender.Tag
+  if($script:View -eq 'Tools'){$script:Category='All Tools'}
+  Update-View
+ })
  $tabsPanel.Controls.Add($b)
  $tabs[$n]=$b
  $x+=130
@@ -148,7 +153,14 @@ $search.Anchor='Top,Right'
 $search.Location=New-Object Drawing.Point(1110,7)
 $search.Font=New-Object Drawing.Font('Segoe UI',10)
 $tabsPanel.Controls.Add($search)
-$search.Add_TextChanged({ if($script:View -notin @('Runbook','Settings')){ Render-Cards } })
+$search.Add_TextChanged({
+ param($sender,$eventArgs)
+ if(-not [string]::IsNullOrWhiteSpace($sender.Text)){
+  $script:View='Tools'
+  $script:Category='All Tools'
+ }
+ if($script:View -notin @('Runbook','Settings')){Update-View}
+})
 
 $body=New-Object Windows.Forms.TableLayoutPanel
 $body.Dock='Fill'
@@ -183,7 +195,12 @@ foreach($n in @('All Tools','Diagnostics','Repair','Optimization','Security','Ne
  $b.TextAlign='MiddleLeft'
  $b.Padding=New-Object Windows.Forms.Padding(12,0,0,0)
  $b.Tag=$n
- $b.Add_Click({$script:View='Tools';$script:Category=$this.Tag;Update-View}.GetNewClosure())
+ $b.Add_Click({
+  param($sender,$eventArgs)
+  $script:View='Tools'
+  $script:Category=[string]$sender.Tag
+  Update-View
+ })
  $sideFlow.Controls.Add($b)
  $cats[$n]=$b
 }
@@ -203,7 +220,11 @@ foreach($n in @('Favorites','Recent','Runbook','Settings')){
  $b.TextAlign='MiddleLeft'
  $b.Padding=New-Object Windows.Forms.Padding(12,0,0,0)
  $b.Tag=$n
- $b.Add_Click({$script:View=$this.Tag;Update-View}.GetNewClosure())
+ $b.Add_Click({
+  param($sender,$eventArgs)
+  $script:View=[string]$sender.Tag
+  Update-View
+ })
  $sideFlow.Controls.Add($b)
 }
 
@@ -608,12 +629,18 @@ function Add-Card($tool){
  $star.Size=New-Object Drawing.Size(36,32)
  $star.Location=New-Object Drawing.Point(320,4)
  $star.Tag=$tool.Id
- $star.Add_Click({Toggle-Favorite $this.Tag})
+ $star.Add_Click({
+  param($sender,$eventArgs)
+  Toggle-Favorite ([string]$sender.Tag)
+ })
  $p.Controls.Add($star)
  foreach($c in @($p,$name,$desc,$risk)){
   $c.Cursor='Hand'
   $c.Tag=$tool
-  $c.Add_Click({Start-Tool $this.Tag}.GetNewClosure())
+  $c.Add_Click({
+   param($sender,$eventArgs)
+   Start-Tool $sender.Tag
+  })
  }
  $cards.Controls.Add($p)
 }
@@ -621,12 +648,15 @@ function Add-Card($tool){
 function Render-Cards{
  $cards.SuspendLayout()
  $cards.Controls.Clear()
- $items=@($tools)
- if($script:View -eq 'Favorites'){$items=@($script:Favorites | ForEach-Object {Get-Tool $_} | Where-Object {$_})}
- elseif($script:View -eq 'Recent'){$items=@($script:Recent | ForEach-Object {Get-Tool $_} | Where-Object {$_})}
- elseif($script:View -eq 'Tools' -and $script:Category -ne 'All Tools'){$items=@($items | Where-Object Category -eq $script:Category)}
  $q=$search.Text.Trim()
- if($q){$items=@($items | Where-Object {(($_.Name+' '+$_.Description+' '+$_.Category) -like ('*'+$q+'*'))})}
+ if($q){
+  $items=@($tools | Where-Object {(($_.Name+' '+$_.Description+' '+$_.Category) -like ('*'+$q+'*'))})
+ }else{
+  $items=@($tools)
+  if($script:View -eq 'Favorites'){$items=@($script:Favorites | ForEach-Object {Get-Tool $_} | Where-Object {$_})}
+  elseif($script:View -eq 'Recent'){$items=@($script:Recent | ForEach-Object {Get-Tool $_} | Where-Object {$_})}
+  elseif($script:View -eq 'Tools' -and $script:Category -ne 'All Tools'){$items=@($items | Where-Object Category -eq $script:Category)}
+ }
  foreach($t in $items){Add-Card $t}
  if($items.Count -eq 0){
   $e=New-Object Windows.Forms.Label
@@ -713,7 +743,11 @@ function Show-PlatformFallback{
   $row=[Math]::Floor($i/2)
   $b.Location=New-Object Drawing.Point((24+262*$col),(145+54*$row))
   $b.Tag=$ch[1]
-  $b.Add_Click({$platform.Text=$this.Tag;$d.Close()}.GetNewClosure())
+  $b.Add_Click({
+   param($sender,$eventArgs)
+   $platform.Text=[string]$sender.Tag
+   $d.Close()
+  })
   $d.Controls.Add($b)
   $i++
  }
@@ -751,8 +785,13 @@ function Update-View{
   $cards.Visible=$true
   Render-Cards
  }else{
-  $pageTitle.Text=$script:Category
-  $pageSub.Text='Select a tool to diagnose, repair, optimize, secure or deploy Windows systems.'
+  if(-not [string]::IsNullOrWhiteSpace($search.Text)){
+   $pageTitle.Text='Search Results'
+   $pageSub.Text='Searching all Field Kit tools.'
+  }else{
+   $pageTitle.Text=$script:Category
+   $pageSub.Text='Select a tool to diagnose, repair, optimize, secure or deploy Windows systems.'
+  }
   $info.Visible=$true
   $cards.Visible=$true
   Render-Cards
