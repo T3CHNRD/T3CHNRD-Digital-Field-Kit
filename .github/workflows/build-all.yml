@@ -1,0 +1,40 @@
+name: Build Field Kit
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            artifact: T3DFK-Windows-x64
+          - os: macos-latest
+            rid: osx-x64
+            artifact: T3DFK-macOS-Intel
+          - os: macos-latest
+            rid: osx-arm64
+            artifact: T3DFK-macOS-AppleSilicon
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore
+        run: dotnet restore src/T3DFK.App/T3DFK.App.csproj
+      - name: Publish
+        run: dotnet publish src/T3DFK.App/T3DFK.App.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -o dist/${{ matrix.rid }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.rid }}/

@@ -1,30 +1,17 @@
-# v11 architecture
+# v12 architecture
 
-v11 is a ground-up rebuild.
+## Decision
 
-## Windows execution path
+The application is rebuilt as a cross-platform Avalonia desktop app instead of extending the prior Windows-only WinForms/HTA launch stack.
 
-Production target:
+The same source is published for Windows, Intel macOS and Apple-Silicon macOS. Platform-specific diagnostics live under `scripts/windows` and `scripts/macos`.
 
-```
-T3DFK.exe -> native process runner -> Windows PowerShell -> original .ps1
-```
+## Why there are multiple native binaries
 
-Field-test fallback while the private GitHub hosted runner is unavailable:
+Windows PE executables and macOS Mach-O/application bundles are different native formats. A single native binary cannot be directly launched by both operating systems. The Field Kit therefore remains one product/drive while carrying separate native builds.
 
-```
-RUN-T3DFK.cmd -> T3DFK.ps1 WinForms shell -> Windows PowerShell -EncodedCommand -> original .ps1
-```
+## Failsafe startup behavior
 
-The active v11 design intentionally removes HTA, mshta.exe, VBScript brokers, marker-file IPC queues, and runtime-compiled window hosts.
+The app detects OS/architecture automatically. The top navigation also exposes Windows, macOS Intel and macOS Apple Silicon manual target buttons so a technician can confirm or override the selected profile when troubleshooting packaging/detection.
 
-The PowerShell diagnostic scripts are treated as immutable payloads. A SHA-256 manifest is checked before the field-test shell opens.
-
-## Cross-platform direction
-
-The external drive remains one T3CHNRD Digital Field Kit. First-run platform detection is required:
-- Windows -> Windows engine
-- macOS x86_64 -> Intel macOS engine
-- macOS arm64 -> Apple Silicon engine
-
-Work order remains Windows -> Runbook -> macOS -> local AI/LLM.
+The manual selector does not make an incompatible native binary executable on the wrong OS; it controls the app profile after a compatible platform build has already launched.

@@ -1,40 +1,20 @@
-# T3CHNRD Digital Field Kit v11 TODO
+# v12 TODO
 
-## Phase 1 - Windows
-- [x] Ground-up shell architecture
-- [x] Remove v10 HTA/VBScript broker architecture from active main
-- [x] Direct PowerShell invocation without the old broker/queue
-- [x] Preserve original scripts and SHA-256 manifest
-- [x] Native window controls and DPI-aware layout
-- [x] In-app output, exit state, logs, and cancel control
-- [x] Favorites, Recent, tool search, category navigation
-- [x] Windows portable launcher
-- [x] Windows field-test installer
-- [ ] Complete Windows field validation on the technician workstation
-- [ ] Restore/validate third-party deployment payloads only after the core runner passes
+## Complete in source
+- [x] Ground-up cross-platform application structure
+- [x] Remove old HTA/VBScript/MSHTA/broker architecture from active repository tree
+- [x] Automatic Windows/macOS + CPU architecture detection
+- [x] Manual platform selector failsafe
+- [x] Native desktop window controls through Avalonia
+- [x] Native Runbook file picker
+- [x] Windows Install All allow-list and explicit Win11Debloat/WinUtil exclusion
+- [x] Three GitHub Actions publish targets
 
-## Phase 2 - Runbook
-- [ ] Wiki-style browsing/search
-- [ ] Import documents
-- [ ] Article editor
-- [ ] Offline full-text index
-- [ ] AI retrieval integration
-
-## Phase 3 - macOS
-- [ ] First-run OS detection
-- [ ] Detect Intel x86_64 vs Apple Silicon arm64
-- [ ] system_profiler
-- [ ] Activity Monitor / memory pressure
-- [ ] DiagnosticReports
-- [ ] diskutil / APFS
-- [ ] FileVault
-- [ ] Gatekeeper / XProtect
-- [ ] networksetup / scutil
-- [ ] softwareupdate
-- [ ] LaunchAgents / LaunchDaemons
-- [ ] macOS portable launcher and installer
-
-## Phase 4 - local AI/LLM
-- [ ] Analyze Diagnostic-Reports offline
-- [ ] Retrieve relevant Runbook articles
-- [ ] Draft new Runbook procedures for technician review
+## Needs target-machine validation
+- [ ] Windows 10 field test
+- [ ] Windows 11 field test
+- [ ] macOS Intel field test
+- [ ] macOS Apple Silicon field test
+- [ ] Validate signing/notarization strategy before public macOS deployment
+- [ ] Migrate/revalidate the complete production diagnostic-script catalog one tool at a time
+- [ ] Rebuild full Runbook search/index/editor after base launcher passes
