@@ -27,7 +27,7 @@ sh.Run Q(ps) & " -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Com
   Q("Get-ChildItem -LiteralPath " & PsLiteral(root) & " -Recurse -File -ErrorAction SilentlyContinue | Unblock-File -ErrorAction SilentlyContinue; exit 0"), 0, True
 On Error GoTo 0
 
-cmdText = "$ErrorActionPreference='Stop';try{$code=[IO.File]::ReadAllText(" & PsLiteral(ui) & ");$sb=[ScriptBlock]::Create($code);& $sb -ToolkitRoot " & PsLiteral(root) & ";exit 0}catch{($_ | Out-String) | Set-Content -LiteralPath " & PsLiteral(logPath) & " -Encoding UTF8;exit 1}"
+cmdText = "$ErrorActionPreference='Stop';try{$code=[IO.File]::ReadAllText(" & PsLiteral(ui) & ");$sb=[ScriptBlock]::Create($code);. $sb -ToolkitRoot " & PsLiteral(root) & ";exit 0}catch{($_ | Out-String) | Set-Content -LiteralPath " & PsLiteral(logPath) & " -Encoding UTF8;exit 1}"
 args = "-NoLogo -NoProfile -STA -WindowStyle Hidden -ExecutionPolicy Bypass -Command " & Q(cmdText)
 
 rc = sh.Run(Q(ps) & " " & args, 0, True)
