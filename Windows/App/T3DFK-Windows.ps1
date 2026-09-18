@@ -246,10 +246,10 @@ $info.Padding=New-Object Windows.Forms.Padding(12,7,8,4)
 $info.Text='Select a tool to get started.' + [Environment]::NewLine + 'Normal tools run inside the embedded Run Center.'
 $pageHead.Controls.Add($info)
 
-$host=New-Object Windows.Forms.Panel
-$host.Dock='Fill'
-$host.BackColor=$paper
-$content.Controls.Add($host,0,1)
+$viewHost=New-Object Windows.Forms.Panel
+$viewHost.Dock='Fill'
+$viewHost.BackColor=$paper
+$content.Controls.Add($viewHost,0,1)
 
 $cards=New-Object Windows.Forms.FlowLayoutPanel
 $cards.Dock='Fill'
@@ -257,7 +257,7 @@ $cards.AutoScroll=$true
 $cards.WrapContents=$true
 $cards.FlowDirection='LeftToRight'
 $cards.BackColor=$paper
-$host.Controls.Add($cards)
+$viewHost.Controls.Add($cards)
 
 $runbook=New-Object Windows.Forms.TableLayoutPanel
 $runbook.Dock='Fill'
@@ -268,7 +268,7 @@ $runbook.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',48)))
 $runbook.RowStyles.Add((New-Object Windows.Forms.RowStyle('Percent',100)))
 $runbook.ColumnStyles.Add((New-Object Windows.Forms.ColumnStyle('Absolute',340)))
 $runbook.ColumnStyles.Add((New-Object Windows.Forms.ColumnStyle('Percent',100)))
-$host.Controls.Add($runbook)
+$viewHost.Controls.Add($runbook)
 
 $rbTools=New-Object Windows.Forms.FlowLayoutPanel
 $rbTools.Dock='Fill'
@@ -308,7 +308,7 @@ $settings.Visible=$false
 $settings.FlowDirection='TopDown'
 $settings.WrapContents=$false
 $settings.AutoScroll=$true
-$host.Controls.Add($settings)
+$viewHost.Controls.Add($settings)
 
 function Add-Setting([string]$Heading,[string]$Message){
  $p=New-Object Windows.Forms.Panel
