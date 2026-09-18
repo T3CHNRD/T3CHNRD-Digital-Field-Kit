@@ -134,3 +134,21 @@ Planned macOS order remains:
 - [ ] NEEDS FIELD TEST - Confirm one Security tool, one Network tool, one Repair tool, and one Optimization tool run in Run Center.
 - [ ] NEEDS FIELD TEST - Confirm UAC-required tool reopens elevated Field Kit and auto-runs without a visible PowerShell console.
 - [ ] NEEDS FIELD TEST - Confirm in-app input works for Open Remote C$ Share / PS1 to EXE Builder.
+
+
+## 2026-09-18 self-contained tool restoration / admin regex fix
+- [x] PASS FROM FIELD REPRODUCTION - JIT exception identified as an invalid administrator-detection regular expression.
+- [x] STATIC PASS - Replaced the single fragile administrator regex with separate valid checks; the previous broken expression is no longer present.
+- [x] STATIC PASS - Restored Launch Diagnostic Consoles from the original master diagnostic toolkit and enabled it.
+- [x] STATIC PASS - Restored BSOD / Crash Report from the original master diagnostic toolkit and enabled it.
+- [x] STATIC PASS - Restored Performance / Slowness Report from the original master diagnostic toolkit and enabled it.
+- [x] STATIC PASS - Restored Copy BSOD Minidumps from the original master diagnostic toolkit and enabled it.
+- [x] STATIC PASS - Restored OneNote Smart-Skip Audit and OneNote Master Importer from original toolkit source and enabled them.
+- [x] STATIC PASS - Retargeted the obsolete HTA-era Toolkit Integrity card to the current Application Integrity Self-Test.
+- [x] STATIC PASS - Added self-contained launch wrappers for Win11Debloat, WinUtil, and Open Setup Resources; wrappers expect bundled local resources and do not fetch replacements.
+- [x] STATIC PASS - Current manifest has 61 tools / 50 ready, 0 category mismatches, and 0 ready PowerShell mappings pointing to missing files.
+- [x] STATIC PASS - Current runner has no separate-PowerShell-window branch; it uses hidden PowerShell with stdout/stderr/stdin redirected into Run Center.
+- [ ] IN PROGRESS - Bundle exact original Win11Debloat/WinUtil projects and local application installers from the user-supplied toolkit into the technician package.
+- [ ] IN PROGRESS - Bundle exact original 24-Hour Sleep Hold and Exchange OWA Diagnostic scripts from the user-supplied toolkit.
+- [ ] NEEDS FIELD TEST - Re-test an enabled diagnostic tool after admin-regex fix and confirm output appears only in Run Center.
+- [ ] RELEASE GATE - Do not call Windows self-contained until the remaining 11 disabled payload-backed cards are bundled or intentionally removed.
