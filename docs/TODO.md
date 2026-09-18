@@ -112,3 +112,25 @@ Planned macOS order remains:
 - [x] ROOT CAUSE - Windows PowerShell 5.1 returned the JSON array as one array object; the UI treated that object as a single tool.
 - [x] STATIC PASS - Catalog loader now explicitly enumerates every JSON entry into $script:ToolCatalog.
 - [ ] NEEDS FIELD TEST - Confirm startup now reports 61 tools and individual cards populate all categories/search.
+
+
+## 2026-09-18 category and in-app execution audit
+- [x] STATIC PASS - Verified every tool category against the original Field Kit manifest.
+- [x] STATIC PASS - Original Diagnostics map to Diagnostics.
+- [x] STATIC PASS - Original Security + BitLocker map to Security.
+- [x] STATIC PASS - Original Network maps to Network.
+- [x] STATIC PASS - Original Storage maps to Repair.
+- [x] STATIC PASS - Original Updates map to Optimization.
+- [x] STATIC PASS - Original Setup maps to Deployment.
+- [x] STATIC PASS - Original Advanced maps to System Management.
+- [x] STATIC PASS - 0 category mismatches found across all 61 catalog entries.
+- [x] STATIC PASS - Every ready PowerShell tool is marked executionMode=InApp.
+- [x] STATIC PASS - Normal PowerShell tools run hidden with stdout/stderr/exit code in Run Center.
+- [x] STATIC PASS - Interactive PowerShell tools use Run Center input instead of opening a PowerShell console.
+- [x] STATIC PASS - Administrator-required tools reopen the Field Kit itself elevated via UAC and auto-run inside the elevated Run Center; no visible PowerShell console is intended.
+- [x] STATIC PASS - Tool-native GUI windows may still appear where the script itself is a GUI tool; this is not a PowerShell console.
+- [x] STATIC PASS - Application Integrity Self-Test now validates category mapping and in-app execution metadata.
+- [ ] NEEDS FIELD TEST - Confirm Device Information Report runs and displays output in Run Center.
+- [ ] NEEDS FIELD TEST - Confirm one Security tool, one Network tool, one Repair tool, and one Optimization tool run in Run Center.
+- [ ] NEEDS FIELD TEST - Confirm UAC-required tool reopens elevated Field Kit and auto-runs without a visible PowerShell console.
+- [ ] NEEDS FIELD TEST - Confirm in-app input works for Open Remote C$ Share / PS1 to EXE Builder.
