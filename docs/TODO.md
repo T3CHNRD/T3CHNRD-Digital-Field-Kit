@@ -105,3 +105,10 @@ Planned macOS order remains:
 - [ ] IN PROGRESS - Reconcile the remaining exact user-supplied Windows Master Diagnostic Toolkit scripts/resources with the current Field Kit catalog.
 - [ ] IN PROGRESS - Restore original deployment resources/workflows from the supplied toolkit without changing Win11Debloat/WinUtil exclusion from Install All.
 - [ ] NEEDS FIELD TEST - Verify tool cards now populate under Diagnostics, Repair, Optimization, Security, Network, Deployment, and System Management.
+
+
+## 2026-09-18 PowerShell 5.1 JSON catalog enumeration fix
+- [x] PASS FROM FIELD REPRODUCTION - App displayed "Loaded 1 tools (1 ready)" and one card containing concatenated names/descriptions from the entire catalog.
+- [x] ROOT CAUSE - Windows PowerShell 5.1 returned the JSON array as one array object; the UI treated that object as a single tool.
+- [x] STATIC PASS - Catalog loader now explicitly enumerates every JSON entry into $script:ToolCatalog.
+- [ ] NEEDS FIELD TEST - Confirm startup now reports 61 tools and individual cards populate all categories/search.
