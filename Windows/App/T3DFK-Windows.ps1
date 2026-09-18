@@ -43,6 +43,11 @@ $script:ExcludedRunbook = @('.venv312','ai_cowork','apps','deps.txt','static','t
 $manifestPath = Join-Path $root 'Windows\\Config\\tools.json'
 if(-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)){[Windows.Forms.MessageBox]::Show('Tool manifest is missing: '+$manifestPath,'T3CHNRD Digital Field Kit','OK','Error')|Out-Null;exit 2}
 $script:ToolCatalog = @(Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json)
+if($script:ToolCatalog.Count -eq 0){
+ [Windows.Forms.MessageBox]::Show('The tool catalog loaded but contains zero tools.','T3CHNRD Digital Field Kit','OK','Error')|Out-Null
+ exit 3
+}
+$script:ReadyToolCount=@($script:ToolCatalog | Where-Object {$_.ready}).Count
 
 
 $navy=[Drawing.Color]::FromArgb(7,48,72)
@@ -264,7 +269,7 @@ $info.BackColor=[Drawing.Color]::FromArgb(231,243,250)
 $info.ForeColor=[Drawing.Color]::FromArgb(50,79,103)
 $info.BorderStyle='FixedSingle'
 $info.Padding=New-Object Windows.Forms.Padding(12,7,8,4)
-$info.Text='Select a tool to get started.' + [Environment]::NewLine + 'Normal tools run inside the embedded Run Center.'
+$info.Text=('Loaded {0} tools ({1} ready).' -f $script:ToolCatalog.Count,$script:ReadyToolCount) + [Environment]::NewLine + 'Select a tool to run it in the embedded Run Center.'
 $pageHead.Controls.Add($info)
 
 $viewHost=New-Object Windows.Forms.Panel
