@@ -31,3 +31,23 @@ Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIEL
 - [ ] Build macOS Apple Silicon native app + installer.
 - [ ] Add automatic multi-platform startup routing and manual Windows/macOS Intel/macOS Apple Silicon failsafe.
 - [ ] Add offline/local AI only after diagnostic foundations are stable.
+
+
+## 2026-09-18 static bug sweep
+
+- [x] STATIC PASS - Root portable launcher, installer launcher, uninstaller launcher, Windows app, config, and integrity-test files are present.
+- [x] STATIC PASS - All enabled manifest tool paths resolve to files; 0 enabled mappings are missing.
+- [x] STATIC PASS - All 40 immutable restored-script Git blob hashes match.
+- [x] STATIC PASS - Launcher now records startup failures and displays the actual startup error instead of failing silently.
+- [x] STATIC PASS - Embedded runner now supplies TTK_TOOLKIT_ROOT, TTK_REPORT_DIR, and TTK_RUNBOOK_DIR.
+- [x] STATIC PASS - Runner now detects administrator requirements declared inside sourced dependency scripts as well as the wrapper.
+- [x] STATIC PASS - Runner now detects GUI/interactive dependencies and launches them externally rather than hidden.
+- [x] STATIC PASS - Manifest arguments are now passed to both embedded and external tool launches.
+- [x] STATIC PASS - Installed mode uses writable ProgramData Runbook/report storage; portable mode keeps them with the external-drive toolkit.
+- [x] STATIC PASS - Windows installer rewritten to remove malformed function-call syntax and hash-verify copied files.
+- [x] STATIC PASS - Historical HTA integrity test disabled; current Application Integrity Self-Test added.
+- [x] STATIC PASS - Vendor update Toolkit.Settings.psd1 restored.
+- [ ] NEEDS FIELD TEST - Windows launcher/UI startup on actual Windows hardware.
+- [ ] NEEDS FIELD TEST - Installer/UAC/shortcut/uninstall runtime behavior.
+- [ ] NEEDS FIELD TEST - Individual enabled diagnostic tools.
+- [ ] BLOCKED - GitHub Actions job is failing before step/log details are exposed; do not count CI as PASS.
