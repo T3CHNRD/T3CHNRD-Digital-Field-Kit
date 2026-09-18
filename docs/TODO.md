@@ -18,3 +18,5 @@
 - [ ] Validate signing/notarization strategy before public macOS deployment
 - [ ] Migrate/revalidate the complete production diagnostic-script catalog one tool at a time
 - [ ] Rebuild full Runbook search/index/editor after base launcher passes
+
+- [x] **STATIC PASS** - Restored original Field Kit UI/UX in the Windows field-test shell (Favorites/Tools/Recent/Runbook/Settings, category rail, cards, search, Run Center, Runbook split view, footer/status, platform failsafe).
