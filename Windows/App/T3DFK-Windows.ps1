@@ -630,6 +630,24 @@ function Start-Tool($tool){
  }
 }
 
+$sendInput.Add_Click({
+ try{
+  if($script:CurrentProcess -and -not $script:CurrentProcess.HasExited){
+   $script:CurrentProcess.StandardInput.WriteLine($runnerInput.Text)
+   $script:CurrentProcess.StandardInput.Flush()
+   $runnerInput.Clear()
+   Write-Run '[input sent]'
+  }
+ }catch{Write-Run ('Input error: '+$_.Exception.Message)}
+})
+$runnerInput.Add_KeyDown({
+ param($sender,$eventArgs)
+ if($eventArgs.KeyCode -eq [Windows.Forms.Keys]::Enter){
+  $sendInput.PerformClick()
+  $eventArgs.SuppressKeyPress=$true
+ }
+})
+
 $cancel.Add_Click({
  try{
   if($script:CurrentProcess -and -not $script:CurrentProcess.HasExited){
@@ -855,8 +873,21 @@ $form.Add_Resize({
  $runnerState.Location=New-Object Drawing.Point([Math]::Max(760,$runnerHead.ClientSize.Width-270),11)
  $cancel.Location=New-Object Drawing.Point([Math]::Max(860,$runnerHead.ClientSize.Width-170),6)
  $closeRun.Location=New-Object Drawing.Point([Math]::Max(950,$runnerHead.ClientSize.Width-75),6)
+ $runnerInput.Size=New-Object Drawing.Size([Math]::Max(300,$runnerInputPanel.ClientSize.Width-145),26)
+ $sendInput.Location=New-Object Drawing.Point([Math]::Max(310,$runnerInputPanel.ClientSize.Width-130),5)
  $platform.Location=New-Object Drawing.Point([Math]::Max(780,$footer.ClientSize.Width-245),20)
 })
 
 Update-View
+$form.Add_Shown({
+ if(-not [string]::IsNullOrWhiteSpace($AutoRunToolId)){
+  $autoTool=Get-Tool $AutoRunToolId
+  if($autoTool){
+   $script:View='Tools'
+   $script:Category=[string]$autoTool.Category
+   Update-View
+   Start-Tool $autoTool
+  }
+ }
+})
 [void]$form.ShowDialog()
