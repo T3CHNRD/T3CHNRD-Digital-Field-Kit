@@ -490,10 +490,18 @@ function Start-Tool($tool){
  $path=Join-Path $root $tool.Path
  if(-not(Test-Path $path)){[Windows.Forms.MessageBox]::Show('Missing script: '+$path,'Tool unavailable','OK','Error')|Out-Null;return}
  $scriptText=Get-Content -LiteralPath $path -Raw -ErrorAction SilentlyContinue
- $needsAdmin=($scriptText -match '(?im)^\\s*#Requires\\s+-RunAsAdministrator\\b') -or
-             ($scriptText -match '(?i)Ensure-TaskAdmin|Test-IsAdmin(?:istrator)?|IsInRole\\s*\\([^\\r\\n]*Administrator|Administrator (?:rights|privileges) are required|requires administrator rights')
+ $launchInspectionText=$scriptText
+ $dependencyPattern='(?im)^\\s*\\.\\s+\\(Join-Path\\s+\\$PSScriptRoot\\s+[''"]([^''"]+\\.ps1)[''"]\\)'
+ foreach($match in [regex]::Matches($scriptText,$dependencyPattern)){
+  $depPath=Join-Path (Split-Path -Parent $path) $match.Groups[1].Value
+  if(Test-Path -LiteralPath $depPath -PathType Leaf){
+   $launchInspectionText += [Environment]::NewLine + (Get-Content -LiteralPath $depPath -Raw -ErrorAction SilentlyContinue)
+  }
+ }
+ $needsAdmin=($launchInspectionText -match '(?im)^\\s*#Requires\\s+-RunAsAdministrator\\b') -or
+             ($launchInspectionText -match '(?i)Ensure-TaskAdmin|Test-IsAdmin(?:istrator)?|IsInRole\\s*\\([^\\r\\n]*Administrator|Administrator (?:rights|privileges) are required|requires administrator rights')
  $needsInteractive=[bool]$tool.interactive -or
-                   ($scriptText -match '(?i)System\\.Windows\\.Forms|PresentationFramework|\\bShowDialog\\s*\\(|\\bRead-Host\\b|PromptForChoice|Out-GridView')
+                   ($launchInspectionText -match '(?i)System\\.Windows\\.Forms|PresentationFramework|\\bShowDialog\\s*\\(|\\bRead-Host\\b|PromptForChoice|Out-GridView')
  $toolArgs=@()
  if($tool.PSObject.Properties.Name -contains 'args' -and $tool.args){$toolArgs=@($tool.args)}
  $quotedToolArgs=@($toolArgs | ForEach-Object {'"'+([string]$_).Replace('"','\\"')+'"'})
