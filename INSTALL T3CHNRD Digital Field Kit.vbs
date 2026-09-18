@@ -4,7 +4,7 @@ Set fso=CreateObject("Scripting.FileSystemObject"):Set app=CreateObject("Shell.A
 root=fso.GetParentFolderName(WScript.ScriptFullName):ps1=fso.BuildPath(root,"Windows\Installer\Install-Windows.ps1")
 If Not fso.FileExists(ps1) Then MsgBox "Installer source is missing.",16,"T3CHNRD Digital Field Kit":WScript.Quit 2
 ps=sh.ExpandEnvironmentStrings("%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe")
-cmdText="$ErrorActionPreference='Stop';$code=[IO.File]::ReadAllText(" & PsLiteral(ps1) & ");& ([ScriptBlock]::Create($code)) -SourceRoot " & PsLiteral(root)
+cmdText="$ErrorActionPreference='Stop';$code=[IO.File]::ReadAllText(" & PsLiteral(ps1) & ");. ([ScriptBlock]::Create($code)) -SourceRoot " & PsLiteral(root)
 args="-NoLogo -NoProfile -STA -WindowStyle Hidden -ExecutionPolicy Bypass -Command " & Q(cmdText)
 On Error Resume Next:app.ShellExecute ps,args,root,"runas",1
 If Err.Number<>0 Then MsgBox "Windows could not start the installer: " & Err.Description,16,"T3CHNRD Digital Field Kit"
