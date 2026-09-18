@@ -574,8 +574,12 @@ function Start-Tool($tool){
    $launchInspectionText += [Environment]::NewLine + (Get-Content -LiteralPath $depPath -Raw -ErrorAction SilentlyContinue)
   }
  }
- $needsAdmin=($launchInspectionText -match '(?im)^\\s*#Requires\\s+-RunAsAdministrator\\b') -or
-             ($launchInspectionText -match '(?i)Ensure-TaskAdmin|Test-IsAdmin(?:istrator)?|IsInRole\\s*\\([^\\r\\n]*Administrator|Administrator (?:rights|privileges) are required|requires administrator rights')
+ $needsAdmin=($launchInspectionText -match '(?im)^\s*#Requires\s+-RunAsAdministrator\b') -or
+             ($launchInspectionText -match '(?i)Ensure-TaskAdmin') -or
+             ($launchInspectionText -match '(?i)Test-IsAdmin(?:istrator)?') -or
+             ($launchInspectionText -match '(?i)IsInRole[^\r\n]*Administrator') -or
+             ($launchInspectionText -match '(?i)Administrator (?:rights|privileges) are required') -or
+             ($launchInspectionText -match '(?i)requires administrator rights')
  $needsInteractive=[bool]$tool.interactive -or
                    ($launchInspectionText -match '(?i)\bRead-Host\b|PromptForChoice')
  $toolArgs=@()
