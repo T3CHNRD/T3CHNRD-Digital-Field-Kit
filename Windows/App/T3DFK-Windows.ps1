@@ -42,7 +42,7 @@ $script:ExcludedRunbook = @('.venv312','ai_cowork','apps','deps.txt','static','t
 
 $manifestPath = Join-Path $root 'Windows\\Config\\tools.json'
 if(-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)){[Windows.Forms.MessageBox]::Show('Tool manifest is missing: '+$manifestPath,'T3CHNRD Digital Field Kit','OK','Error')|Out-Null;exit 2}
-$tools = @(Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json)
+$script:ToolCatalog = @(Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json)
 
 
 $navy=[Drawing.Color]::FromArgb(7,48,72)
@@ -446,7 +446,7 @@ function Save-State {
  @($script:Favorites) | Set-Content -LiteralPath $script:FavoritesFile -Encoding UTF8
  @($script:Recent | Select-Object -First 20) | Set-Content -LiteralPath $script:RecentFile -Encoding UTF8
 }
-function Get-Tool([string]$Id){ $tools | Where-Object Id -eq $Id | Select-Object -First 1 }
+function Get-Tool([string]$Id){ $script:ToolCatalog | Where-Object Id -eq $Id | Select-Object -First 1 }
 function Add-Recent([string]$Id){
  $script:Recent=@($Id)+@($script:Recent | Where-Object {$_ -ne $Id})
  Save-State
@@ -650,9 +650,9 @@ function Render-Cards{
  $cards.Controls.Clear()
  $q=$search.Text.Trim()
  if($q){
-  $items=@($tools | Where-Object {(($_.Name+' '+$_.Description+' '+$_.Category) -like ('*'+$q+'*'))})
+  $items=@($script:ToolCatalog | Where-Object {(($_.Name+' '+$_.Description+' '+$_.Category) -like ('*'+$q+'*'))})
  }else{
-  $items=@($tools)
+  $items=@($script:ToolCatalog)
   if($script:View -eq 'Favorites'){$items=@($script:Favorites | ForEach-Object {Get-Tool $_} | Where-Object {$_})}
   elseif($script:View -eq 'Recent'){$items=@($script:Recent | ForEach-Object {Get-Tool $_} | Where-Object {$_})}
   elseif($script:View -eq 'Tools' -and $script:Category -ne 'All Tools'){$items=@($items | Where-Object Category -eq $script:Category)}
