@@ -495,14 +495,37 @@ function Write-Run([string]$Line){
  $runnerOut.SelectionStart=$runnerOut.TextLength
  $runnerOut.ScrollToCaret()
 }
-function Show-Runner([string]$Name){
- $layout.RowStyles[2].Height=270
+function Test-AppAdministrator {
+ try{
+  $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
+  $principal=New-Object Security.Principal.WindowsPrincipal($identity)
+  return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+ }catch{return $false}
+}
+function Start-ElevatedToolApp($Tool){
+ $psExe=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+ $appPath=Join-Path $root 'Windows\App\T3DFK-Windows.ps1'
+ $argList='-NoLogo -NoProfile -STA -WindowStyle Hidden -ExecutionPolicy Bypass -File "'+$appPath+'" -ToolkitRoot "'+$root+'" -AutoRunToolId "'+[string]$Tool.Id+'"'
+ try{
+  Start-Process -FilePath $psExe -ArgumentList $argList -WorkingDirectory $root -Verb RunAs -WindowStyle Hidden | Out-Null
+  $form.Close()
+ }catch{
+  [Windows.Forms.MessageBox]::Show($_.Exception.Message,'Administrator launch cancelled or failed','OK','Error')|Out-Null
+ }
+}
+function Show-Runner([string]$Name,[bool]$AllowInput=$false){
+ $layout.RowStyles[2].Height=300
  $runnerTitle.Text=$Name
  $runnerState.Text='STARTING'
  $runnerOut.Clear()
+ $runnerInput.Clear()
+ $runnerInputPanel.Visible=$AllowInput
  $cancel.Enabled=$false
 }
-function Hide-Runner{$layout.RowStyles[2].Height=0}
+function Hide-Runner{
+ $runnerInputPanel.Visible=$false
+ $layout.RowStyles[2].Height=0
+}
 
 function Invoke-InstallAll{
  $msg='Install All includes only:'+[Environment]::NewLine+[Environment]::NewLine+'Google Chrome'+[Environment]::NewLine+'Mozilla Firefox'+[Environment]::NewLine+'Malwarebytes'+[Environment]::NewLine+'AVG'+[Environment]::NewLine+'CCleaner'+[Environment]::NewLine+[Environment]::NewLine+'Win11Debloat and all WinUtil workflows are excluded.'+[Environment]::NewLine+[Environment]::NewLine+'Continue?'
