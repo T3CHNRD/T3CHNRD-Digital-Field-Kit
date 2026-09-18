@@ -25,9 +25,9 @@
     "interactive": false,
     "args": [],
     "icon": "monitor",
-    "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "RESTORED_FROM_ORIGINAL_MASTER_TOOLKIT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-02",
@@ -40,9 +40,9 @@
     "interactive": false,
     "args": [],
     "icon": "document",
-    "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "RESTORED_FROM_ORIGINAL_MASTER_TOOLKIT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-03",
@@ -55,9 +55,9 @@
     "interactive": false,
     "args": [],
     "icon": "chart",
-    "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "RESTORED_FROM_ORIGINAL_MASTER_TOOLKIT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-04",
@@ -70,9 +70,9 @@
     "interactive": false,
     "args": [],
     "icon": "document",
-    "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "RESTORED_FROM_ORIGINAL_MASTER_TOOLKIT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-05",
@@ -837,9 +837,9 @@
     "interactive": false,
     "args": [],
     "icon": "document",
-    "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "RESTORED_EXACT_FROM_ORIGINAL_TOOLKIT_SOURCE",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-56",
@@ -852,9 +852,9 @@
     "interactive": false,
     "args": [],
     "icon": "gear",
-    "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "RESTORED_EXACT_FROM_ORIGINAL_TOOLKIT_SOURCE",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-57",
@@ -891,15 +891,15 @@
     "name": "Toolkit Integrity Self-Test",
     "category": "System Management",
     "originalCategory": "Advanced",
-    "description": "Parse every PowerShell script and verify required toolkit files and Windows commands.",
-    "path": "Windows\\Scripts\\Core\\Test-ToolkitIntegrity.ps1",
+    "description": "Validate the current Field Kit package, tool mappings, script syntax, category mappings, and immutable source hashes.",
+    "path": "Windows\\App\\Application-Integrity-SelfTest.ps1",
     "risk": "ReadOnly",
     "interactive": false,
     "args": [],
     "icon": "terminal",
-    "ready": false,
-    "sourceStatus": "LEGACY_HTA_INTEGRITY_TEST_INCOMPATIBLE_WITH_NEW_ARCHITECTURE",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "REPLACED_BY_CURRENT_ARCHITECTURE_SELF_TEST",
+    "executionMode": "InApp"
   },
   {
     "id": "application-integrity-self-test",
