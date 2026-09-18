@@ -2,7 +2,7 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
-$root = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $form = New-Object Windows.Forms.Form
 $form.Text = 'T3CHNRD Digital Field Kit v12 - Windows Field Test'
 $form.StartPosition = 'CenterScreen'
