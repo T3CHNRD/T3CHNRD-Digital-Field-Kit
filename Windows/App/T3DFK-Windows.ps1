@@ -577,22 +577,15 @@ function Start-Tool($tool){
  $needsAdmin=($launchInspectionText -match '(?im)^\\s*#Requires\\s+-RunAsAdministrator\\b') -or
              ($launchInspectionText -match '(?i)Ensure-TaskAdmin|Test-IsAdmin(?:istrator)?|IsInRole\\s*\\([^\\r\\n]*Administrator|Administrator (?:rights|privileges) are required|requires administrator rights')
  $needsInteractive=[bool]$tool.interactive -or
-                   ($launchInspectionText -match '(?i)System\\.Windows\\.Forms|PresentationFramework|\\bShowDialog\\s*\\(|\\bRead-Host\\b|PromptForChoice|Out-GridView')
+                   ($launchInspectionText -match '(?i)\bRead-Host\b|PromptForChoice')
  $toolArgs=@()
  if($tool.PSObject.Properties.Name -contains 'args' -and $tool.args){$toolArgs=@($tool.args)}
- $quotedToolArgs=@($toolArgs | ForEach-Object {'"'+([string]$_).Replace('"','\\"')+'"'})
- if($needsInteractive -or $needsAdmin){
-  $psExe=Join-Path $env:SystemRoot 'System32\\WindowsPowerShell\\v1.0\\powershell.exe'
-  $argList=('-NoLogo -NoProfile -ExecutionPolicy Bypass -File "'+$path+'" '+($quotedToolArgs -join ' ')).Trim()
-  try{
-   if($needsAdmin){Start-Process -FilePath $psExe -ArgumentList $argList -WorkingDirectory $root -Verb RunAs|Out-Null}else{Start-Process -FilePath $psExe -ArgumentList $argList -WorkingDirectory $root|Out-Null}
-   Show-Runner $tool.Name
-   Write-Run ('Launched in a separate '+$(if($needsAdmin){'elevated '}else{''})+'PowerShell window because this tool requires direct technician interaction or elevation.')
-   $runnerState.Text='EXTERNAL'
-  }catch{[Windows.Forms.MessageBox]::Show($_.Exception.Message,'Launch failed','OK','Error')|Out-Null}
+ $quotedToolArgs=@($toolArgs | ForEach-Object {'"'+([string]$_).Replace('"','\"')+'"'})
+ if($needsAdmin -and -not (Test-AppAdministrator)){
+  Start-ElevatedToolApp $tool
   return
  }
- Show-Runner $tool.Name
+ Show-Runner $tool.Name $needsInteractive
  $runnerState.Text='RUNNING'
  $cancel.Enabled=$true
  $logDir=Join-Path $reportRoot 'AppLogs'
@@ -607,6 +600,7 @@ function Start-Tool($tool){
  $psi.CreateNoWindow=$true
  $psi.RedirectStandardOutput=$true
  $psi.RedirectStandardError=$true
+ $psi.RedirectStandardInput=$true
  $psi.EnvironmentVariables['TTK_TOOLKIT_ROOT']=$root
  $psi.EnvironmentVariables['TTK_REPORT_DIR']=$reportRoot
  $psi.EnvironmentVariables['TTK_RUNBOOK_DIR']=$runbookRoot
@@ -621,6 +615,7 @@ function Start-Tool($tool){
   Add-Content $script:CurrentLog ('ExitCode: '+$code)
   $form.BeginInvoke([Action]{
    $runnerState.Text='COMPLETE | EXIT '+$code
+   $runnerInputPanel.Visible=$false
    $cancel.Enabled=$false
    $status.Text='●  READY'
    $script:CurrentProcess=$null
