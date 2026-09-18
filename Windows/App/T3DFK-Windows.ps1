@@ -423,7 +423,30 @@ $runnerOut.BackColor=[Drawing.Color]::FromArgb(3,13,18)
 $runnerOut.ForeColor=[Drawing.Color]::FromArgb(220,237,244)
 $runnerOut.Font=New-Object Drawing.Font('Consolas',9.5)
 $runner.Controls.Add($runnerOut)
+
+$runnerInputPanel=New-Object Windows.Forms.Panel
+$runnerInputPanel.Dock='Bottom'
+$runnerInputPanel.Height=38
+$runnerInputPanel.BackColor=[Drawing.Color]::FromArgb(16,35,45)
+$runnerInputPanel.Visible=$false
+$runner.Controls.Add($runnerInputPanel)
+
+$runnerInput=New-Object Windows.Forms.TextBox
+$runnerInput.Location=New-Object Drawing.Point(8,6)
+$runnerInput.Size=New-Object Drawing.Size(1180,26)
+$runnerInput.Anchor='Top,Left,Right'
+$runnerInput.Font=New-Object Drawing.Font('Consolas',9.5)
+$runnerInputPanel.Controls.Add($runnerInput)
+
+$sendInput=New-Object Windows.Forms.Button
+$sendInput.Text='SEND INPUT'
+$sendInput.Size=New-Object Drawing.Size(120,28)
+$sendInput.Anchor='Top,Right'
+$sendInput.Location=New-Object Drawing.Point(1200,5)
+$runnerInputPanel.Controls.Add($sendInput)
+
 $runnerOut.BringToFront()
+$runnerInputPanel.BringToFront()
 $runnerHead.BringToFront()
 
 $footer=New-Object Windows.Forms.Panel
