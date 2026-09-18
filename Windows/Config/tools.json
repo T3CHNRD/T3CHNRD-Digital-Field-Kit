@@ -838,7 +838,21 @@
     "interactive": false,
     "args": [],
     "icon": "terminal",
+    "ready": false,
+    "sourceStatus": "LEGACY_HTA_INTEGRITY_TEST_INCOMPATIBLE_WITH_NEW_ARCHITECTURE"
+  },
+  {
+    "id": "application-integrity-self-test",
+    "name": "Application Integrity Self-Test",
+    "category": "System Management",
+    "originalCategory": "Advanced",
+    "description": "Validate the current Field Kit package, tool mappings, PowerShell syntax, and immutable restored-script hashes.",
+    "path": "Windows\\App\\Application-Integrity-SelfTest.ps1",
+    "risk": "ReadOnly",
+    "interactive": false,
+    "args": [],
+    "icon": "terminal",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "NEW_VERIFIED_APP_FEATURE"
   }
 ]
