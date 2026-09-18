@@ -276,8 +276,8 @@
     "interactive": false,
     "args": [],
     "icon": "shield",
-    "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL"
+    "ready": true,
+    "sourceStatus": "RESTORED_EXACT_FROM_USER_UPLOADED_TOOLKIT"
   },
   {
     "id": "tool-20",
@@ -810,8 +810,8 @@
     "interactive": true,
     "args": [],
     "icon": "terminal",
-    "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL"
+    "ready": true,
+    "sourceStatus": "RESTORED_EXACT_FROM_USER_UPLOADED_TOOLKIT"
   },
   {
     "id": "tool-58",
