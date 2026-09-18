@@ -93,3 +93,15 @@ Planned macOS order remains:
 7. networksetup / scutil
 8. softwareupdate
 9. LaunchAgents / LaunchDaemons
+
+
+## 2026-09-18 original Windows tool source recovered
+- [x] PASS - User supplied the original Windows script/toolkit archives used by the working application.
+- [x] STATIC PASS - Current UI tool catalog moved to script-scoped state so category/search callbacks can access it reliably.
+- [x] STATIC PASS - Catalog startup validation now shows loaded/ready tool counts and fails visibly if zero tools load.
+- [x] STATIC PASS - Secure Boot Quick Check restored unchanged from the uploaded Windows Master Diagnostic Toolkit and hash-locked.
+- [x] STATIC PASS - Network remote-share utility restored unchanged from the uploaded Windows Master Diagnostic Toolkit and hash-locked.
+- [x] STATIC PASS - PS1-to-EXE utility restored unchanged from the uploaded Windows Master Diagnostic Toolkit and hash-locked.
+- [ ] IN PROGRESS - Reconcile the remaining exact user-supplied Windows Master Diagnostic Toolkit scripts/resources with the current Field Kit catalog.
+- [ ] IN PROGRESS - Restore original deployment resources/workflows from the supplied toolkit without changing Win11Debloat/WinUtil exclusion from Install All.
+- [ ] NEEDS FIELD TEST - Verify tool cards now populate under Diagnostics, Repair, Optimization, Security, Network, Deployment, and System Management.
