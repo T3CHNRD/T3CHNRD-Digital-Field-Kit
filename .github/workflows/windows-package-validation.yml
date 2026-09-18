@@ -7,11 +7,11 @@ permissions:
   contents: read
 jobs:
   validate:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Verify root technician entry points
-        shell: powershell
+        shell: pwsh
         run: |
           $required=@(
             'T3CHNRD Digital Field Kit.vbs',
@@ -24,14 +24,14 @@ jobs:
           )
           foreach($p in $required){if(-not(Test-Path -LiteralPath $p)){throw "Missing: $p"}}
       - name: Parse PowerShell source
-        shell: powershell
+        shell: pwsh
         run: |
           Get-ChildItem Windows -Filter *.ps1 -Recurse | ForEach-Object {
             $null=[scriptblock]::Create((Get-Content -LiteralPath $_.FullName -Raw))
             Write-Host "PARSE PASS $($_.FullName)"
           }
       - name: Verify immutable original-script manifest
-        shell: powershell
+        shell: pwsh
         run: |
           Get-Content 'Windows\Config\ORIGINAL-SCRIPTS-GIT-SHA1.txt' | ForEach-Object {
             if([string]::IsNullOrWhiteSpace($_)){return}
@@ -44,7 +44,7 @@ jobs:
             Write-Host "HASH PASS $path"
           }
       - name: Build technician ZIP
-        shell: powershell
+        shell: pwsh
         run: |
           New-Item -ItemType Directory -Force artifacts | Out-Null
           $items=@(
