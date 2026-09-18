@@ -59,3 +59,11 @@ Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIEL
 - [x] STATIC PASS - Re-scanned main app, installer, uninstaller, and application integrity test for collisions with common PowerShell automatic/read-only variables; none remain.
 - [x] STATIC PASS - Re-checked bracket/quote structural balance on those startup-critical scripts; no structural errors found.
 - [ ] NEEDS FIELD TEST - Re-test top-level T3CHNRD Digital Field Kit.vbs startup on Windows.
+
+
+## 2026-09-18 WinForms callback scope fix
+- [x] PASS FROM FIELD REPRODUCTION - Windows UI now opens successfully.
+- [x] FAIL IDENTIFIED - Clicking navigation raised CommandNotFoundException because Update-View was not visible to the WinForms event callback.
+- [x] STATIC PASS - Root launcher now dot-sources the dynamically loaded UI script so helper functions remain in the callback-visible PowerShell scope.
+- [x] STATIC PASS - Installer and uninstaller launchers use the same persistent-scope loading model.
+- [ ] NEEDS FIELD TEST - Re-test top tabs, left navigation, Runbook buttons, Settings/platform fallback, Favorites star, Recent, and Run Center controls.
