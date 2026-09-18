@@ -1,8 +1,8 @@
+param([string]$ToolkitRoot='')
+
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
-
-param([string]$ToolkitRoot='')
 if([string]::IsNullOrWhiteSpace($ToolkitRoot)){$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)}else{$root=[IO.Path]::GetFullPath($ToolkitRoot).TrimEnd('\\')}
 $runbookRoot = Join-Path $root 'Runbook'
 $reportRoot = Join-Path $root 'Diagnostic-Reports'
