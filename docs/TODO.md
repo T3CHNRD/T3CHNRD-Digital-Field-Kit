@@ -67,3 +67,29 @@ Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIEL
 - [x] STATIC PASS - Root launcher now dot-sources the dynamically loaded UI script so helper functions remain in the callback-visible PowerShell scope.
 - [x] STATIC PASS - Installer and uninstaller launchers use the same persistent-scope loading model.
 - [ ] NEEDS FIELD TEST - Re-test top tabs, left navigation, Runbook buttons, Settings/platform fallback, Favorites star, Recent, and Run Center controls.
+
+
+## macOS testing/install clarification
+
+- [x] PROJECT DECISION - Do not ask for macOS testing during the Windows stabilization phase.
+- [ ] NOT STARTED - Build macOS Intel diagnostic scripts.
+- [ ] NOT STARTED - Build macOS Apple Silicon diagnostic scripts.
+- [ ] NOT STARTED - Build macOS Intel native application/package.
+- [ ] NOT STARTED - Build macOS Apple Silicon native application/package.
+- [ ] NOT STARTED - Build macOS installer/package workflow.
+- [ ] NOT STARTED - Define macOS portable launch from the external drive.
+- [ ] NOT STARTED - Define signed/notarized macOS distribution requirements.
+- [ ] NOT STARTED - Test macOS Intel on native Intel hardware.
+- [ ] NOT STARTED - Test macOS Apple Silicon on native Apple Silicon hardware.
+- [ ] BLOCKED BY WINDOWS PHASE - No macOS install/test instructions are expected yet.
+
+Planned macOS order remains:
+1. system_profiler / System Information
+2. Activity Monitor / memory pressure
+3. DiagnosticReports / crash collection
+4. diskutil / APFS
+5. FileVault
+6. Gatekeeper / XProtect
+7. networksetup / scutil
+8. softwareupdate
+9. LaunchAgents / LaunchDaemons
