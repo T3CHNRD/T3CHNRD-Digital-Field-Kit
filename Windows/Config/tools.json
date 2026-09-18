@@ -388,8 +388,8 @@
     "interactive": true,
     "args": [],
     "icon": "globe",
-    "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL"
+    "ready": true,
+    "sourceStatus": "RESTORED_EXACT_FROM_USER_UPLOADED_TOOLKIT"
   },
   {
     "id": "tool-28",
