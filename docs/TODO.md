@@ -1,22 +1,33 @@
-# v12 TODO
+# T3CHNRD Digital Field Kit - Master TODO
 
-## Complete in source
-- [x] Ground-up cross-platform application structure
-- [x] Remove old HTA/VBScript/MSHTA/broker architecture from active repository tree
-- [x] Automatic Windows/macOS + CPU architecture detection
-- [x] Manual platform selector failsafe
-- [x] Native desktop window controls through Avalonia
-- [x] Native Runbook file picker
-- [x] Windows Install All allow-list and explicit Win11Debloat/WinUtil exclusion
-- [x] Three GitHub Actions publish targets
+Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIELD TEST = implemented but not runtime-proven; FAIL = known broken.
 
-## Needs target-machine validation
-- [ ] Windows 10 field test
-- [ ] Windows 11 field test
-- [ ] macOS Intel field test
-- [ ] macOS Apple Silicon field test
-- [ ] Validate signing/notarization strategy before public macOS deployment
-- [ ] Migrate/revalidate the complete production diagnostic-script catalog one tool at a time
-- [ ] Rebuild full Runbook search/index/editor after base launcher passes
+## ACTIVE GATE - WINDOWS APP
+- [x] STATIC PASS - Top-level portable Windows launcher.
+- [x] STATIC PASS - Top-level graphical Windows installer and uninstall source.
+- [x] STATIC PASS - Original Field Kit UI/UX restored.
+- [x] STATIC PASS - Original 59-entry GUI tool catalog restored.
+- [x] STATIC PASS - 39 tool entries have exact original PowerShell source restored from authoritative GitHub source.
+- [ ] 15 tool entries still lack an authoritative original script/payload body; they remain visible but disabled and must not be recreated.
+- [ ] Create and enforce SHA-256 manifest for restored original scripts.
+- [x] STATIC PASS - Embedded stdout/stderr capture and exit-code display for compatible noninteractive tools.
+- [x] STATIC PASS - Cancel uses taskkill /T /F on the child process tree.
+- [x] STATIC PASS - Interactive tools launch externally rather than blocking the embedded runner.
+- [x] STATIC PASS - Scripts declaring #Requires -RunAsAdministrator are elevated only when that declaration is detected.
+- [x] STATIC PASS - Install All includes Chrome, Firefox, Malwarebytes, AVG, CCleaner and excludes Win11Debloat/WinUtil.
+- [ ] NEEDS FIELD TEST - Launch without PowerShell security prompt.
+- [ ] NEEDS FIELD TEST - Minimize/maximize/restore/resize/close.
+- [ ] NEEDS FIELD TEST - Favorites/Recent/categories/search/Run Center/Runbook.
+- [ ] NEEDS FIELD TEST - All Tools smooth scrolling.
+- [ ] NEEDS FIELD TEST - 100/125/150/200% display scaling.
+- [ ] NEEDS FIELD TEST - portable local disk / USB / external SSD.
+- [ ] NEEDS FIELD TEST - Windows install / shortcuts / installed launch / uninstall.
+- [ ] NEEDS FIELD TEST - every restored Windows diagnostic category.
+- [ ] Proper branded Windows EXE/taskbar icon remains open; current field-test launcher is WSH-based.
 
-- [x] **STATIC PASS** - Restored original Field Kit UI/UX in the Windows field-test shell (Favorites/Tools/Recent/Runbook/Settings, category rail, cards, search, Run Center, Runbook split view, footer/status, platform failsafe).
+## AFTER WINDOWS PASS
+- [ ] Finish Runbook wiki/search/index/editor.
+- [ ] Build macOS Intel native app + installer.
+- [ ] Build macOS Apple Silicon native app + installer.
+- [ ] Add automatic multi-platform startup routing and manual Windows/macOS Intel/macOS Apple Silicon failsafe.
+- [ ] Add offline/local AI only after diagnostic foundations are stable.
