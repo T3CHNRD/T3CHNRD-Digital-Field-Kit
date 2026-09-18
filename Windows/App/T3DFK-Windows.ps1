@@ -4,10 +4,31 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 if([string]::IsNullOrWhiteSpace($ToolkitRoot)){$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)}else{$root=[IO.Path]::GetFullPath($ToolkitRoot).TrimEnd('\\')}
-$runbookRoot = Join-Path $root 'Runbook'
-$reportRoot = Join-Path $root 'Diagnostic-Reports'
 $stateRoot = Join-Path $env:LOCALAPPDATA 'T3DFK'
+$installedUnderProgramFiles = $false
+$pf86=[Environment]::GetFolderPath('ProgramFilesX86')
+foreach($pf in @($env:ProgramFiles,$pf86)){
+ if($pf -and $root.StartsWith($pf,[StringComparison]::OrdinalIgnoreCase)){$installedUnderProgramFiles=$true}
+}
+if($installedUnderProgramFiles){
+ $dataRoot = Join-Path $env:ProgramData 'T3DFK'
+ $runbookRoot = Join-Path $dataRoot 'Runbook'
+ $reportRoot = Join-Path $dataRoot 'Diagnostic-Reports'
+}else{
+ $dataRoot = $root
+ $runbookRoot = Join-Path $root 'Runbook'
+ $reportRoot = Join-Path $root 'Diagnostic-Reports'
+}
 New-Item -ItemType Directory -Force -Path $runbookRoot,$reportRoot,$stateRoot | Out-Null
+if($installedUnderProgramFiles){
+ $seedRunbook=Join-Path $root 'Runbook'
+ if((Test-Path $seedRunbook) -and -not (Get-ChildItem $runbookRoot -Force -ErrorAction SilentlyContinue)){
+  Copy-Item (Join-Path $seedRunbook '*') $runbookRoot -Recurse -Force -ErrorAction SilentlyContinue
+ }
+}
+$env:TTK_TOOLKIT_ROOT=$root
+$env:TTK_REPORT_DIR=$reportRoot
+$env:TTK_RUNBOOK_DIR=$runbookRoot
 
 $script:View = 'Favorites'
 $script:Category = 'All Tools'
@@ -469,10 +490,16 @@ function Start-Tool($tool){
  $path=Join-Path $root $tool.Path
  if(-not(Test-Path $path)){[Windows.Forms.MessageBox]::Show('Missing script: '+$path,'Tool unavailable','OK','Error')|Out-Null;return}
  $scriptText=Get-Content -LiteralPath $path -Raw -ErrorAction SilentlyContinue
- $needsAdmin=$scriptText -match '(?im)^\\s*#Requires\\s+-RunAsAdministrator\\b'
- if([bool]$tool.interactive -or $needsAdmin){
+ $needsAdmin=($scriptText -match '(?im)^\\s*#Requires\\s+-RunAsAdministrator\\b') -or
+             ($scriptText -match '(?i)Ensure-TaskAdmin|Test-IsAdmin(?:istrator)?|IsInRole\\s*\\([^\\r\\n]*Administrator|Administrator (?:rights|privileges) are required|requires administrator rights')
+ $needsInteractive=[bool]$tool.interactive -or
+                   ($scriptText -match '(?i)System\\.Windows\\.Forms|PresentationFramework|\\bShowDialog\\s*\\(|\\bRead-Host\\b|PromptForChoice|Out-GridView')
+ $toolArgs=@()
+ if($tool.PSObject.Properties.Name -contains 'args' -and $tool.args){$toolArgs=@($tool.args)}
+ $quotedToolArgs=@($toolArgs | ForEach-Object {'"'+([string]$_).Replace('"','\\"')+'"'})
+ if($needsInteractive -or $needsAdmin){
   $psExe=Join-Path $env:SystemRoot 'System32\\WindowsPowerShell\\v1.0\\powershell.exe'
-  $argList='-NoLogo -NoProfile -ExecutionPolicy Bypass -File "'+$path+'"'
+  $argList=('-NoLogo -NoProfile -ExecutionPolicy Bypass -File "'+$path+'" '+($quotedToolArgs -join ' ')).Trim()
   try{
    if($needsAdmin){Start-Process -FilePath $psExe -ArgumentList $argList -WorkingDirectory $root -Verb RunAs|Out-Null}else{Start-Process -FilePath $psExe -ArgumentList $argList -WorkingDirectory $root|Out-Null}
    Show-Runner $tool.Name
@@ -490,12 +517,15 @@ function Start-Tool($tool){
  Set-Content $script:CurrentLog ('Tool: '+$tool.Name)
  $psi=New-Object Diagnostics.ProcessStartInfo
  $psi.FileName=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
- $psi.Arguments='-NoLogo -NoProfile -ExecutionPolicy Bypass -File "'+$path+'"'
+ $psi.Arguments=('-NoLogo -NoProfile -ExecutionPolicy Bypass -File "'+$path+'" '+($quotedToolArgs -join ' ')).Trim()
  $psi.WorkingDirectory=$root
  $psi.UseShellExecute=$false
  $psi.CreateNoWindow=$true
  $psi.RedirectStandardOutput=$true
  $psi.RedirectStandardError=$true
+ $psi.EnvironmentVariables['TTK_TOOLKIT_ROOT']=$root
+ $psi.EnvironmentVariables['TTK_REPORT_DIR']=$reportRoot
+ $psi.EnvironmentVariables['TTK_RUNBOOK_DIR']=$runbookRoot
  $p=New-Object Diagnostics.Process
  $p.StartInfo=$psi
  $p.EnableRaisingEvents=$true
@@ -656,7 +686,7 @@ function Show-PlatformFallback{
  $h.Location=New-Object Drawing.Point(24,22)
  $d.Controls.Add($h)
  $s=New-Object Windows.Forms.Label
- $s.Text='This Windows field-test build can preview the macOS profiles, but macOS Intel and Apple Silicon use their own native applications.'
+ $s.Text='This Windows build can preview the macOS target profiles, but macOS Intel and Apple Silicon use their own native applications.'
  $s.Size=New-Object Drawing.Size(500,50)
  $s.Location=New-Object Drawing.Point(24,66)
  $d.Controls.Add($s)
