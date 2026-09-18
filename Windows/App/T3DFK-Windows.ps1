@@ -1,4 +1,4 @@
-param([string]$ToolkitRoot='')
+param([string]$ToolkitRoot='',[string]$AutoRunToolId='')
 
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
