@@ -1,24 +1,235 @@
 #Requires -Version 5.1
-[CmdletBinding()]param([Parameter(Mandatory=$true)][string]$SourceRoot)
-Set-StrictMode -Version Latest;$ErrorActionPreference='Stop'
-Add-Type -AssemblyName System.Windows.Forms;Add-Type -AssemblyName System.Drawing;[Windows.Forms.Application]::EnableVisualStyles()
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory=$true)]
+    [string]$SourceRoot
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference='Stop'
+
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+[System.Windows.Forms.Application]::EnableVisualStyles()
+
 $SourceRoot=[IO.Path]::GetFullPath($SourceRoot).TrimEnd('\')
-function New-Link([string]$Path,[string]$Root){$w=New-Object -ComObject WScript.Shell;$s=$w.CreateShortcut($Path);$s.TargetPath=Join-Path $env:SystemRoot 'System32\wscript.exe';$s.Arguments='"'+(Join-Path $Root 'T3CHNRD Digital Field Kit.vbs')+'"';$s.WorkingDirectory=$Root;$s.Description='T3CHNRD Digital Field Kit';$s.Save()}
-$f=New-Object Windows.Forms.Form;$f.Text='Install T3CHNRD Digital Field Kit';$f.StartPosition='CenterScreen';$f.Size=New-Object Drawing.Size(850,560);$f.MinimumSize=New-Object Drawing.Size(760,520);$f.Font=New-Object Drawing.Font('Segoe UI',10);$f.BackColor=[Drawing.Color]::FromArgb(219,232,241)
-$h=New-Object Windows.Forms.Panel;$h.Dock='Top';$h.Height=120;$h.BackColor=[Drawing.Color]::FromArgb(17,94,137);$f.Controls.Add($h)
-$t=New-Object Windows.Forms.Label;$t.Text='T3CHNRD Digital Field Kit';$t.ForeColor='White';$t.Font=New-Object Drawing.Font('Segoe UI',22,[Drawing.FontStyle]::Bold);$t.AutoSize=$true;$t.Location=New-Object Drawing.Point(24,22);$h.Controls.Add($t)
-$su=New-Object Windows.Forms.Label;$su.Text='Windows installer - choose a destination, then install';$su.ForeColor='AliceBlue';$su.AutoSize=$true;$su.Location=New-Object Drawing.Point(28,68);$h.Controls.Add($su)
-$p=New-Object Windows.Forms.Panel;$p.Location=New-Object Drawing.Point(22,140);$p.Size=New-Object Drawing.Size(790,350);$p.Anchor='Top,Bottom,Left,Right';$p.BackColor='White';$p.BorderStyle='FixedSingle';$f.Controls.Add($p)
-$l=New-Object Windows.Forms.Label;$l.Text='Install folder:';$l.AutoSize=$true;$l.Location=New-Object Drawing.Point(22,28);$p.Controls.Add($l)
-$d=New-Object Windows.Forms.TextBox;$d.Text=Join-Path $env:ProgramFiles 'T3DFK';$d.Location=New-Object Drawing.Point(22,55);$d.Size=New-Object Drawing.Size(610,28);$d.Anchor='Top,Left,Right';$p.Controls.Add($d)
-$b=New-Object Windows.Forms.Button;$b.Text='Browse...';$b.Location=New-Object Drawing.Point(648,53);$b.Size=New-Object Drawing.Size(110,32);$b.Anchor='Top,Right';$p.Controls.Add($b)
-$desk=New-Object Windows.Forms.CheckBox;$desk.Text='Create desktop shortcut';$desk.Checked=$true;$desk.AutoSize=$true;$desk.Location=New-Object Drawing.Point(24,105);$p.Controls.Add($desk)
-$launch=New-Object Windows.Forms.CheckBox;$launch.Text='Launch after installation';$launch.Checked=$true;$launch.AutoSize=$true;$launch.Location=New-Object Drawing.Point(24,135);$p.Controls.Add($launch)
-$n=New-Object Windows.Forms.Label;$n.Text='Portable use needs no install: keep this folder on a USB/SSD and double-click T3CHNRD Digital Field Kit.vbs. Setup copies the same toolkit, creates shortcuts, and registers uninstall.';$n.ForeColor='DimGray';$n.Location=New-Object Drawing.Point(24,175);$n.Size=New-Object Drawing.Size(720,58);$p.Controls.Add($n)
-$bar=New-Object Windows.Forms.ProgressBar;$bar.Location=New-Object Drawing.Point(24,248);$bar.Size=New-Object Drawing.Size(650,24);$bar.Anchor='Top,Left,Right';$p.Controls.Add($bar)
-$st=New-Object Windows.Forms.Label;$st.Text='Ready.';$st.Location=New-Object Drawing.Point(24,282);$st.Size=New-Object Drawing.Size(720,28);$p.Controls.Add($st)
-$go=New-Object Windows.Forms.Button;$go.Text='INSTALL';$go.Font=New-Object Drawing.Font('Segoe UI',11,[Drawing.FontStyle]::Bold);$go.Location=New-Object Drawing.Point(24,314);$go.Size=New-Object Drawing.Size(140,40);$go.BackColor='YellowGreen';$p.Controls.Add($go)
-$cx=New-Object Windows.Forms.Button;$cx.Text='CANCEL';$cx.Location=New-Object Drawing.Point(176,314);$cx.Size=New-Object Drawing.Size(120,40);$p.Controls.Add($cx)
-$b.Add_Click({$x=New-Object Windows.Forms.FolderBrowserDialog;$x.Description='Choose installation parent folder';if($x.ShowDialog() -eq 'OK'){$d.Text=Join-Path $x.SelectedPath 'T3DFK'}});$cx.Add_Click({$f.Close()})
-$go.Add_Click({try{$go.Enabled=$false;$target=[IO.Path]::GetFullPath($d.Text.Trim()).TrimEnd('\');if($target -eq $SourceRoot -or $target.StartsWith($SourceRoot+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'Install destination must be outside the portable source folder.'};foreach($r in @('T3CHNRD Digital Field Kit.vbs','Windows\App\T3DFK-Windows.ps1','Windows\Config\tools.json')){if(-not(Test-Path(Join-Path $SourceRoot $r))){throw 'Source package incomplete. Missing: '+$r}};New-Item -ItemType Directory -Force -Path $target|Out-Null;$files=@(Get-ChildItem $SourceRoot -File -Recurse -Force|Where-Object{$_.FullName -notlike (Join-Path $SourceRoot 'Diagnostic-Reports\*')});$i=0;foreach($x in $files){$i++;$rel=$x.FullName.Substring($SourceRoot.Length).TrimStart('\');$o=Join-Path $target $rel;$od=Split-Path $o -Parent;if(-not(Test-Path $od)){New-Item -ItemType Directory -Force -Path $od|Out-Null};[IO.File]::Copy($x.FullName,$o,$true);$bar.Value=[Math]::Min(90,[int](90*$i/[Math]::Max(1,$files.Count)));$st.Text='Copying '+$i+' / '+$files.Count;[Windows.Forms.Application]::DoEvents()};$sd=Join-Path([Environment]::GetFolderPath('Programs'))'T3CHNRD Digital Field Kit';New-Item -ItemType Directory -Force -Path $sd|Out-Null;New-Link(Join-Path $sd 'T3CHNRD Digital Field Kit.lnk')$target;if($desk.Checked){New-Link(Join-Path([Environment]::GetFolderPath('Desktop'))'T3CHNRD Digital Field Kit.lnk')$target};$key='HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\T3CHNRDDigitalFieldKit';New-Item $key -Force|Out-Null;Set-ItemProperty $key DisplayName 'T3CHNRD Digital Field Kit';Set-ItemProperty $key DisplayVersion '11.0-test';Set-ItemProperty $key Publisher 'T3CHNRD';Set-ItemProperty $key InstallLocation $target;Set-ItemProperty $key UninstallString ('wscript.exe "'+(Join-Path $target 'UNINSTALL T3CHNRD Digital Field Kit.vbs')+'"');$bar.Value=100;$st.Text='Installation complete.';[Windows.Forms.MessageBox]::Show('Installation completed successfully.','T3CHNRD Digital Field Kit')|Out-Null;if($launch.Checked){Start-Process(Join-Path $env:SystemRoot 'System32\wscript.exe') -ArgumentList ('"'+(Join-Path $target 'T3CHNRD Digital Field Kit.vbs')+'"') -WorkingDirectory $target};$f.Close()}catch{$st.Text='Installation failed.';[Windows.Forms.MessageBox]::Show($_.Exception.Message,'Installation failed','OK','Error')|Out-Null;$go.Enabled=$true}})
-[void]$f.ShowDialog()
+
+function New-T3DFKShortcut {
+    param(
+        [Parameter(Mandatory=$true)][string]$ShortcutPath,
+        [Parameter(Mandatory=$true)][string]$InstallRoot
+    )
+    $wsh=New-Object -ComObject WScript.Shell
+    $shortcut=$wsh.CreateShortcut($ShortcutPath)
+    $shortcut.TargetPath=Join-Path $env:SystemRoot 'System32\wscript.exe'
+    $shortcut.Arguments='"'+(Join-Path $InstallRoot 'T3CHNRD Digital Field Kit.vbs')+'"'
+    $shortcut.WorkingDirectory=$InstallRoot
+    $shortcut.Description='T3CHNRD Digital Field Kit'
+    $shortcut.Save()
+}
+
+function Copy-VerifiedFile {
+    param(
+        [Parameter(Mandatory=$true)][string]$Source,
+        [Parameter(Mandatory=$true)][string]$Destination
+    )
+    $dir=Split-Path -Parent $Destination
+    if(-not(Test-Path -LiteralPath $dir)){New-Item -ItemType Directory -Force -Path $dir|Out-Null}
+    [IO.File]::Copy($Source,$Destination,$true)
+    $sourceHash=(Get-FileHash -LiteralPath $Source -Algorithm SHA256).Hash
+    $destHash=(Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash
+    if($sourceHash -ne $destHash){throw "Verification failed after copying: $Source"}
+}
+
+$form=New-Object Windows.Forms.Form
+$form.Text='Install T3CHNRD Digital Field Kit'
+$form.StartPosition='CenterScreen'
+$form.Size=New-Object Drawing.Size(850,560)
+$form.MinimumSize=New-Object Drawing.Size(760,520)
+$form.Font=New-Object Drawing.Font('Segoe UI',10)
+$form.BackColor=[Drawing.Color]::FromArgb(219,232,241)
+
+$header=New-Object Windows.Forms.Panel
+$header.Dock='Top'
+$header.Height=120
+$header.BackColor=[Drawing.Color]::FromArgb(17,94,137)
+$form.Controls.Add($header)
+
+$title=New-Object Windows.Forms.Label
+$title.Text='T3CHNRD Digital Field Kit'
+$title.ForeColor='White'
+$title.Font=New-Object Drawing.Font('Segoe UI',22,[Drawing.FontStyle]::Bold)
+$title.AutoSize=$true
+$title.Location=New-Object Drawing.Point(24,22)
+$header.Controls.Add($title)
+
+$subtitle=New-Object Windows.Forms.Label
+$subtitle.Text='Windows installer - choose a destination, then install'
+$subtitle.ForeColor='AliceBlue'
+$subtitle.AutoSize=$true
+$subtitle.Location=New-Object Drawing.Point(28,68)
+$header.Controls.Add($subtitle)
+
+$panel=New-Object Windows.Forms.Panel
+$panel.Location=New-Object Drawing.Point(22,140)
+$panel.Size=New-Object Drawing.Size(790,350)
+$panel.Anchor='Top,Bottom,Left,Right'
+$panel.BackColor='White'
+$panel.BorderStyle='FixedSingle'
+$form.Controls.Add($panel)
+
+$label=New-Object Windows.Forms.Label
+$label.Text='Install folder:'
+$label.AutoSize=$true
+$label.Location=New-Object Drawing.Point(22,28)
+$panel.Controls.Add($label)
+
+$destination=New-Object Windows.Forms.TextBox
+$destination.Text=Join-Path $env:ProgramFiles 'T3DFK'
+$destination.Location=New-Object Drawing.Point(22,55)
+$destination.Size=New-Object Drawing.Size(610,28)
+$destination.Anchor='Top,Left,Right'
+$panel.Controls.Add($destination)
+
+$browse=New-Object Windows.Forms.Button
+$browse.Text='Browse...'
+$browse.Location=New-Object Drawing.Point(648,53)
+$browse.Size=New-Object Drawing.Size(110,32)
+$browse.Anchor='Top,Right'
+$panel.Controls.Add($browse)
+
+$desktop=New-Object Windows.Forms.CheckBox
+$desktop.Text='Create desktop shortcut'
+$desktop.Checked=$true
+$desktop.AutoSize=$true
+$desktop.Location=New-Object Drawing.Point(24,105)
+$panel.Controls.Add($desktop)
+
+$launch=New-Object Windows.Forms.CheckBox
+$launch.Text='Launch after installation'
+$launch.Checked=$true
+$launch.AutoSize=$true
+$launch.Location=New-Object Drawing.Point(24,135)
+$panel.Controls.Add($launch)
+
+$note=New-Object Windows.Forms.Label
+$note.Text='Portable use needs no installation: keep the extracted folder on a USB/SSD and double-click T3CHNRD Digital Field Kit.vbs. Installed mode keeps writable Runbook/report data under ProgramData.'
+$note.ForeColor='DimGray'
+$note.Location=New-Object Drawing.Point(24,175)
+$note.Size=New-Object Drawing.Size(720,58)
+$panel.Controls.Add($note)
+
+$progress=New-Object Windows.Forms.ProgressBar
+$progress.Location=New-Object Drawing.Point(24,248)
+$progress.Size=New-Object Drawing.Size(650,24)
+$progress.Anchor='Top,Left,Right'
+$panel.Controls.Add($progress)
+
+$status=New-Object Windows.Forms.Label
+$status.Text='Ready.'
+$status.Location=New-Object Drawing.Point(24,282)
+$status.Size=New-Object Drawing.Size(720,28)
+$panel.Controls.Add($status)
+
+$install=New-Object Windows.Forms.Button
+$install.Text='INSTALL'
+$install.Font=New-Object Drawing.Font('Segoe UI',11,[Drawing.FontStyle]::Bold)
+$install.Location=New-Object Drawing.Point(24,314)
+$install.Size=New-Object Drawing.Size(140,40)
+$install.BackColor='YellowGreen'
+$panel.Controls.Add($install)
+
+$cancel=New-Object Windows.Forms.Button
+$cancel.Text='CANCEL'
+$cancel.Location=New-Object Drawing.Point(176,314)
+$cancel.Size=New-Object Drawing.Size(120,40)
+$panel.Controls.Add($cancel)
+
+$browse.Add_Click({
+    $dialog=New-Object Windows.Forms.FolderBrowserDialog
+    $dialog.Description='Choose installation parent folder'
+    if($dialog.ShowDialog() -eq 'OK'){
+        $destination.Text=Join-Path $dialog.SelectedPath 'T3DFK'
+    }
+})
+
+$cancel.Add_Click({$form.Close()})
+
+$install.Add_Click({
+    try{
+        $install.Enabled=$false
+        $cancel.Enabled=$false
+        $target=[IO.Path]::GetFullPath($destination.Text.Trim()).TrimEnd('\')
+        if([string]::IsNullOrWhiteSpace($target)){throw 'Choose an installation folder.'}
+        if($target -eq $SourceRoot -or $target.StartsWith($SourceRoot+'\',[StringComparison]::OrdinalIgnoreCase)){
+            throw 'Install destination must be outside the portable source folder.'
+        }
+
+        $required=@(
+            'T3CHNRD Digital Field Kit.vbs',
+            'INSTALL T3CHNRD Digital Field Kit.vbs',
+            'UNINSTALL T3CHNRD Digital Field Kit.vbs',
+            'Windows\App\T3DFK-Windows.ps1',
+            'Windows\Config\tools.json'
+        )
+        foreach($relative in $required){
+            if(-not(Test-Path -LiteralPath (Join-Path $SourceRoot $relative) -PathType Leaf)){
+                throw "Source package is incomplete. Missing: $relative"
+            }
+        }
+
+        New-Item -ItemType Directory -Force -Path $target|Out-Null
+        $files=@(
+            Get-ChildItem -LiteralPath $SourceRoot -File -Recurse -Force |
+            Where-Object {
+                $_.FullName -notlike (Join-Path $SourceRoot 'Diagnostic-Reports\*') -and
+                $_.FullName -notlike (Join-Path $SourceRoot '.git\*')
+            }
+        )
+
+        $i=0
+        foreach($file in $files){
+            $i++
+            $relative=$file.FullName.Substring($SourceRoot.Length).TrimStart('\')
+            $output=Join-Path $target $relative
+            Copy-VerifiedFile -Source $file.FullName -Destination $output
+            $progress.Value=[Math]::Min(90,[int](90*$i/[Math]::Max(1,$files.Count)))
+            $status.Text="Copying and verifying $i / $($files.Count)"
+            [Windows.Forms.Application]::DoEvents()
+        }
+
+        $dataRoot=Join-Path $env:ProgramData 'T3DFK'
+        New-Item -ItemType Directory -Force -Path (Join-Path $dataRoot 'Runbook'),(Join-Path $dataRoot 'Diagnostic-Reports')|Out-Null
+        try{& icacls.exe $dataRoot /grant '*S-1-5-32-545:(OI)(CI)M' /T /C | Out-Null}catch{}
+
+        $startMenu=Join-Path ([Environment]::GetFolderPath('Programs')) 'T3CHNRD Digital Field Kit'
+        New-Item -ItemType Directory -Force -Path $startMenu|Out-Null
+        New-T3DFKShortcut -ShortcutPath (Join-Path $startMenu 'T3CHNRD Digital Field Kit.lnk') -InstallRoot $target
+        if($desktop.Checked){
+            New-T3DFKShortcut -ShortcutPath (Join-Path ([Environment]::GetFolderPath('Desktop')) 'T3CHNRD Digital Field Kit.lnk') -InstallRoot $target
+        }
+
+        $key='HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\T3CHNRDDigitalFieldKit'
+        New-Item $key -Force|Out-Null
+        Set-ItemProperty $key DisplayName 'T3CHNRD Digital Field Kit'
+        Set-ItemProperty $key DisplayVersion '11.0-test'
+        Set-ItemProperty $key Publisher 'T3CHNRD'
+        Set-ItemProperty $key InstallLocation $target
+        Set-ItemProperty $key UninstallString ('wscript.exe "'+(Join-Path $target 'UNINSTALL T3CHNRD Digital Field Kit.vbs')+'"')
+
+        $progress.Value=100
+        $status.Text='Installation complete.'
+        [Windows.Forms.MessageBox]::Show('Installation completed and copied files were hash-verified.','T3CHNRD Digital Field Kit')|Out-Null
+        if($launch.Checked){
+            Start-Process -FilePath (Join-Path $env:SystemRoot 'System32\wscript.exe') -ArgumentList ('"'+(Join-Path $target 'T3CHNRD Digital Field Kit.vbs')+'"') -WorkingDirectory $target
+        }
+        $form.Close()
+    }catch{
+        $status.Text='Installation failed.'
+        [Windows.Forms.MessageBox]::Show($_.Exception.Message,'Installation failed','OK','Error')|Out-Null
+        $install.Enabled=$true
+        $cancel.Enabled=$true
+    }
+})
+
+[void]$form.ShowDialog()
