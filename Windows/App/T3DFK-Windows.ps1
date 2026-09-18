@@ -42,7 +42,11 @@ $script:ExcludedRunbook = @('.venv312','ai_cowork','apps','deps.txt','static','t
 
 $manifestPath = Join-Path $root 'Windows\\Config\\tools.json'
 if(-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)){[Windows.Forms.MessageBox]::Show('Tool manifest is missing: '+$manifestPath,'T3CHNRD Digital Field Kit','OK','Error')|Out-Null;exit 2}
-$script:ToolCatalog = @(Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json)
+$parsedToolCatalog = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+$script:ToolCatalog = @()
+foreach($toolEntry in $parsedToolCatalog){
+ $script:ToolCatalog += $toolEntry
+}
 if($script:ToolCatalog.Count -eq 0){
  [Windows.Forms.MessageBox]::Show('The tool catalog loaded but contains zero tools.','T3CHNRD Digital Field Kit','OK','Error')|Out-Null
  exit 3
