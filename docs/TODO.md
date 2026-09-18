@@ -51,3 +51,11 @@ Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIEL
 - [ ] NEEDS FIELD TEST - Installer/UAC/shortcut/uninstall runtime behavior.
 - [ ] NEEDS FIELD TEST - Individual enabled diagnostic tools.
 - [ ] BLOCKED - GitHub Actions job is failing before step/log details are exposed; do not count CI as PASS.
+
+
+## 2026-09-18 startup failure fix
+- [x] PASS FROM FIELD ERROR REPRODUCTION - Startup failure identified from user screenshot: PowerShell automatic read-only variable $Host was being overwritten by the UI panel variable $host.
+- [x] STATIC PASS - Renamed the UI panel variable to $viewHost everywhere in Windows/App/T3DFK-Windows.ps1.
+- [x] STATIC PASS - Re-scanned main app, installer, uninstaller, and application integrity test for collisions with common PowerShell automatic/read-only variables; none remain.
+- [x] STATIC PASS - Re-checked bracket/quote structural balance on those startup-critical scripts; no structural errors found.
+- [ ] NEEDS FIELD TEST - Re-test top-level T3CHNRD Digital Field Kit.vbs startup on Windows.
