@@ -1,0 +1,39 @@
+# Build output
+bin/
+obj/
+dist/
+artifacts/
+installer/output/
+*.user
+*.suo
+.vs/
+
+# Runtime-generated field data
+Diagnostic-Reports/
+*.dmp
+*.etl
+*.evtx
+*.log
+
+# User/runbook data that should not be published from a field drive
+Runbook/Local/
+Runbook/Imported/
+
+# AI model payloads
+*.gguf
+*.safetensors
+models/
+
+# Secrets / signing material
+*.pfx
+*.p12
+*.key
+*.pem
+.env
+secrets.*
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
