@@ -11,7 +11,8 @@
     "args": [],
     "icon": "package",
     "ready": true,
-    "sourceStatus": "NEW_VERIFIED_APP_FEATURE"
+    "sourceStatus": "NEW_VERIFIED_APP_FEATURE",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-01",
@@ -25,7 +26,8 @@
     "args": [],
     "icon": "monitor",
     "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL"
+    "sourceStatus": "MISSING_ORIGINAL",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-02",
@@ -39,7 +41,8 @@
     "args": [],
     "icon": "document",
     "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL"
+    "sourceStatus": "MISSING_ORIGINAL",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-03",
@@ -53,7 +56,8 @@
     "args": [],
     "icon": "chart",
     "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL"
+    "sourceStatus": "MISSING_ORIGINAL",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-04",
@@ -67,7 +71,8 @@
     "args": [],
     "icon": "document",
     "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL"
+    "sourceStatus": "MISSING_ORIGINAL",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-05",
@@ -81,7 +86,8 @@
     "args": [],
     "icon": "document",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-06",
@@ -95,7 +101,8 @@
     "args": [],
     "icon": "disk",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-07",
@@ -109,7 +116,8 @@
     "args": [],
     "icon": "package",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-08",
@@ -123,7 +131,8 @@
     "args": [],
     "icon": "document",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-09",
@@ -137,7 +146,8 @@
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-10",
@@ -151,7 +161,8 @@
     "args": [],
     "icon": "document",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-11",
@@ -165,7 +176,8 @@
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-12",
@@ -179,7 +191,8 @@
     "args": [],
     "icon": "document",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-13",
@@ -193,7 +206,8 @@
     "args": [],
     "icon": "document",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-14",
@@ -207,7 +221,8 @@
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-15",
@@ -221,7 +236,8 @@
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-16",
@@ -235,7 +251,8 @@
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-17",
@@ -249,7 +266,8 @@
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-18",
@@ -263,7 +281,8 @@
     "args": [],
     "icon": "document",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-19",
@@ -277,7 +296,8 @@
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT_FROM_USER_UPLOADED_TOOLKIT"
+    "sourceStatus": "RESTORED_EXACT_FROM_USER_UPLOADED_TOOLKIT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-20",
@@ -291,7 +311,8 @@
     "args": [],
     "icon": "document",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-21",
@@ -305,7 +326,8 @@
     "args": [],
     "icon": "globe",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-22",
@@ -319,7 +341,8 @@
     "args": [],
     "icon": "globe",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-23",
@@ -333,7 +356,8 @@
     "args": [],
     "icon": "globe",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-24",
@@ -347,7 +371,8 @@
     "args": [],
     "icon": "globe",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-25",
@@ -361,7 +386,8 @@
     "args": [],
     "icon": "globe",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-26",
@@ -375,7 +401,8 @@
     "args": [],
     "icon": "globe",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-27",
@@ -389,7 +416,8 @@
     "args": [],
     "icon": "globe",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT_FROM_USER_UPLOADED_TOOLKIT"
+    "sourceStatus": "RESTORED_EXACT_FROM_USER_UPLOADED_TOOLKIT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-28",
@@ -403,7 +431,8 @@
     "args": [],
     "icon": "disk",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-29",
@@ -417,7 +446,8 @@
     "args": [],
     "icon": "disk",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-30",
@@ -431,7 +461,8 @@
     "args": [],
     "icon": "disk",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-31",
@@ -445,7 +476,8 @@
     "args": [],
     "icon": "disk",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-32",
@@ -459,7 +491,8 @@
     "args": [],
     "icon": "disk",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-33",
@@ -473,7 +506,8 @@
     "args": [],
     "icon": "lock",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-34",
@@ -487,7 +521,8 @@
     "args": [],
     "icon": "lock",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-35",
@@ -501,7 +536,8 @@
     "args": [],
     "icon": "lock",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-36",
@@ -515,7 +551,8 @@
     "args": [],
     "icon": "update",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-37",
@@ -529,7 +566,8 @@
     "args": [],
     "icon": "update",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-38",
@@ -543,7 +581,8 @@
     "args": [],
     "icon": "disk",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-39",
@@ -557,7 +596,8 @@
     "args": [],
     "icon": "update",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-40",
@@ -571,7 +611,8 @@
     "args": [],
     "icon": "update",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-41",
@@ -585,7 +626,8 @@
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-42",
@@ -599,7 +641,8 @@
     "args": [],
     "icon": "package",
     "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL"
+    "sourceStatus": "MISSING_ORIGINAL",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-43",
@@ -613,7 +656,8 @@
     "args": [],
     "icon": "package",
     "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL"
+    "sourceStatus": "MISSING_ORIGINAL",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-44",
@@ -629,7 +673,8 @@
     ],
     "icon": "package",
     "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL"
+    "sourceStatus": "MISSING_ORIGINAL",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-45",
@@ -643,7 +688,8 @@
     "args": [],
     "icon": "package",
     "ready": false,
-    "sourceStatus": "THIRD_PARTY_PAYLOAD_NOT_IN_GIT"
+    "sourceStatus": "THIRD_PARTY_PAYLOAD_NOT_IN_GIT",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-46",
@@ -657,7 +703,8 @@
     "args": [],
     "icon": "package",
     "ready": false,
-    "sourceStatus": "THIRD_PARTY_PAYLOAD_NOT_IN_GIT"
+    "sourceStatus": "THIRD_PARTY_PAYLOAD_NOT_IN_GIT",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-47",
@@ -671,7 +718,8 @@
     "args": [],
     "icon": "package",
     "ready": false,
-    "sourceStatus": "THIRD_PARTY_PAYLOAD_NOT_IN_GIT"
+    "sourceStatus": "THIRD_PARTY_PAYLOAD_NOT_IN_GIT",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-48",
@@ -685,7 +733,8 @@
     "args": [],
     "icon": "package",
     "ready": false,
-    "sourceStatus": "THIRD_PARTY_PAYLOAD_NOT_IN_GIT"
+    "sourceStatus": "THIRD_PARTY_PAYLOAD_NOT_IN_GIT",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-49",
@@ -699,7 +748,8 @@
     "args": [],
     "icon": "package",
     "ready": false,
-    "sourceStatus": "THIRD_PARTY_PAYLOAD_NOT_IN_GIT"
+    "sourceStatus": "THIRD_PARTY_PAYLOAD_NOT_IN_GIT",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-50",
@@ -713,7 +763,8 @@
     "args": [],
     "icon": "package",
     "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL"
+    "sourceStatus": "MISSING_ORIGINAL",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-51",
@@ -727,7 +778,8 @@
     "args": [],
     "icon": "wrench",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-52",
@@ -741,7 +793,8 @@
     "args": [],
     "icon": "wrench",
     "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL"
+    "sourceStatus": "MISSING_ORIGINAL",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-53",
@@ -755,7 +808,8 @@
     "args": [],
     "icon": "gear",
     "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL"
+    "sourceStatus": "MISSING_ORIGINAL",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-54",
@@ -769,7 +823,8 @@
     "args": [],
     "icon": "wrench",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-55",
@@ -783,7 +838,8 @@
     "args": [],
     "icon": "document",
     "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL"
+    "sourceStatus": "MISSING_ORIGINAL",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-56",
@@ -797,7 +853,8 @@
     "args": [],
     "icon": "gear",
     "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL"
+    "sourceStatus": "MISSING_ORIGINAL",
+    "executionMode": "Unavailable"
   },
   {
     "id": "tool-57",
@@ -811,7 +868,8 @@
     "args": [],
     "icon": "terminal",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT_FROM_USER_UPLOADED_TOOLKIT"
+    "sourceStatus": "RESTORED_EXACT_FROM_USER_UPLOADED_TOOLKIT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-58",
@@ -825,7 +883,8 @@
     "args": [],
     "icon": "terminal",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT"
+    "sourceStatus": "RESTORED_EXACT",
+    "executionMode": "InApp"
   },
   {
     "id": "tool-59",
@@ -839,7 +898,8 @@
     "args": [],
     "icon": "terminal",
     "ready": false,
-    "sourceStatus": "LEGACY_HTA_INTEGRITY_TEST_INCOMPATIBLE_WITH_NEW_ARCHITECTURE"
+    "sourceStatus": "LEGACY_HTA_INTEGRITY_TEST_INCOMPATIBLE_WITH_NEW_ARCHITECTURE",
+    "executionMode": "Unavailable"
   },
   {
     "id": "application-integrity-self-test",
@@ -853,6 +913,7 @@
     "args": [],
     "icon": "terminal",
     "ready": true,
-    "sourceStatus": "NEW_VERIFIED_APP_FEATURE"
+    "sourceStatus": "NEW_VERIFIED_APP_FEATURE",
+    "executionMode": "InApp"
   }
 ]
