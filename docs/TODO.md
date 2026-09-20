@@ -1,5 +1,7 @@
 # T3CHNRD Digital Field Kit - Master TODO
 
+This is the single source of truth for project tracking. There is only one active TODO file for the repository.
+
 Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIELD TEST = implemented but not runtime-proven; FAIL = known broken.
 
 ## ACTIVE GATE - WINDOWS APP
@@ -14,6 +16,7 @@ Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIEL
 - [x] STATIC PASS - Cancel uses taskkill /T /F on the child process tree.
 - [x] STATIC PASS - Interactive tools launch externally rather than blocking the embedded runner.
 - [x] STATIC PASS - Scripts declaring #Requires -RunAsAdministrator are elevated only when that declaration is detected.
+- [x] STATIC PASS - Default execution policy for the app now launches tools elevated by default in the embedded runner flow.
 - [x] STATIC PASS - Install All includes Chrome, Firefox, Malwarebytes, AVG, CCleaner and excludes Win11Debloat/WinUtil.
 - [ ] NEEDS FIELD TEST - Launch without PowerShell security prompt.
 - [ ] NEEDS FIELD TEST - Minimize/maximize/restore/resize/close.
@@ -24,6 +27,28 @@ Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIEL
 - [ ] NEEDS FIELD TEST - Windows install / shortcuts / installed launch / uninstall.
 - [ ] NEEDS FIELD TEST - every restored Windows diagnostic category.
 - [ ] Proper branded Windows EXE/taskbar icon remains open; current field-test launcher is WSH-based.
+
+## 2026-09-20 WINDOWS FIELD-TEST CHECKLIST
+This checklist is the current live hardware gate for the Windows app. Static validation is complete, but final acceptance requires a real Windows machine.
+
+- [ ] Windows UI runtime validation
+  - [ ] startup without PowerShell security prompt
+  - [ ] minimize / maximize / restore / resize / close
+  - [ ] favorites / recent / categories / search
+  - [ ] Run Center flow
+  - [ ] Runbook flow
+- [ ] Installer and portability checks
+  - [ ] installed launch
+  - [ ] uninstall path
+  - [ ] USB / external SSD run behavior
+  - [ ] display scaling behavior
+- [ ] Packaging and release checks
+  - [ ] shortcut/launcher behavior
+  - [ ] installed vs portable mode expectations
+  - [ ] final Windows field-test checklist
+- [ ] Documentation cleanup
+  - [ ] keep roadmap and milestone tracking tied to the active branch/phase
+  - [ ] keep macOS and local AI items separated from the current Windows phase
 
 ## AFTER WINDOWS PASS
 - [ ] Finish Runbook wiki/search/index/editor.

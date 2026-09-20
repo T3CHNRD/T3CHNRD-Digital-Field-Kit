@@ -52,7 +52,7 @@ if($script:ToolCatalog.Count -eq 0){
  exit 3
 }
 $script:ReadyToolCount=@($script:ToolCatalog | Where-Object {$_.ready}).Count
-
+$script:AdminDefault = $true
 
 $navy=[Drawing.Color]::FromArgb(7,48,72)
 $dark=[Drawing.Color]::FromArgb(3,22,31)
@@ -146,8 +146,8 @@ foreach($n in @('Favorites','Tools','Recent','Runbook','Settings')){
  $b.Font=New-Object Drawing.Font('Segoe UI',9,[Drawing.FontStyle]::Bold)
  $b.Tag=$n
  $b.Add_Click({
-  param($sender,$eventArgs)
-  $script:View=[string]$sender.Tag
+    param($control,$eventData)
+    $script:View=[string]$control.Tag
   if($script:View -eq 'Tools'){$script:Category='All Tools'}
   Update-View
  })
@@ -163,8 +163,8 @@ $search.Location=New-Object Drawing.Point(1110,7)
 $search.Font=New-Object Drawing.Font('Segoe UI',10)
 $tabsPanel.Controls.Add($search)
 $search.Add_TextChanged({
- param($sender,$eventArgs)
- if(-not [string]::IsNullOrWhiteSpace($sender.Text)){
+ param($control,$eventData)
+ if(-not [string]::IsNullOrWhiteSpace($control.Text)){
   $script:View='Tools'
   $script:Category='All Tools'
  }
@@ -205,9 +205,9 @@ foreach($n in @('All Tools','Diagnostics','Repair','Optimization','Security','Ne
  $b.Padding=New-Object Windows.Forms.Padding(12,0,0,0)
  $b.Tag=$n
  $b.Add_Click({
-  param($sender,$eventArgs)
+    param($control,$eventData)
   $script:View='Tools'
-  $script:Category=[string]$sender.Tag
+    $script:Category=[string]$control.Tag
   Update-View
  })
  $sideFlow.Controls.Add($b)
@@ -230,8 +230,8 @@ foreach($n in @('Favorites','Recent','Runbook','Settings')){
  $b.Padding=New-Object Windows.Forms.Padding(12,0,0,0)
  $b.Tag=$n
  $b.Add_Click({
-  param($sender,$eventArgs)
-  $script:View=[string]$sender.Tag
+    param($control,$eventData)
+    $script:View=[string]$control.Tag
   Update-View
  })
  $sideFlow.Controls.Add($b)
@@ -483,11 +483,11 @@ function Add-Recent([string]$Id){
  $script:Recent=@($Id)+@($script:Recent | Where-Object {$_ -ne $Id})
  Save-State
 }
-function Toggle-Favorite([string]$Id){
+function Set-Favorite([string]$Id){
  if($script:Favorites -contains $Id){$script:Favorites=@($script:Favorites | Where-Object {$_ -ne $Id})}
  else{$script:Favorites+= $Id}
  Save-State
- Render-Cards
+ Show-ToolCards
 }
 function Write-Run([string]$Line){
  if($runnerOut.InvokeRequired){$runnerOut.BeginInvoke([Action[string]]{param($x) Write-Run $x},$Line) | Out-Null;return}
@@ -585,7 +585,8 @@ function Start-Tool($tool){
  $toolArgs=@()
  if($tool.PSObject.Properties.Name -contains 'args' -and $tool.args){$toolArgs=@($tool.args)}
  $quotedToolArgs=@($toolArgs | ForEach-Object {'"'+([string]$_).Replace('"','\"')+'"'})
- if($needsAdmin -and -not (Test-AppAdministrator)){
+ $mustRunElevated = $script:AdminDefault -or $needsAdmin
+ if($mustRunElevated -and -not (Test-AppAdministrator)){
   Start-ElevatedToolApp $tool
   return
  }
@@ -645,10 +646,10 @@ $sendInput.Add_Click({
  }catch{Write-Run ('Input error: '+$_.Exception.Message)}
 })
 $runnerInput.Add_KeyDown({
- param($sender,$eventArgs)
- if($eventArgs.KeyCode -eq [Windows.Forms.Keys]::Enter){
+ param($control,$eventData)
+ if($eventData.KeyCode -eq [Windows.Forms.Keys]::Enter){
   $sendInput.PerformClick()
-  $eventArgs.SuppressKeyPress=$true
+    $eventData.SuppressKeyPress=$true
  }
 })
 
@@ -702,22 +703,22 @@ function Add-Card($tool){
  $star.Location=New-Object Drawing.Point(320,4)
  $star.Tag=$tool.Id
  $star.Add_Click({
-  param($sender,$eventArgs)
-  Toggle-Favorite ([string]$sender.Tag)
+    param($control,$eventData)
+    Set-Favorite ([string]$control.Tag)
  })
  $p.Controls.Add($star)
  foreach($c in @($p,$name,$desc,$risk)){
   $c.Cursor='Hand'
   $c.Tag=$tool
   $c.Add_Click({
-   param($sender,$eventArgs)
-   Start-Tool $sender.Tag
+     param($control,$eventData)
+     Start-Tool $control.Tag
   })
  }
  $cards.Controls.Add($p)
 }
 
-function Render-Cards{
+function Show-ToolCards{
  $cards.SuspendLayout()
  $cards.Controls.Clear()
  $q=$search.Text.Trim()
@@ -742,7 +743,7 @@ function Render-Cards{
  $cards.ResumeLayout()
 }
 
-function Load-Runbook{
+function Update-RunbookList{
  $rbList.Items.Clear()
  if(-not(Test-Path $runbookRoot)){return}
  Get-ChildItem $runbookRoot -File -Recurse -ErrorAction SilentlyContinue | Where-Object {
@@ -761,7 +762,7 @@ $rbList.Add_SelectedIndexChanged({
 $rbList.Add_DoubleClick({$f=$rbList.SelectedItem;if($f){Start-Process $f.FullName}})
 $rbSearch.Add_TextChanged({
  $term=$rbSearch.Text.Trim()
- Load-Runbook
+ Update-RunbookList
  if($term){
   $m=@($rbList.Items | Where-Object {$_.Name -like ('*'+$term+'*') -or $_.FullName -like ('*'+$term+'*')})
   $rbList.Items.Clear()
@@ -775,7 +776,7 @@ $rbAdd.Add_Click({
  $d.Filter='Supported documents|*.pdf;*.doc;*.docx;*.txt;*.md;*.rtf;*.html;*.htm;*.csv;*.xlsx;*.pptx|All files|*.*'
  if($d.ShowDialog() -eq 'OK'){
   foreach($f in $d.FileNames){Copy-Item $f (Join-Path $runbookRoot ([IO.Path]::GetFileName($f))) -Force}
-  Load-Runbook
+    Update-RunbookList
  }
 })
 $rbOpen.Add_Click({Start-Process explorer.exe $runbookRoot})
@@ -816,8 +817,8 @@ function Show-PlatformFallback{
   $b.Location=New-Object Drawing.Point((24+262*$col),(145+54*$row))
   $b.Tag=$ch[1]
   $b.Add_Click({
-   param($sender,$eventArgs)
-   $platform.Text=[string]$sender.Tag
+     param($control,$eventData)
+     $platform.Text=[string]$control.Tag
    $d.Close()
   })
   $d.Controls.Add($b)
@@ -838,7 +839,7 @@ function Update-View{
   $pageSub.Text='Portable internal wiki and documentation.'
   $info.Visible=$false
   $runbook.Visible=$true
-  Load-Runbook
+    Update-RunbookList
  }elseif($script:View -eq 'Settings'){
   $pageTitle.Text='Settings'
   $pageSub.Text='Toolkit status, platform fallback and validation gate.'
@@ -849,13 +850,13 @@ function Update-View{
   $pageSub.Text='Your pinned field tools.'
   $info.Visible=$true
   $cards.Visible=$true
-  Render-Cards
+    Show-ToolCards
  }elseif($script:View -eq 'Recent'){
   $pageTitle.Text='Recent Tools'
   $pageSub.Text='Recently launched field tools.'
   $info.Visible=$true
   $cards.Visible=$true
-  Render-Cards
+    Show-ToolCards
  }else{
   if(-not [string]::IsNullOrWhiteSpace($search.Text)){
    $pageTitle.Text='Search Results'
