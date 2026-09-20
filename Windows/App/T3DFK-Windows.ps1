@@ -1,4 +1,6 @@
-param([string]$ToolkitRoot='',[string]$AutoRunToolId='')
+﻿param([string]$ToolkitRoot='',[string]$AutoRunToolId='')
+
+[void]$AutoRunToolId
 
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
@@ -146,7 +148,7 @@ foreach($n in @('Favorites','Tools','Recent','Runbook','Settings')){
  $b.Font=New-Object Drawing.Font('Segoe UI',9,[Drawing.FontStyle]::Bold)
  $b.Tag=$n
  $b.Add_Click({
-    param($control,$eventData)
+   param($control)
     $script:View=[string]$control.Tag
   if($script:View -eq 'Tools'){$script:Category='All Tools'}
   Update-View
@@ -163,7 +165,7 @@ $search.Location=New-Object Drawing.Point(1110,7)
 $search.Font=New-Object Drawing.Font('Segoe UI',10)
 $tabsPanel.Controls.Add($search)
 $search.Add_TextChanged({
- param($control,$eventData)
+ param($control)
  if(-not [string]::IsNullOrWhiteSpace($control.Text)){
   $script:View='Tools'
   $script:Category='All Tools'
@@ -205,7 +207,7 @@ foreach($n in @('All Tools','Diagnostics','Repair','Optimization','Security','Ne
  $b.Padding=New-Object Windows.Forms.Padding(12,0,0,0)
  $b.Tag=$n
  $b.Add_Click({
-    param($control,$eventData)
+   param($control)
   $script:View='Tools'
     $script:Category=[string]$control.Tag
   Update-View
@@ -230,7 +232,7 @@ foreach($n in @('Favorites','Recent','Runbook','Settings')){
  $b.Padding=New-Object Windows.Forms.Padding(12,0,0,0)
  $b.Tag=$n
  $b.Add_Click({
-    param($control,$eventData)
+   param($control)
     $script:View=[string]$control.Tag
   Update-View
  })
@@ -483,11 +485,13 @@ function Add-Recent([string]$Id){
  $script:Recent=@($Id)+@($script:Recent | Where-Object {$_ -ne $Id})
  Save-State
 }
-function Set-Favorite([string]$Id){
+function Set-Favorite {
+ [CmdletBinding(SupportsShouldProcess=$true)]
+ param([string]$Id)
  if($script:Favorites -contains $Id){$script:Favorites=@($script:Favorites | Where-Object {$_ -ne $Id})}
  else{$script:Favorites+= $Id}
  Save-State
- Show-ToolCards
+ Show-ToolCard
 }
 function Write-Run([string]$Line){
  if($runnerOut.InvokeRequired){$runnerOut.BeginInvoke([Action[string]]{param($x) Write-Run $x},$Line) | Out-Null;return}
@@ -502,13 +506,17 @@ function Test-AppAdministrator {
   return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
  }catch{return $false}
 }
-function Start-ElevatedToolApp($Tool){
+function Start-ElevatedToolApp {
+ [CmdletBinding(SupportsShouldProcess=$true)]
+ param($Tool)
  $psExe=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
  $appPath=Join-Path $root 'Windows\App\T3DFK-Windows.ps1'
  $argList='-NoLogo -NoProfile -STA -WindowStyle Hidden -ExecutionPolicy Bypass -File "'+$appPath+'" -ToolkitRoot "'+$root+'" -AutoRunToolId "'+[string]$Tool.Id+'"'
  try{
-  Start-Process -FilePath $psExe -ArgumentList $argList -WorkingDirectory $root -Verb RunAs -WindowStyle Hidden | Out-Null
-  $form.Close()
+  if($PSCmdlet.ShouldProcess($Tool.Name,'Start elevated toolkit')){
+   Start-Process -FilePath $psExe -ArgumentList $argList -WorkingDirectory $root -Verb RunAs -WindowStyle Hidden | Out-Null
+   $form.Close()
+  }
  }catch{
   [Windows.Forms.MessageBox]::Show($_.Exception.Message,'Administrator launch cancelled or failed','OK','Error')|Out-Null
  }
@@ -543,7 +551,9 @@ function Invoke-InstallAll{
  $runnerState.Text='COMPLETE'
 }
 
-function Start-Tool($tool){
+function Start-Tool {
+ [CmdletBinding(SupportsShouldProcess=$true)]
+ param($tool)
  Add-Recent $tool.Id
  if(-not $tool.Ready){
   [Windows.Forms.MessageBox]::Show('This original tool has not yet been migrated into the clean rebuild. It is deliberately disabled instead of being pointed at an unverified replacement.','Needs migration','OK','Information') | Out-Null
@@ -612,10 +622,11 @@ function Start-Tool($tool){
  $p=New-Object Diagnostics.Process
  $p.StartInfo=$psi
  $p.EnableRaisingEvents=$true
- $p.add_OutputDataReceived({param($s,$e) if($e.Data){Add-Content $script:CurrentLog $e.Data;Write-Run $e.Data}})
- $p.add_ErrorDataReceived({param($s,$e) if($e.Data){Add-Content $script:CurrentLog ('ERROR: '+$e.Data);Write-Run ('ERROR: '+$e.Data)}})
+ $p.add_OutputDataReceived({param($s,$e) [void]$s; if($e.Data){Add-Content $script:CurrentLog $e.Data;Write-Run $e.Data}})
+ $p.add_ErrorDataReceived({param($s,$e) [void]$s; if($e.Data){Add-Content $script:CurrentLog ('ERROR: '+$e.Data);Write-Run ('ERROR: '+$e.Data)}})
  $p.add_Exited({
   param($s,$e)
+  [void]$e
   $code=$s.ExitCode
   Add-Content $script:CurrentLog ('ExitCode: '+$code)
   $form.BeginInvoke([Action]{
@@ -647,6 +658,7 @@ $sendInput.Add_Click({
 })
 $runnerInput.Add_KeyDown({
  param($control,$eventData)
+ [void]$control
  if($eventData.KeyCode -eq [Windows.Forms.Keys]::Enter){
   $sendInput.PerformClick()
     $eventData.SuppressKeyPress=$true
@@ -703,7 +715,7 @@ function Add-Card($tool){
  $star.Location=New-Object Drawing.Point(320,4)
  $star.Tag=$tool.Id
  $star.Add_Click({
-    param($control,$eventData)
+    param($control)
     Set-Favorite ([string]$control.Tag)
  })
  $p.Controls.Add($star)
@@ -711,14 +723,16 @@ function Add-Card($tool){
   $c.Cursor='Hand'
   $c.Tag=$tool
   $c.Add_Click({
-     param($control,$eventData)
+     param($control)
      Start-Tool $control.Tag
   })
  }
  $cards.Controls.Add($p)
 }
 
-function Show-ToolCards{
+function Show-ToolCard{
+ [CmdletBinding()]
+ param()
  $cards.SuspendLayout()
  $cards.Controls.Clear()
  $q=$search.Text.Trim()
@@ -744,6 +758,8 @@ function Show-ToolCards{
 }
 
 function Update-RunbookList{
+ [CmdletBinding(SupportsShouldProcess=$true)]
+ param()
  $rbList.Items.Clear()
  if(-not(Test-Path $runbookRoot)){return}
  Get-ChildItem $runbookRoot -File -Recurse -ErrorAction SilentlyContinue | Where-Object {
@@ -817,7 +833,7 @@ function Show-PlatformFallback{
   $b.Location=New-Object Drawing.Point((24+262*$col),(145+54*$row))
   $b.Tag=$ch[1]
   $b.Add_Click({
-     param($control,$eventData)
+    param($control)
      $platform.Text=[string]$control.Tag
    $d.Close()
   })
@@ -829,6 +845,8 @@ function Show-PlatformFallback{
 $platformButton.Add_Click({Show-PlatformFallback})
 
 function Update-View{
+ [CmdletBinding(SupportsShouldProcess=$true)]
+ param()
  foreach($k in $tabs.Keys){$tabs[$k].BackColor=if($k -eq $script:View){[Drawing.Color]::FromArgb(104,149,17)}else{[Drawing.Color]::FromArgb(35,52,62)}}
  foreach($k in $cats.Keys){$cats[$k].BackColor=if($script:View -eq 'Tools' -and $k -eq $script:Category){[Drawing.Color]::FromArgb(67,104,47)}else{[Drawing.Color]::FromArgb(20,58,80)}}
  $cards.Visible=$false
@@ -850,13 +868,13 @@ function Update-View{
   $pageSub.Text='Your pinned field tools.'
   $info.Visible=$true
   $cards.Visible=$true
-    Show-ToolCards
+    Show-ToolCard
  }elseif($script:View -eq 'Recent'){
   $pageTitle.Text='Recent Tools'
   $pageSub.Text='Recently launched field tools.'
   $info.Visible=$true
   $cards.Visible=$true
-    Show-ToolCards
+    Show-ToolCard
  }else{
   if(-not [string]::IsNullOrWhiteSpace($search.Text)){
    $pageTitle.Text='Search Results'
@@ -867,7 +885,7 @@ function Update-View{
   }
   $info.Visible=$true
   $cards.Visible=$true
-   Show-ToolCards
+  Show-ToolCard
  }
 }
 
