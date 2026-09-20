@@ -4,19 +4,27 @@ This is the single source of truth for project tracking. There is only one activ
 
 Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIELD TEST = implemented but not runtime-proven; FAIL = known broken.
 
+## CURRENT STATUS SNAPSHOT - 2026-09-20
+- Windows-first source tree is clean and synchronized with `origin/main`.
+- Catalog contains 61 entries: 50 ready and 11 disabled pending authoritative payloads.
+- All ready catalog file mappings resolve; virtual actions such as `INSTALLALL` are handled by the app.
+- Runbook contains the index, quick start, troubleshooting, security, networking, repair, deployment, evidence, escalation, and documentation procedures.
+- Branded EXE build, generated icon, startup elevation, diagnostic-console selector, and Run Center lifecycle changes are implemented but still need real Windows field testing.
+- No final release claim is made until the Windows field-test gate and disabled payload review are complete.
+
 ## ACTIVE GATE - WINDOWS APP
 - [x] STATIC PASS - Top-level portable Windows launcher.
 - [x] STATIC PASS - Top-level graphical Windows installer and uninstall source.
 - [x] STATIC PASS - Original Field Kit UI/UX restored.
-- [x] STATIC PASS - Original 59-entry GUI tool catalog restored.
-- [x] STATIC PASS - 39 tool entries have exact original PowerShell source restored from authoritative GitHub source.
-- [ ] 15 tool entries still lack an authoritative original script/payload body; they remain visible but disabled and must not be recreated.
+- [x] STATIC PASS - Current 61-entry GUI tool catalog restored and validated.
+- [x] STATIC PASS - 40 immutable restored-script entries have exact original PowerShell source tracked from authoritative sources.
+- [ ] 11 tool entries still lack an authoritative original script/payload body; they remain visible but disabled and must not be recreated.
 - [x] STATIC PASS - Create and enforce immutable Git blob SHA-1 manifest for restored original scripts.
 - [x] STATIC PASS - Embedded stdout/stderr capture and exit-code display for compatible noninteractive tools.
 - [x] STATIC PASS - Cancel uses taskkill /T /F on the child process tree.
 - [x] STATIC PASS - Interactive tools launch externally rather than blocking the embedded runner.
-- [x] STATIC PASS - Scripts declaring #Requires -RunAsAdministrator are elevated only when that declaration is detected.
-- [x] STATIC PASS - Default execution policy for the app now launches tools elevated by default in the embedded runner flow.
+- [x] STATIC PASS - Application startup requests Administrator elevation; child tools inherit the elevated process by default.
+- [x] STATIC PASS - Compatible tool output remains in the embedded Run Center; interactive selector workflows launch separately without closing the main app.
 - [x] STATIC PASS - Install All includes Chrome, Firefox, Malwarebytes, AVG, CCleaner and excludes Win11Debloat/WinUtil.
 - [ ] NEEDS FIELD TEST - Launch without PowerShell security prompt.
 - [ ] NEEDS FIELD TEST - Minimize/maximize/restore/resize/close.
@@ -28,7 +36,7 @@ Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIEL
 - [ ] NEEDS FIELD TEST - every restored Windows diagnostic category.
 - [x] STATIC PASS - Added repeatable branded Windows EXE build with generated T3CHNRD icon; VBS remains the source-only fallback.
 - [ ] NEEDS FIELD TEST - Validate packaged EXE startup, taskbar icon, portable root detection, installer shortcuts, and fallback behavior.
-- [ ] INVESTIGATE - Determine why the main Field Kit window may close after a tool or script completes; reproduce with an elevated packaged EXE and inspect process exit, form lifecycle, and child-process callbacks.
+- [ ] INVESTIGATE - Determine why the main Field Kit window may still close after a tool or script completes; reproduce with the latest elevated packaged EXE and inspect process exit, form lifecycle, and child-process callbacks.
 
 ## 2026-09-20 WINDOWS FIELD-TEST CHECKLIST
 This checklist is the current live hardware gate for the Windows app. Static validation is complete, but final acceptance requires a real Windows machine.
@@ -55,7 +63,7 @@ This checklist is the current live hardware gate for the Windows app. Static val
 ## AFTER WINDOWS PASS
 - [x] STATIC PASS - Expand Runbook with quick start, troubleshooting, security, networking, repair, deployment, evidence, escalation, and documentation procedures.
 - [ ] NEEDS FIELD TEST - Validate the in-app Runbook browser, search, refresh, add-document, open-folder, and document preview flows.
-- [ ] Finish Runbook wiki/search/index/editor.
+- [ ] Improve Runbook wiki/search/index/editor after Windows field validation.
 - [ ] Build macOS Intel native app + installer.
 - [ ] Build macOS Apple Silicon native app + installer.
 - [ ] Add automatic multi-platform startup routing and manual Windows/macOS Intel/macOS Apple Silicon failsafe.
