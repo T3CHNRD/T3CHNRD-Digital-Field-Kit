@@ -780,7 +780,7 @@ $rbAdd.Add_Click({
  }
 })
 $rbOpen.Add_Click({Start-Process explorer.exe $runbookRoot})
-$rbRefresh.Add_Click({Load-Runbook})
+$rbRefresh.Add_Click({Update-RunbookList})
 
 function Show-PlatformFallback{
  $d=New-Object Windows.Forms.Form
@@ -867,7 +867,7 @@ function Update-View{
   }
   $info.Visible=$true
   $cards.Visible=$true
-  Render-Cards
+   Show-ToolCards
  }
 }
 
