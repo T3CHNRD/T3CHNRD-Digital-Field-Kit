@@ -11,6 +11,13 @@ If Not fso.FileExists(ui) Then
   WScript.Quit 2
 End If
 
+Dim exe
+exe = fso.BuildPath(root, "T3CHNRD Digital Field Kit.exe")
+If fso.FileExists(exe) Then
+  rc = sh.Run(Q(exe), 0, True)
+  WScript.Quit rc
+End If
+
 ps = sh.ExpandEnvironmentStrings("%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe")
 If Not fso.FileExists(ps) Then ps = "powershell.exe"
 

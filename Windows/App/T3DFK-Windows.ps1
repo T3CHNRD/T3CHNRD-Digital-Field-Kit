@@ -6,6 +6,13 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 if([string]::IsNullOrWhiteSpace($ToolkitRoot)){$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)}else{$root=[IO.Path]::GetFullPath($ToolkitRoot).TrimEnd('\\')}
+$identity=[Security.Principal.WindowsIdentity]::GetCurrent()
+$principal=New-Object Security.Principal.WindowsPrincipal($identity)
+if(-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){
+ $psExe=Join-Path $env:SystemRoot 'System32\\WindowsPowerShell\\v1.0\\powershell.exe'
+ Start-Process -FilePath $psExe -ArgumentList @('-NoLogo','-NoProfile','-STA','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-File',$PSCommandPath,'-ToolkitRoot',$root) -WorkingDirectory $root -Verb RunAs -WindowStyle Hidden | Out-Null
+ return
+}
 $stateRoot = Join-Path $env:LOCALAPPDATA 'T3DFK'
 $installedUnderProgramFiles = $false
 $pf86=[Environment]::GetFolderPath('ProgramFilesX86')
@@ -515,7 +522,6 @@ function Start-ElevatedToolApp {
  try{
   if($PSCmdlet.ShouldProcess($Tool.Name,'Start elevated toolkit')){
    Start-Process -FilePath $psExe -ArgumentList $argList -WorkingDirectory $root -Verb RunAs -WindowStyle Hidden | Out-Null
-   $form.Close()
   }
  }catch{
   [Windows.Forms.MessageBox]::Show($_.Exception.Message,'Administrator launch cancelled or failed','OK','Error')|Out-Null
@@ -600,6 +606,12 @@ function Start-Tool {
   Start-ElevatedToolApp $tool
   return
  }
+ if($needsInteractive){
+  try{
+   Start-Process -FilePath (Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe') -ArgumentList @('-NoLogo','-NoProfile','-STA','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-File',$path) -WorkingDirectory $root -WindowStyle Hidden | Out-Null
+  }catch{[Windows.Forms.MessageBox]::Show($_.Exception.Message,'Tool launch failed','OK','Error')|Out-Null}
+  return
+ }
  Show-Runner $tool.Name $needsInteractive
  $runnerState.Text='RUNNING'
  $cancel.Enabled=$true
@@ -607,6 +619,7 @@ function Start-Tool {
  New-Item -ItemType Directory -Force -Path $logDir | Out-Null
  $script:CurrentLog=Join-Path $logDir ((Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+($tool.Name -replace '[^A-Za-z0-9._-]','_')+'.log')
  Set-Content $script:CurrentLog ('Tool: '+$tool.Name)
+ Write-Run ('Launching '+$tool.Name+' as Administrator...')
  $psi=New-Object Diagnostics.ProcessStartInfo
  $psi.FileName=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
  $psi.Arguments=('-NoLogo -NoProfile -ExecutionPolicy Bypass -File "'+$path+'" '+($quotedToolArgs -join ' ')).Trim()
@@ -643,6 +656,10 @@ function Start-Tool {
   Write-Run ('PID: '+$p.Id)
   $p.BeginOutputReadLine()
   $p.BeginErrorReadLine()
+ }else{
+  Write-Run 'ERROR: The diagnostic process could not be started.'
+  $runnerState.Text='FAILED TO START'
+  $cancel.Enabled=$false
  }
 }
 

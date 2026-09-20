@@ -109,6 +109,8 @@ Double-click:
 
 - T3CHNRD Digital Field Kit.vbs
 
+When the packaged Windows EXE is present, this launcher automatically delegates to `T3CHNRD Digital Field Kit.exe`, which provides the branded taskbar and shortcut icon. The VBS path remains the portable fallback for source-only checkouts.
+
 ### Installed Windows launch
 
 Double-click:
@@ -118,6 +120,8 @@ Double-click:
 ### Important usage note
 
 Do not launch the PowerShell source directly from the Windows/App folder unless intentionally debugging or testing internals. The supported entry points are the root portable installer/uninstaller and the project root launcher.
+
+The branded EXE is generated during Windows packaging from [Windows/App/Build-T3DFKWindowsExe.ps1](Windows/App/Build-T3DFKWindowsExe.ps1). It is not committed as a binary; release artifacts are generated from source so the package remains auditable.
 
 ## Roadmap and branch plan
 

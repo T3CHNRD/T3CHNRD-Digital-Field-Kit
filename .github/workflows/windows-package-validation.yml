@@ -43,12 +43,19 @@ jobs:
             if($actual -ne $expected){throw "Original script changed: $path"}
             Write-Host "HASH PASS $path"
           }
+      - name: Build branded Windows EXE
+        shell: powershell
+        run: |
+          Install-Module -Name ps2exe -Scope CurrentUser -Force -AllowClobber
+          & .\Windows\App\Build-T3DFKWindowsExe.ps1 -ToolkitRoot $PWD -OutputFile (Join-Path $PWD 'T3CHNRD Digital Field Kit.exe')
+          if(-not(Test-Path '.\T3CHNRD Digital Field Kit.exe')){throw 'Branded EXE was not created.'}
       - name: Build technician ZIP
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force artifacts | Out-Null
           $items=@(
             'T3CHNRD Digital Field Kit.vbs',
+            'T3CHNRD Digital Field Kit.exe',
             'INSTALL T3CHNRD Digital Field Kit.vbs',
             'UNINSTALL T3CHNRD Digital Field Kit.vbs',
             'README - START HERE.txt',

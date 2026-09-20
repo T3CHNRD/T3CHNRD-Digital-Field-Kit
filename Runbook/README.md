@@ -24,6 +24,11 @@ It is intentionally not a duplicate UI layer or a second project root. It is the
 - [01-Quick-Start.md](01-Quick-Start.md) — quick-start and launch guidance
 - [02-Troubleshooting-Playbook.md](02-Troubleshooting-Playbook.md) — structured field troubleshooting flows
 - [03-Documentation-Template.md](03-Documentation-Template.md) — templates for service notes and reports
+- [04-Security-Review.md](04-Security-Review.md) — defensive endpoint and account review
+- [05-Network-Troubleshooting.md](05-Network-Troubleshooting.md) — connectivity and DNS workflow
+- [06-Repair-and-Maintenance.md](06-Repair-and-Maintenance.md) — controlled repair and maintenance
+- [07-Deployment-and-Setup.md](07-Deployment-and-Setup.md) — workstation setup and handoff
+- [08-Evidence-and-Escalation.md](08-Evidence-and-Escalation.md) — evidence handling and escalation packet
 
 ## Platform posture
 

@@ -15,17 +15,25 @@ Add-Type -AssemblyName System.Drawing
 $SourceRoot=[IO.Path]::GetFullPath($SourceRoot).TrimEnd('\')
 
 function New-T3DFKShortcut {
+    [CmdletBinding(SupportsShouldProcess=$true)]
     param(
         [Parameter(Mandatory=$true)][string]$ShortcutPath,
         [Parameter(Mandatory=$true)][string]$InstallRoot
     )
     $wsh=New-Object -ComObject WScript.Shell
     $shortcut=$wsh.CreateShortcut($ShortcutPath)
-    $shortcut.TargetPath=Join-Path $env:SystemRoot 'System32\wscript.exe'
-    $shortcut.Arguments='"'+(Join-Path $InstallRoot 'T3CHNRD Digital Field Kit.vbs')+'"'
+    $exe=Join-Path $InstallRoot 'T3CHNRD Digital Field Kit.exe'
+    if(Test-Path -LiteralPath $exe -PathType Leaf){
+        $shortcut.TargetPath=$exe
+        $shortcut.Arguments=''
+        $shortcut.IconLocation="$exe,0"
+    }else{
+        $shortcut.TargetPath=Join-Path $env:SystemRoot 'System32\wscript.exe'
+        $shortcut.Arguments='"'+(Join-Path $InstallRoot 'T3CHNRD Digital Field Kit.vbs')+'"'
+    }
     $shortcut.WorkingDirectory=$InstallRoot
     $shortcut.Description='T3CHNRD Digital Field Kit'
-    $shortcut.Save()
+    if($PSCmdlet.ShouldProcess($ShortcutPath,'Create shortcut')){$shortcut.Save()}
 }
 
 function Copy-VerifiedFile {
@@ -200,7 +208,7 @@ $install.Add_Click({
 
         $dataRoot=Join-Path $env:ProgramData 'T3DFK'
         New-Item -ItemType Directory -Force -Path (Join-Path $dataRoot 'Runbook'),(Join-Path $dataRoot 'Diagnostic-Reports')|Out-Null
-        try{& icacls.exe $dataRoot /grant '*S-1-5-32-545:(OI)(CI)M' /T /C | Out-Null}catch{}
+        try{& icacls.exe $dataRoot /grant '*S-1-5-32-545:(OI)(CI)M' /T /C | Out-Null}catch{Write-Verbose ('Could not update report-folder permissions: '+$_.Exception.Message)}
 
         $startMenu=Join-Path ([Environment]::GetFolderPath('Programs')) 'T3CHNRD Digital Field Kit'
         New-Item -ItemType Directory -Force -Path $startMenu|Out-Null

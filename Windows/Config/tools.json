@@ -19,14 +19,14 @@
     "name": "Launch Diagnostic Consoles",
     "category": "Diagnostics",
     "originalCategory": "Diagnostics",
-    "description": "Reliability Monitor, Resource Monitor, Task Manager, Event Viewer, System Information, Performance Monitor, Device Manager, Disk Management.",
-    "path": "Windows\\Scripts\\Core\\Launch-DiagnosticConsoles.ps1",
+    "description": "Choose which Windows diagnostic consoles to open without closing the Field Kit.",
+    "path": "Windows\\Scripts\\Core\\Select-DiagnosticConsole.ps1",
     "risk": "ReadOnly",
-    "interactive": false,
+    "interactive": true,
     "args": [],
     "icon": "monitor",
     "ready": true,
-    "sourceStatus": "RESTORED_FROM_ORIGINAL_MASTER_TOOLKIT",
+    "sourceStatus": "NEW_VERIFIED_APP_FEATURE",
     "executionMode": "InApp"
   },
   {

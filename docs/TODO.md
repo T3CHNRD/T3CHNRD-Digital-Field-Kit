@@ -26,7 +26,9 @@ Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIEL
 - [ ] NEEDS FIELD TEST - portable local disk / USB / external SSD.
 - [ ] NEEDS FIELD TEST - Windows install / shortcuts / installed launch / uninstall.
 - [ ] NEEDS FIELD TEST - every restored Windows diagnostic category.
-- [ ] Proper branded Windows EXE/taskbar icon remains open; current field-test launcher is WSH-based.
+- [x] STATIC PASS - Added repeatable branded Windows EXE build with generated T3CHNRD icon; VBS remains the source-only fallback.
+- [ ] NEEDS FIELD TEST - Validate packaged EXE startup, taskbar icon, portable root detection, installer shortcuts, and fallback behavior.
+- [ ] INVESTIGATE - Determine why the main Field Kit window may close after a tool or script completes; reproduce with an elevated packaged EXE and inspect process exit, form lifecycle, and child-process callbacks.
 
 ## 2026-09-20 WINDOWS FIELD-TEST CHECKLIST
 This checklist is the current live hardware gate for the Windows app. Static validation is complete, but final acceptance requires a real Windows machine.
@@ -51,6 +53,8 @@ This checklist is the current live hardware gate for the Windows app. Static val
   - [ ] keep macOS and local AI items separated from the current Windows phase
 
 ## AFTER WINDOWS PASS
+- [x] STATIC PASS - Expand Runbook with quick start, troubleshooting, security, networking, repair, deployment, evidence, escalation, and documentation procedures.
+- [ ] NEEDS FIELD TEST - Validate the in-app Runbook browser, search, refresh, add-document, open-folder, and document preview flows.
 - [ ] Finish Runbook wiki/search/index/editor.
 - [ ] Build macOS Intel native app + installer.
 - [ ] Build macOS Apple Silicon native app + installer.

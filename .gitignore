@@ -1,7 +1,11 @@
 Diagnostic-Reports/*
 !Diagnostic-Reports/.gitkeep
+Logs/*
+!Logs/.gitkeep
 Runbook/*
 !Runbook/README.md
+!Runbook/*.md
+T3CHNRD Digital Field Kit*.exe
 bin/
 obj/
 dist/
