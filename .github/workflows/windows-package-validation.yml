@@ -48,6 +48,10 @@ jobs:
         shell: powershell
         run: |
           & .\Windows\App\Test-TwoToolRunner.ps1
+      - name: Verify favorites, console choice, and antivirus skip evidence
+        shell: powershell
+        run: |
+          & .\Windows\App\Test-TechnicianWorkflows.ps1
       - name: Build branded Windows EXE
         shell: powershell
         run: |

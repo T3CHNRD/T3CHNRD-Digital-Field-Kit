@@ -48,7 +48,7 @@ $list=New-Object Windows.Forms.CheckedListBox
 $list.CheckOnClick=$true
 $list.Location=New-Object Drawing.Point(22,82)
 $list.Size=New-Object Drawing.Size(458,275)
-foreach($tool in $tools){[void]$list.Items.Add($tool.Name,$true)}
+foreach($tool in $tools){[void]$list.Items.Add($tool.Name,$false)}
 $form.Controls.Add($list)
 
 $selectAll=New-Object Windows.Forms.Button
@@ -60,6 +60,12 @@ $form.Controls.Add($selectAll)
 
 $launch=New-Object Windows.Forms.Button
 $launch.Text='OPEN SELECTED'
+$launch.Enabled=$false
+$list.Add_ItemCheck({param($sender,$eventData)
+    $count=$sender.CheckedItems.Count
+    if($eventData.NewValue -eq [Windows.Forms.CheckState]::Checked){$count++}else{$count--}
+    $launch.Enabled=($count -gt 0)
+})
 $launch.Size=New-Object Drawing.Size(145,36)
 $launch.Location=New-Object Drawing.Point(210,375)
 $launch.BackColor=[Drawing.Color]::FromArgb(181,225,55)
@@ -81,6 +87,7 @@ if($form.ShowDialog() -eq [Windows.Forms.DialogResult]::OK){
         $tool=$tools|Where-Object Name -eq $name|Select-Object -First 1
         if($tool){
             try{
+                Write-Output ("Opening selected console: "+$tool.Name)
                 if([string]::IsNullOrWhiteSpace($tool.Args)){Start-Process -FilePath $tool.File}
                 else{Start-Process -FilePath $tool.File -ArgumentList $tool.Args}
             }catch{Write-Error ("Could not open {0}: {1}" -f $tool.Name,$_.Exception.Message)}

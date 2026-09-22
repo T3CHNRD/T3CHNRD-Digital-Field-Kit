@@ -47,7 +47,7 @@ $script:View = 'Favorites'
 $script:Category = 'All Tools'
 $script:FavoritesFile = Join-Path $stateRoot 'favorites.txt'
 $script:RecentFile = Join-Path $stateRoot 'recent.txt'
-$script:Favorites = if(Test-Path $script:FavoritesFile){ @(Get-Content $script:FavoritesFile | Where-Object { $_ }) } else { @() }
+$script:Favorites = @(if(Test-Path $script:FavoritesFile){Get-Content $script:FavoritesFile | Where-Object { $_ }})
 $script:Recent = if(Test-Path $script:RecentFile){ @(Get-Content $script:RecentFile | Where-Object { $_ }) } else { @() }
 $script:ExcludedRunbook = @('.venv312','ai_cowork','apps','deps.txt','static','templates','tmp-lo-test2','AB_Cluster.pdf','tmp_backend.html','tmp_backend_v.txt')
 
@@ -62,6 +62,12 @@ if($script:ToolCatalog.Count -eq 0){
  [Windows.Forms.MessageBox]::Show('The tool catalog loaded but contains zero tools.','T3CHNRD Digital Field Kit','OK','Error')|Out-Null
  exit 3
 }
+# Recover IDs concatenated by older scalar Favorites state, only on an exact match.
+$favoritePattern=(@($script:ToolCatalog.id | Sort-Object Length -Descending | ForEach-Object {[regex]::Escape($_)}) -join '|')
+$script:Favorites=@($(foreach($saved in $script:Favorites){
+ $parts=[regex]::Matches($saved,$favoritePattern)
+ if((@($parts | ForEach-Object Value) -join '') -eq $saved){foreach($part in $parts){$part.Value}}else{$saved}
+}) | Select-Object -Unique)
 $script:ReadyToolCount=@($script:ToolCatalog | Where-Object {$_.ready}).Count
 $script:AdminDefault = $true
 
@@ -423,7 +429,7 @@ $platform.Location=New-Object Drawing.Point(1180,20)
 $footer.Controls.Add($platform)
 
 function Save-State {
- @($script:Favorites) | Set-Content -LiteralPath $script:FavoritesFile -Encoding UTF8
+ Set-Content -LiteralPath $script:FavoritesFile -Value @($script:Favorites) -Encoding UTF8
  @($script:Recent | Select-Object -First 20) | Set-Content -LiteralPath $script:RecentFile -Encoding UTF8
 }
 function Get-Tool([string]$Id){ $script:ToolCatalog | Where-Object Id -eq $Id | Select-Object -First 1 }
@@ -435,7 +441,7 @@ function Set-Favorite {
  [CmdletBinding(SupportsShouldProcess=$true)]
  param([string]$Id)
  if($script:Favorites -contains $Id){$script:Favorites=@($script:Favorites | Where-Object {$_ -ne $Id})}
- else{$script:Favorites+= $Id}
+ else{$script:Favorites=@($script:Favorites)+@($Id)}
  Save-State
  Show-ToolCard
 }
@@ -624,14 +630,11 @@ function Show-ToolCard{
  $cards.SuspendLayout()
  $cards.Controls.Clear()
  $q=$search.Text.Trim()
- if($q){
-  $items=@($script:ToolCatalog | Where-Object {(($_.Name+' '+$_.Description+' '+$_.Category) -like ('*'+$q+'*'))})
- }else{
-  $items=@($script:ToolCatalog)
-  if($script:View -eq 'Favorites'){$items=@($script:Favorites | ForEach-Object {Get-Tool $_} | Where-Object {$_})}
-  elseif($script:View -eq 'Recent'){$items=@($script:Recent | ForEach-Object {Get-Tool $_} | Where-Object {$_})}
-  elseif($script:View -eq 'Tools' -and $script:Category -ne 'All Tools'){$items=@($items | Where-Object Category -eq $script:Category)}
- }
+ $items=@($script:ToolCatalog)
+ if($script:View -eq 'Favorites'){$items=@($script:Favorites | ForEach-Object {Get-Tool $_} | Where-Object {$_})}
+ elseif($script:View -eq 'Recent'){$items=@($script:Recent | ForEach-Object {Get-Tool $_} | Where-Object {$_})}
+ elseif(-not $q -and $script:View -eq 'Tools' -and $script:Category -ne 'All Tools'){$items=@($items | Where-Object Category -eq $script:Category)}
+ if($q){$items=@($items | Where-Object {(($_.Name+' '+$_.Description+' '+$_.Category) -like ('*'+$q+'*'))})}
  foreach($t in $items){Add-Card $t}
  if($items.Count -eq 0){
   $e=New-Object Windows.Forms.Label

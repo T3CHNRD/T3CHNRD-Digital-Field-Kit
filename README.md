@@ -14,6 +14,17 @@ Run Center supports two simultaneous tools in separate tabs, each with its own
 output, input, log, and Cancel button. Click the footer status to reopen a hidden
 Run Center. Completion and exit code appear on separate lines. The app window and
 EXE use the same T3DFK icon.
+
+Under Diagnostics, **Machine Specs / Device Information** reports model, CPU,
+RAM, BIOS, Windows build, disks, and network adapters. Diagnostic Consoles starts
+with no selections; choose the consoles you want before opening them.
+
+Defender Quick Scan first identifies antivirus products registered with Windows
+Security Center. If Defender is inactive/unavailable it explains the skip and
+leaves existing protection enabled. Each run saves `Antivirus-Status.json` and
+`Antivirus-Run.txt` in a dated `Diagnostic-Reports/Antivirus-*` folder for later
+review. Export any scan logs from the installed antivirus into that folder too;
+Field Kit does not automatically scan with a third-party product or upload logs.
 GitHub's automatic source ZIP adds a long repository/SHA folder name; extracting
 that archive to its default nested destination can exceed Windows path limits.
 Maintainers can create the short package from a committed checkout with
