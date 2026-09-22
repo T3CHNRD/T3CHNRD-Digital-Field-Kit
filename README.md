@@ -4,6 +4,13 @@ The [uploaded archive integration report](docs/ARCHIVE-INTEGRATION.md) documents
 the current 64-tool catalog, original-source hashes, bundled deployment payloads,
 Run Center validation, and remaining site-specific requirements.
 
+For Windows Explorer extraction, use the portable **FK.zip** package and extract
+to a short location such as `C:\`. Launch `C:\FK\T3CHNRD Digital Field Kit.vbs`.
+GitHub's automatic source ZIP adds a long repository/SHA folder name; extracting
+that archive to its default nested destination can exceed Windows path limits.
+Maintainers can create the short package from a committed checkout with
+`Windows\Build\Build-PortableZip.ps1 -OutputFile C:\Temp\FK.zip`.
+
 T3CHNRD Digital Field Kit is a technician-first Windows diagnostic and repair toolkit designed for portable field use, local workstation support, and structured troubleshooting workflows. It brings together a restored Windows interface, a curated tool catalog, captured output in a Run Center, operational Runbook access, and a strict policy of not inventing missing original scripts.
 
 ## Why this exists

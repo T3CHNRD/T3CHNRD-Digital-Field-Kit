@@ -6,7 +6,7 @@ param([switch]$Offline)
 $ErrorActionPreference='Stop'
 $root=$env:TTK_TOOLKIT_ROOT
 if([string]::IsNullOrWhiteSpace($root)){ $root=Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) }
-$project=Join-Path $root 'Windows\Resources\NewComputerSetup\winutil-main\winutil-main'
+$project=Join-Path $root 'Windows\Resources\WinUtil'
 $compiler=Join-Path $project 'Compile.ps1'
 if(-not(Test-Path -LiteralPath $compiler -PathType Leaf)){ throw "Bundled WinUtil project is missing: $compiler" }
 # The upstream entrypoint is generated from scripts, functions, config and XAML.

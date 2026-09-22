@@ -13,8 +13,9 @@ jobs:
       - name: Build source package
         run: |
           mkdir -p artifacts
-          zip -r artifacts/T3CHNRD-Digital-Field-Kit-Source.zip . -x '.git/*' 'artifacts/*'
+          git archive --format=zip --prefix=FK/ --output=artifacts/FK.zip HEAD
+          python -c "import zipfile; z=zipfile.ZipFile('artifacts/FK.zip'); assert max(map(len,z.namelist())) <= 160, 'Portable ZIP path budget exceeded'"
       - uses: actions/upload-artifact@v4
         with:
-          name: T3CHNRD-Digital-Field-Kit-Source
-          path: artifacts/T3CHNRD-Digital-Field-Kit-Source.zip
+          name: FK-Portable
+          path: artifacts/FK.zip

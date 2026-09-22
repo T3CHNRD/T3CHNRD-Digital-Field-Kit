@@ -1,6 +1,13 @@
-# Uploaded archive integration — 2026-09-22
+# Uploaded archive integration â€” 2026-09-22
 
 Starting main: `ae47d9eda40235ddadc64d579c64c6cce4c3e8f7`.
+
+Packaging correction: WinUtil and Win11Debloat now live directly under
+`Windows/Resources/WinUtil` and `Windows/Resources/Debloat`. The redundant upstream
+archive folder names were removed without changing source bytes. The portable
+download uses the short `FK.zip` filename and `FK/` root, with a checked maximum
+archive path length of 160 characters. Extract to `C:\` to avoid Explorer's
+long-path error; do not skip files during extraction.
 
 The three uploaded archives are the source of truth. `ARCHIVE-INPUTS.json`
 records their SHA-256 hashes. `ARCHIVE-RECONCILIATION.csv` lists every archive
@@ -29,8 +36,8 @@ the application integrity check validates both manifests, and CI uses that check
 
 | Category | Addition | Location |
 |---|---|---|
-| Deployment | Complete supplied Win11Debloat project | `Windows/Resources/NewComputerSetup/Win11Debloat-master/Win11Debloat-master` |
-| Deployment | Complete supplied WinUtil source project and licenses | `Windows/Resources/NewComputerSetup/winutil-main/winutil-main` |
+| Deployment | Complete supplied Win11Debloat project | `Windows/Resources/Debloat` |
+| Deployment | Complete supplied WinUtil source project and licenses | `Windows/Resources/WinUtil` |
 | Deployment | Chrome, Firefox, Malwarebytes, AVG, CCleaner installers | `Windows/Resources/NewComputerSetup` |
 | Security | Multi-computer Secure Boot audit | `Windows/Scripts/Security/Check-SecureBootCert-MultiComputer.ps1` |
 | Security | Production Secure Boot certificate audit | `Windows/Scripts/Security/Check-SecureBootCert_PRODUCTION_READY.ps1` |
