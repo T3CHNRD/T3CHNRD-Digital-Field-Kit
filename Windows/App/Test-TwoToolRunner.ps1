@@ -29,7 +29,8 @@ $script:AdminDefault=$false
 function Add-Recent($Id){}
 function Test-AppAdministrator{return $true}
 $ast=[Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'T3DFK-Windows.ps1'),[ref]$null,[ref]$null)
-foreach($name in @('Write-Run','Show-Runner','Hide-Runner','Start-Tool')){
+$script:RunnerHeight=340
+foreach($name in @('Set-RunnerHeight','Write-Run','Show-Runner','Hide-Runner','Start-Tool')){
  $node=$ast.FindAll({param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst]},$true)|Where-Object Name -eq $name|Select-Object -First 1
  . ([scriptblock]::Create($node.Extent.Text))
 }
@@ -65,3 +66,4 @@ try{
  if(-not ([IO.Path]::GetFullPath($root)).StartsWith(([IO.Path]::GetFullPath($env:TEMP)).TrimEnd('\')+'\')){throw 'Unexpected cleanup path'}
  Remove-Item -LiteralPath $root -Recurse -Force
 }
+

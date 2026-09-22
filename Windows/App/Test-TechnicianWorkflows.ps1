@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 $root=Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
@@ -29,6 +29,21 @@ try {
  }
  if(@(Get-Content $script:FavoritesFile | Where-Object {$_}).Count){throw 'Unpinning the last favorite did not clear the file.'}
  Write-Output 'PASS: star clicks, Favorites tab, persistence, reload, and removing the last favorite.'
+ Set-RunnerHeight 220
+ if($layout.RowStyles[2].Height -ne 220){throw 'Run Center did not resize.'}
+ Hide-Runner
+ Set-RunnerHeight $script:RunnerHeight
+ if($layout.RowStyles[2].Height -ne 220){throw 'Run Center did not retain its height.'}
+ Set-RunnerHeight 9999
+ if($layout.RowStyles[2].Height -gt ($layout.ClientSize.Height-310)){throw 'Run Center exceeded layout bounds.'}
+ foreach($tool in $script:ToolCatalog){
+  Show-ToolHelp $tool.Id
+  if(-not $rbView.Text.StartsWith($tool.Name) -or $rbView.Text -notmatch 'HOW TO RUN'){throw ('Missing help for '+$tool.Id)}
+ }
+ $rbSearch.Text='Sleep Hold'
+ if($rbList.Items.Count -ne 1){throw 'Tool help search failed.'}
+ Write-Output 'PASS: Run Center resize bounds, retained height, all 64 tool guides and help search.'
+
 }finally{$form.Close();$form.Dispose()}
 '@
  $code=$code.Replace('[void]$form.ShowDialog()',$checks)

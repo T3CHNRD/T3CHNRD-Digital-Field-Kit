@@ -155,7 +155,7 @@ $tabs=@{}
 $x=16
 foreach($n in @('Favorites','Tools','Recent','Runbook','Settings')){
  $b=New-Object Windows.Forms.Button
- $b.Text=$n.ToUpperInvariant()
+ $b.Text=if($n -eq 'Runbook'){'HELP / RUNBOOK'}else{$n.ToUpperInvariant()}
  $b.Size=New-Object Drawing.Size(124,36)
  $b.Location=New-Object Drawing.Point($x,4)
  $b.FlatStyle='Flat'
@@ -401,6 +401,31 @@ $runnerTabs=New-Object Windows.Forms.TabControl
 $runnerTabs.Dock='Fill'
 $runnerTabs.Font=New-Object Drawing.Font('Segoe UI',10)
 $runner.Controls.Add($runnerTabs)
+$script:RunnerHeight=340
+$script:RunnerDragging=$false
+$runnerGrip=New-Object Windows.Forms.Label
+$runnerGrip.Dock='Top';$runnerGrip.Height=24;$runnerGrip.Text='Drag here to resize Run Center'
+$runnerGrip.TextAlign='MiddleCenter';$runnerGrip.ForeColor='White';$runnerGrip.BackColor=$navy
+$runnerGrip.Cursor=[Windows.Forms.Cursors]::HSplit
+$runner.Controls.Add($runnerGrip)
+function Set-RunnerHeight([int]$Height){
+ $maximum=[Math]::Max(180,$layout.ClientSize.Height-132-58-120)
+ $script:RunnerHeight=[Math]::Max(180,[Math]::Min($Height,$maximum))
+ $layout.RowStyles[2].Height=$script:RunnerHeight
+}
+$runnerGrip.Add_MouseDown({param($sender,$e)
+ if($e.Button -eq [Windows.Forms.MouseButtons]::Left){
+  $script:RunnerDragging=$true;$script:RunnerDragY=[Windows.Forms.Cursor]::Position.Y
+  $script:RunnerDragHeight=$script:RunnerHeight;$runnerGrip.Capture=$true
+ }
+})
+$runnerGrip.Add_MouseMove({
+ if($script:RunnerDragging){Set-RunnerHeight ($script:RunnerDragHeight+$script:RunnerDragY-[Windows.Forms.Cursor]::Position.Y)}
+})
+$runnerGrip.Add_MouseUp({$script:RunnerDragging=$false;$runnerGrip.Capture=$false})
+$runnerGrip.Add_MouseCaptureChanged({if(-not $runnerGrip.Capture){$script:RunnerDragging=$false}})
+$form.Add_Resize({if($layout.RowStyles[2].Height -gt 0){Set-RunnerHeight $script:RunnerHeight}})
+
 $script:RunPanes=@((New-RunPane 1),(New-RunPane 2))
 foreach($pane in $script:RunPanes){[void]$runnerTabs.TabPages.Add($pane.Page)}
 $footer=New-Object Windows.Forms.Panel
@@ -473,7 +498,7 @@ function Start-ElevatedToolApp {
  }
 }
 function Show-Runner([string]$Name,[bool]$AllowInput,$Pane){
- $layout.RowStyles[2].Height=340
+ Set-RunnerHeight $script:RunnerHeight
  $runnerTabs.SelectedTab=$Pane.Page
  $Pane.Page.Text=$Name
  $Pane.State.Text='Starting...'
@@ -486,7 +511,7 @@ function Start-Tool {
  param($tool)
  $pane=Get-FreeRunPane
  if(-not $pane){
-  $layout.RowStyles[2].Height=340
+  Set-RunnerHeight $script:RunnerHeight
   [Windows.Forms.MessageBox]::Show('Two tools are already running. Wait for one to finish or cancel it before starting another.','Run Center busy','OK','Information')|Out-Null
   return
  }
@@ -569,7 +594,7 @@ $runnerTimer=New-Object Windows.Forms.Timer
 $runnerTimer.Interval=100
 $runnerTimer.Add_Tick({Update-RunPanes})
 $status.Cursor='Hand'
-$status.Add_Click({$layout.RowStyles[2].Height=340})
+$status.Add_Click({Set-RunnerHeight $script:RunnerHeight})
 $form.Add_FormClosing({foreach($pane in $script:RunPanes){Stop-RunPane $pane};$runnerTimer.Stop()})
 function Add-Card($tool){
  $p=New-Object Windows.Forms.Panel
@@ -613,6 +638,12 @@ function Add-Card($tool){
     Set-Favorite ([string]$control.Tag)
  })
  $p.Controls.Add($star)
+ $help=New-Object Windows.Forms.Button
+ $help.Text='Help';$help.Size=New-Object Drawing.Size(58,26)
+ $help.Location=New-Object Drawing.Point(298,110);$help.Tag=$tool.Id
+ $help.Add_Click({param($control) Show-ToolHelp ([string]$control.Tag)})
+ $p.Controls.Add($help)
+
  foreach($c in @($p,$name,$desc,$risk)){
   $c.Cursor='Hand'
   $c.Tag=$tool
@@ -652,11 +683,19 @@ function Update-RunbookList{
  [CmdletBinding(SupportsShouldProcess=$true)]
  param()
  $rbList.Items.Clear()
+ $helpRoot=Join-Path $root 'Windows\Help'
+ if(Test-Path $helpRoot){Get-ChildItem $helpRoot -File -Filter '*.md' | Sort-Object Name | ForEach-Object {[void]$rbList.Items.Add($_)}}
  if(-not(Test-Path $runbookRoot)){return}
  Get-ChildItem $runbookRoot -File -Recurse -ErrorAction SilentlyContinue | Where-Object {
   $p=$_.FullName
   -not ($script:ExcludedRunbook | Where-Object {$p -like ('*'+$_+'*')})
  } | Sort-Object FullName | ForEach-Object {[void]$rbList.Items.Add($_)}
+}
+function Show-ToolHelp([string]$Id){
+ $script:View='Runbook';$rbSearch.Clear();Update-View
+ $tool=Get-Tool $Id
+ $fileName=$Id+' - '+($tool.Name -replace '[<>:"/\\|?*]','-')+'.md'
+ foreach($item in $rbList.Items){if($item.Name -eq $fileName){$rbList.SelectedItem=$item;break}}
 }
 $rbList.DisplayMember='Name'
 $rbList.Add_SelectedIndexChanged({
@@ -744,8 +783,8 @@ function Update-View{
  $runbook.Visible=$false
  $settings.Visible=$false
  if($script:View -eq 'Runbook'){
-  $pageTitle.Text='Runbook'
-  $pageSub.Text='Portable internal wiki and documentation.'
+  $pageTitle.Text='Help / Runbook'
+  $pageSub.Text='Search tool instructions and your own runbook documents.'
   $info.Visible=$false
   $runbook.Visible=$true
     Update-RunbookList
