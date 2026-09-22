@@ -40,6 +40,10 @@ jobs:
         shell: powershell
         run: |
           & .\Windows\App\Test-RunCenterProcess.ps1
+      - name: Verify VBS launcher file scope and startup paths
+        shell: powershell
+        run: |
+          & .\Windows\App\Test-LauncherPaths.ps1
       - name: Build branded Windows EXE
         shell: powershell
         run: |

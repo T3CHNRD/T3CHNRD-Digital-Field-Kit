@@ -24,19 +24,17 @@ $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
 $principal=New-Object Security.Principal.WindowsPrincipal($identity)
 if(-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){
     $commandPath=[Environment]::GetCommandLineArgs()[0]
-    if($commandPath -and [IO.Path]::GetExtension($commandPath) -ieq '.exe'){
+    if($commandPath -and [IO.Path]::GetExtension($commandPath) -ieq '.exe' -and [IO.Path]::GetFileNameWithoutExtension($commandPath) -notin @('powershell','pwsh')){
         Start-Process -FilePath $commandPath -WorkingDirectory $root -Verb RunAs | Out-Null
     }else{
         $psExe=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
-        Start-Process -FilePath $psExe -ArgumentList @('-NoLogo','-NoProfile','-STA','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-File',$ui,'-ToolkitRoot',$root) -WorkingDirectory $root -Verb RunAs -WindowStyle Hidden | Out-Null
+        Start-Process -FilePath $psExe -ArgumentList ('-NoLogo -NoProfile -STA -WindowStyle Hidden -ExecutionPolicy Bypass -File "'+$ui+'" -ToolkitRoot "'+$root+'"') -WorkingDirectory $root -Verb RunAs -WindowStyle Hidden | Out-Null
     }
     return
 }
 
 try{
-    $code=[IO.File]::ReadAllText($ui)
-    $sb=[ScriptBlock]::Create($code)
-    [void](. $sb -ToolkitRoot $root)
+    . $ui -ToolkitRoot $root
 }catch{
     ($_ | Out-String) | Set-Content -LiteralPath $logPath -Encoding UTF8
     throw

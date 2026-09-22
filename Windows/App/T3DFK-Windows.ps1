@@ -1,16 +1,19 @@
 ﻿param([string]$ToolkitRoot='',[string]$AutoRunToolId='')
 
-if (-not ('RunCenterProcess' -as [type])) { Add-Type -Path (Join-Path $PSScriptRoot 'RunCenterProcess.cs') }
+
 
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 if([string]::IsNullOrWhiteSpace($ToolkitRoot)){$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)}else{$root=[IO.Path]::GetFullPath($ToolkitRoot).TrimEnd('\\')}
+$appDirectory=Join-Path $root 'Windows\App'
+$appScriptPath=Join-Path $appDirectory 'T3DFK-Windows.ps1'
+if (-not ('RunCenterProcess' -as [type])) { Add-Type -Path (Join-Path $appDirectory 'RunCenterProcess.cs') }
 $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
 $principal=New-Object Security.Principal.WindowsPrincipal($identity)
 if(-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){
  $psExe=Join-Path $env:SystemRoot 'System32\\WindowsPowerShell\\v1.0\\powershell.exe'
- Start-Process -FilePath $psExe -ArgumentList ('-NoLogo -NoProfile -STA -WindowStyle Hidden -ExecutionPolicy Bypass -File "'+$PSCommandPath+'" -ToolkitRoot "'+$root+'" -AutoRunToolId "'+$AutoRunToolId+'"') -WorkingDirectory $root -Verb RunAs -WindowStyle Hidden | Out-Null
+ Start-Process -FilePath $psExe -ArgumentList ('-NoLogo -NoProfile -STA -WindowStyle Hidden -ExecutionPolicy Bypass -File "'+$appScriptPath+'" -ToolkitRoot "'+$root+'" -AutoRunToolId "'+$AutoRunToolId+'"') -WorkingDirectory $root -Verb RunAs -WindowStyle Hidden | Out-Null
  return
 }
 $stateRoot = Join-Path $env:LOCALAPPDATA 'T3DFK'
@@ -605,7 +608,7 @@ function Start-Tool {
  $psi.FileName=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
  $argumentJson=ConvertTo-Json -InputObject @($toolArgs) -Compress
  $encodedArguments=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($argumentJson))
- $hostScript=Join-Path $PSScriptRoot 'Invoke-RunCenterScript.ps1'
+ $hostScript=Join-Path $appDirectory 'Invoke-RunCenterScript.ps1'
  $psi.Arguments='-NoLogo -NoProfile -STA -ExecutionPolicy Bypass -File "'+$hostScript+'" -TargetScript "'+$path+'" -ArgumentsBase64 '+$encodedArguments
  $psi.WorkingDirectory=$root
  $psi.UseShellExecute=$false

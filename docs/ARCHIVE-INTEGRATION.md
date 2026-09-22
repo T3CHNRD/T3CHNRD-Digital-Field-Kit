@@ -9,6 +9,13 @@ download uses the short `FK.zip` filename and `FK/` root, with a checked maximum
 archive path length of 160 characters. Extract to `C:\` to avoid Explorer's
 long-path error; do not skip files during extraction.
 
+Startup correction: both launchers dot-source the actual app file instead of an
+anonymous ScriptBlock, preserving PowerShell file metadata and callback scope.
+Runner helper/host paths and the elevation relaunch target derive from ToolkitRoot.
+The launcher regression test executes the actual VBS against the real app startup
+preamble in a temporary folder containing spaces and an apostrophe, without
+requesting elevation or running system tools.
+
 The three uploaded archives are the source of truth. `ARCHIVE-INPUTS.json`
 records their SHA-256 hashes. `ARCHIVE-RECONCILIATION.csv` lists every archive
 file, its disposition, and matching repository paths. No replacement tools
