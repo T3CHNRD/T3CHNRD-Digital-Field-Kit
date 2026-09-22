@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 $ErrorActionPreference='Stop'
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
@@ -66,4 +66,3 @@ try{
  if(-not ([IO.Path]::GetFullPath($root)).StartsWith(([IO.Path]::GetFullPath($env:TEMP)).TrimEnd('\')+'\')){throw 'Unexpected cleanup path'}
  Remove-Item -LiteralPath $root -Recurse -Force
 }
-

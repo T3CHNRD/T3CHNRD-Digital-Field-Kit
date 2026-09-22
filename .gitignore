@@ -19,3 +19,6 @@ artifacts/
 .env.*
 .DS_Store
 Thumbs.db
+
+# Local technician drafts and imported analysis; never package case data.
+/AI-Workspace/

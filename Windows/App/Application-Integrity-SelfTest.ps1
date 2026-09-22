@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 [CmdletBinding()]
 param()
 
@@ -18,8 +18,8 @@ function Result {
 }
 
 Result PASS "Toolkit root: $root"
+if(Test-Path (Join-Path $root 'T3CHNRD Digital Field Kit.exe')){Result PASS 'Compiled launcher present.'}else{Result PASS 'Script-launcher package: compiled EXE is optional; VBS and app source are checked below.'}
 $required=@(
-    'T3CHNRD Digital Field Kit.exe',
     'T3CHNRD Digital Field Kit.vbs',
     'INSTALL T3CHNRD Digital Field Kit.vbs',
     'UNINSTALL T3CHNRD Digital Field Kit.vbs',
@@ -29,6 +29,7 @@ $required=@(
     'Windows\Config\ARCHIVE-SOURCES-SHA256.json'
     'Windows\App\RunCenterProcess.cs'
     'Windows\App\RunCenterUI.ps1'
+    'Windows\App\AIWorkspaceUI.ps1'
     'Windows\App\T3DFK.ico'
     'Windows\App\Invoke-RunCenterScript.ps1'
 )

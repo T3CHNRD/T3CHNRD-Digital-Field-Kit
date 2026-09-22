@@ -166,6 +166,7 @@ foreach($n in @('Favorites','Tools','Recent','Runbook','Settings')){
  $b.Tag=$n
  $b.Add_Click({
    param($control)
+    if([string]$control.Tag -eq 'Log Files'){Start-Process explorer.exe -ArgumentList ('"'+$reportRoot+'"');return}
     $script:View=[string]$control.Tag
   if($script:View -eq 'Tools'){$script:Category='All Tools'}
   Update-View
@@ -214,7 +215,7 @@ $side.Controls.Add($sideFlow)
 $cats=@{}
 foreach($n in @('All Tools','Diagnostics','Repair','Optimization','Security','Network','Deployment','System Management')){
  $b=New-Object Windows.Forms.Button
- $b.Text=$n
+ $b.Text=if($n -eq 'Runbook'){'Help / Runbook'}else{$n}
  $b.Size=New-Object Drawing.Size(196,42)
  $b.FlatStyle='Flat'
  $b.FlatAppearance.BorderSize=0
@@ -237,9 +238,9 @@ $sep.Width=190
 $sep.Height=12
 $sep.BorderStyle='Fixed3D'
 $sideFlow.Controls.Add($sep)
-foreach($n in @('Favorites','Recent','Runbook','Settings')){
+foreach($n in @('Log Files','AI Workspace','Favorites','Recent','Runbook','Settings')){
  $b=New-Object Windows.Forms.Button
- $b.Text=$n
+ $b.Text=if($n -eq 'Runbook'){'Help / Runbook'}else{$n}
  $b.Size=New-Object Drawing.Size(196,42)
  $b.FlatStyle='Flat'
  $b.FlatAppearance.BorderSize=0
@@ -250,6 +251,7 @@ foreach($n in @('Favorites','Recent','Runbook','Settings')){
  $b.Tag=$n
  $b.Add_Click({
    param($control)
+    if([string]$control.Tag -eq 'Log Files'){Start-Process explorer.exe -ArgumentList ('"'+$reportRoot+'"');return}
     $script:View=[string]$control.Tag
   Update-View
  })
@@ -774,6 +776,8 @@ function Show-PlatformFallback{
 }
 $platformButton.Add_Click({Show-PlatformFallback})
 
+. (Join-Path $appDirectory 'AIWorkspaceUI.ps1')
+
 function Update-View{
  [CmdletBinding(SupportsShouldProcess=$true)]
  param()
@@ -782,15 +786,22 @@ function Update-View{
  $cards.Visible=$false
  $runbook.Visible=$false
  $settings.Visible=$false
+ $aiPanel.Visible=$false
  if($script:View -eq 'Runbook'){
   $pageTitle.Text='Help / Runbook'
   $pageSub.Text='Search tool instructions and your own runbook documents.'
   $info.Visible=$false
   $runbook.Visible=$true
     Update-RunbookList
+ }elseif($script:View -eq 'AI Workspace'){
+  $pageTitle.Text='AI Workspace'
+  $pageSub.Text='Local drafts, diagnostic evidence and imported results. AI is not connected.'
+  $info.Visible=$false;$aiPanel.Visible=$true
+  Update-EvidenceList $logBrowser $reportRoot
+  Update-EvidenceList $resultBrowser $aiResultsRoot
  }elseif($script:View -eq 'Settings'){
   $pageTitle.Text='Settings'
-  $pageSub.Text='Toolkit status, platform fallback and validation gate.'
+  $pageSub.Text='Open folders, adjust output display, and validate the app.'
   $info.Visible=$false
   $settings.Visible=$true
  }elseif($script:View -eq 'Favorites'){

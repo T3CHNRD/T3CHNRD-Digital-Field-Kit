@@ -43,6 +43,25 @@ try {
  $rbSearch.Text='Sleep Hold'
  if($rbList.Items.Count -ne 1){throw 'Tool help search failed.'}
  Write-Output 'PASS: Run Center resize bounds, retained height, all 64 tool guides and help search.'
+ $script:View='AI Workspace';Update-View
+ if(-not $aiPanel.Visible){throw 'AI workspace navigation failed.'}
+ $draftPath=Join-Path $testState 'draft.txt'
+ $chatDraft.Text='Test case question';$saveDraft.PerformClick()
+ if((Get-Content $draftPath -Raw) -ne 'Test case question'){throw 'Chat draft did not save.'}
+ Set-Content (Join-Path $testState 'sample.log') 'Example diagnostic evidence'
+ $aiPanel.SelectedTab=$logsPage
+ Update-EvidenceList $logBrowser $testState
+ for($i=0;$i -lt $logBrowser.List.Items.Count;$i++){
+  if($logBrowser.List.Items[$i].Label -eq 'sample.log'){$logBrowser.List.SelectedIndex=$i;break}
+ }
+ if($logBrowser.Preview.Text -notmatch 'Example diagnostic evidence'){throw 'Log preview failed.'}
+ $script:View='Settings';Update-View
+ $wrapOutput.Checked=-not $wrapOutput.Checked
+ foreach($pane in $script:RunPanes){if($pane.Output.WordWrap -ne $wrapOutput.Checked){throw 'Output preference not applied.'}}
+ if(-not(Test-Path $wrapPath)){throw 'Output preference did not persist.'}
+ if(-not @($sideFlow.Controls | Where-Object Text -eq 'Log Files').Count){throw 'Missing log shortcut.'}
+ Write-Output 'PASS: AI workspace navigation, local draft save, log preview and persisted settings.'
+
 
 }finally{$form.Close();$form.Dispose()}
 '@
