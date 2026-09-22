@@ -9,6 +9,7 @@ if([string]::IsNullOrWhiteSpace($ToolkitRoot)){$root = Split-Path -Parent (Split
 $appDirectory=Join-Path $root 'Windows\App'
 $appScriptPath=Join-Path $appDirectory 'T3DFK-Windows.ps1'
 if (-not ('RunCenterProcess' -as [type])) { Add-Type -Path (Join-Path $appDirectory 'RunCenterProcess.cs') }
+[void][RunCenterBrand]::SetCurrentProcessExplicitAppUserModelID('T3CHNRD.DigitalFieldKit')
 $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
 $principal=New-Object Security.Principal.WindowsPrincipal($identity)
 if(-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){
@@ -48,8 +49,6 @@ $script:FavoritesFile = Join-Path $stateRoot 'favorites.txt'
 $script:RecentFile = Join-Path $stateRoot 'recent.txt'
 $script:Favorites = if(Test-Path $script:FavoritesFile){ @(Get-Content $script:FavoritesFile | Where-Object { $_ }) } else { @() }
 $script:Recent = if(Test-Path $script:RecentFile){ @(Get-Content $script:RecentFile | Where-Object { $_ }) } else { @() }
-$script:CurrentProcess = $null
-$script:CurrentLog = $null
 $script:ExcludedRunbook = @('.venv312','ai_cowork','apps','deps.txt','static','templates','tmp-lo-test2','AB_Cluster.pdf','tmp_backend.html','tmp_backend_v.txt')
 
 $manifestPath = Join-Path $root 'Windows\\Config\\tools.json'
@@ -74,6 +73,8 @@ $text=[Drawing.Color]::FromArgb(18,40,74)
 $sub=[Drawing.Color]::FromArgb(87,108,126)
 
 $form=New-Object Windows.Forms.Form
+$iconFile=Join-Path $root 'Windows\App\T3DFK.ico'
+$form.Icon=New-Object Drawing.Icon($iconFile)
 $form.Text='T3CHNRD Digital Field Kit - Windows'
 $form.StartPosition='CenterScreen'
 $form.Size=New-Object Drawing.Size(1500,900)
@@ -389,78 +390,13 @@ $runner.Dock='Fill'
 $runner.BackColor=[Drawing.Color]::FromArgb(6,17,23)
 $layout.Controls.Add($runner,0,2)
 
-$runnerHead=New-Object Windows.Forms.Panel
-$runnerHead.Dock='Top'
-$runnerHead.Height=40
-$runnerHead.BackColor=[Drawing.Color]::FromArgb(28,65,85)
-$runner.Controls.Add($runnerHead)
-
-$runnerTitle=New-Object Windows.Forms.Label
-$runnerTitle.Text='Run Center'
-$runnerTitle.ForeColor='White'
-$runnerTitle.Font=New-Object Drawing.Font('Segoe UI',11,[Drawing.FontStyle]::Bold)
-$runnerTitle.AutoSize=$true
-$runnerTitle.Location=New-Object Drawing.Point(12,10)
-$runnerHead.Controls.Add($runnerTitle)
-
-$runnerState=New-Object Windows.Forms.Label
-$runnerState.Text='IDLE'
-$runnerState.ForeColor=$lime
-$runnerState.AutoSize=$true
-$runnerState.Anchor='Top,Right'
-$runnerState.Location=New-Object Drawing.Point(1130,11)
-$runnerHead.Controls.Add($runnerState)
-
-$cancel=New-Object Windows.Forms.Button
-$cancel.Text='CANCEL'
-$cancel.Width=80
-$cancel.Height=28
-$cancel.Anchor='Top,Right'
-$cancel.Location=New-Object Drawing.Point(1280,6)
-$cancel.Enabled=$false
-$runnerHead.Controls.Add($cancel)
-
-$closeRun=New-Object Windows.Forms.Button
-$closeRun.Text='X'
-$closeRun.Width=36
-$closeRun.Height=28
-$closeRun.Anchor='Top,Right'
-$closeRun.Location=New-Object Drawing.Point(1370,6)
-$runnerHead.Controls.Add($closeRun)
-
-$runnerOut=New-Object Windows.Forms.RichTextBox
-$runnerOut.Dock='Fill'
-$runnerOut.ReadOnly=$true
-$runnerOut.BackColor=[Drawing.Color]::FromArgb(3,13,18)
-$runnerOut.ForeColor=[Drawing.Color]::FromArgb(220,237,244)
-$runnerOut.Font=New-Object Drawing.Font('Consolas',9.5)
-$runner.Controls.Add($runnerOut)
-
-$runnerInputPanel=New-Object Windows.Forms.Panel
-$runnerInputPanel.Dock='Bottom'
-$runnerInputPanel.Height=38
-$runnerInputPanel.BackColor=[Drawing.Color]::FromArgb(16,35,45)
-$runnerInputPanel.Visible=$false
-$runner.Controls.Add($runnerInputPanel)
-
-$runnerInput=New-Object Windows.Forms.TextBox
-$runnerInput.Location=New-Object Drawing.Point(8,6)
-$runnerInput.Size=New-Object Drawing.Size(1180,26)
-$runnerInput.Anchor='Top,Left,Right'
-$runnerInput.Font=New-Object Drawing.Font('Consolas',9.5)
-$runnerInputPanel.Controls.Add($runnerInput)
-
-$sendInput=New-Object Windows.Forms.Button
-$sendInput.Text='SEND INPUT'
-$sendInput.Size=New-Object Drawing.Size(120,28)
-$sendInput.Anchor='Top,Right'
-$sendInput.Location=New-Object Drawing.Point(1200,5)
-$runnerInputPanel.Controls.Add($sendInput)
-
-$runnerOut.BringToFront()
-$runnerInputPanel.BringToFront()
-$runnerHead.BringToFront()
-
+ . (Join-Path $appDirectory 'RunCenterUI.ps1')
+$runnerTabs=New-Object Windows.Forms.TabControl
+$runnerTabs.Dock='Fill'
+$runnerTabs.Font=New-Object Drawing.Font('Segoe UI',10)
+$runner.Controls.Add($runnerTabs)
+$script:RunPanes=@((New-RunPane 1),(New-RunPane 2))
+foreach($pane in $script:RunPanes){[void]$runnerTabs.TabPages.Add($pane.Page)}
 $footer=New-Object Windows.Forms.Panel
 $footer.Dock='Fill'
 $footer.BackColor=$navy
@@ -503,11 +439,11 @@ function Set-Favorite {
  Save-State
  Show-ToolCard
 }
-function Write-Run([string]$Line){
- if($runnerOut.InvokeRequired){$runnerOut.BeginInvoke([Action[string]]{param($x) Write-Run $x},$Line) | Out-Null;return}
- $runnerOut.AppendText($Line+[Environment]::NewLine)
- $runnerOut.SelectionStart=$runnerOut.TextLength
- $runnerOut.ScrollToCaret()
+function Write-Run([string]$Line,$Pane=$null){
+ if(-not $Pane){$Pane=$runnerTabs.SelectedTab.Tag}
+ $Pane.Output.AppendText($Line+[Environment]::NewLine)
+ $Pane.Output.SelectionStart=$Pane.Output.TextLength
+ $Pane.Output.ScrollToCaret()
 }
 function Test-AppAdministrator {
  try{
@@ -530,40 +466,27 @@ function Start-ElevatedToolApp {
   [Windows.Forms.MessageBox]::Show($_.Exception.Message,'Administrator launch cancelled or failed','OK','Error')|Out-Null
  }
 }
-function Show-Runner([string]$Name,[bool]$AllowInput=$false){
- $layout.RowStyles[2].Height=300
- $runnerTitle.Text=$Name
- $runnerState.Text='STARTING'
- $runnerOut.Clear()
- $runnerInput.Clear()
- $runnerInputPanel.Visible=$AllowInput
- $cancel.Enabled=$false
+function Show-Runner([string]$Name,[bool]$AllowInput,$Pane){
+ $layout.RowStyles[2].Height=340
+ $runnerTabs.SelectedTab=$Pane.Page
+ $Pane.Page.Text=$Name
+ $Pane.State.Text='Starting...'
+ $Pane.Output.Clear();$Pane.Input.Clear();$Pane.InputPanel.Visible=$AllowInput
+ $Pane.Cancel.Enabled=$false;$Pane.Cancelled=$false
 }
-function Hide-Runner{
- $runnerInputPanel.Visible=$false
- $layout.RowStyles[2].Height=0
-}
-
+function Hide-Runner{$layout.RowStyles[2].Height=0}
 function Start-Tool {
  [CmdletBinding(SupportsShouldProcess=$true)]
  param($tool)
- if($script:CurrentProcess){
-  [Windows.Forms.MessageBox]::Show('Wait for the current tool to finish or cancel it before starting another.','Run Center busy','OK','Information')|Out-Null
+ $pane=Get-FreeRunPane
+ if(-not $pane){
+  $layout.RowStyles[2].Height=340
+  [Windows.Forms.MessageBox]::Show('Two tools are already running. Wait for one to finish or cancel it before starting another.','Run Center busy','OK','Information')|Out-Null
   return
  }
  Add-Recent $tool.Id
  if(-not $tool.Ready){
   [Windows.Forms.MessageBox]::Show($(if($tool.PSObject.Properties.Name -contains 'unavailableReason'){$tool.unavailableReason}else{'This tool is unavailable. See docs/ARCHIVE-INTEGRATION.md for its requirements.'}),'Tool requirements','OK','Information') | Out-Null
-  return
- }
- if($tool.Path -eq 'SELFTEST'){
-  Show-Runner $tool.Name
-  $runnerState.Text='RUNNING'
-  Write-Run 'T3DFK_RUNNER_SELF_TEST_OK'
-  Write-Run ('PowerShell version: '+$PSVersionTable.PSVersion)
-  Write-Run ('Root: '+$root)
-  Write-Run 'Exit code: 0'
-  $runnerState.Text='COMPLETE | EXIT 0'
   return
  }
  if($tool.Risk -ne 'ReadOnly'){
@@ -596,13 +519,13 @@ function Start-Tool {
   Start-ElevatedToolApp $tool
   return
  }
- Show-Runner $tool.Name $needsInteractive
- $runnerState.Text='RUNNING'
- $cancel.Enabled=$true
+ Show-Runner $tool.Name $needsInteractive $pane
+ $pane.State.Text='RUNNING'
+ $pane.Cancel.Enabled=$true
  $logDir=Join-Path $reportRoot 'AppLogs'
  New-Item -ItemType Directory -Force -Path $logDir | Out-Null
- $script:CurrentLog=Join-Path $logDir ((Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+($tool.Name -replace '[^A-Za-z0-9._-]','_')+'.log')
- Set-Content $script:CurrentLog ('Tool: '+$tool.Name)
+ $pane.Log=Join-Path $logDir (((Get-Date -Format 'yyyyMMdd-HHmmss-fff')+'-'+$pane.Number)+'-'+($tool.Name -replace '[^A-Za-z0-9._-]','_')+'.log')
+ Set-Content $pane.Log ('Tool: '+$tool.Name)
  Write-Run ('Launching '+$tool.Name+' as Administrator...')
  $psi=New-Object Diagnostics.ProcessStartInfo
  $psi.FileName=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
@@ -620,82 +543,28 @@ function Start-Tool {
  $psi.EnvironmentVariables['TTK_REPORT_DIR']=$reportRoot
  $psi.EnvironmentVariables['TTK_RUNBOOK_DIR']=$runbookRoot
  try {
-  $script:RunnerCapture=New-Object RunCenterProcess($psi)
-  $script:RunnerCapture.Start()
-  $script:CurrentProcess=$script:RunnerCapture.Process
+  $pane.Capture=New-Object RunCenterProcess($psi)
+  $pane.Capture.Start()
+  $pane.Process=$pane.Capture.Process
   $status.Text='●  RUNNING'
-  Write-Run ('PID: '+$script:CurrentProcess.Id)
+  Write-Run ('PID: '+$pane.Process.Id)
   $runnerTimer.Start()
  } catch {
   Write-Run ('ERROR: '+$_.Exception.Message)
-  $runnerState.Text='FAILED TO START'
-  $cancel.Enabled=$false
-  $runnerInputPanel.Visible=$false
-  $script:CurrentProcess=$null
-  if($script:RunnerCapture){$script:RunnerCapture.Dispose();$script:RunnerCapture=$null}
+  $pane.State.Text='FAILED TO START'
+  $pane.Cancel.Enabled=$false
+  $pane.InputPanel.Visible=$false
+  $pane.Process=$null
+  if($pane.Capture){$pane.Capture.Dispose();$pane.Capture=$null}
  }
 }
 
-# Drain captured text on the UI thread, including prompts without a newline.
 $runnerTimer=New-Object Windows.Forms.Timer
 $runnerTimer.Interval=100
-$runnerTimer.Add_Tick({
- if(-not $script:RunnerCapture){return}
- $chunk=''
- $drained=0
- while($drained -lt 100 -and $script:RunnerCapture.Output.TryDequeue([ref]$chunk)){
-  $runnerOut.AppendText($chunk)
-  Add-Content -LiteralPath $script:CurrentLog -Value $chunk -NoNewline
-  $drained++
- }
- $runnerOut.SelectionStart=$runnerOut.TextLength
- $runnerOut.ScrollToCaret()
- if($script:RunnerCapture.Finished -and $script:RunnerCapture.Output.IsEmpty){
-  $code=$script:CurrentProcess.ExitCode
-  Write-Run ([Environment]::NewLine+'Exit code: '+$code)
-  Add-Content -LiteralPath $script:CurrentLog -Value ('ExitCode: '+$code)
-  $runnerState.Text='COMPLETE | EXIT '+$code
-  $runnerInputPanel.Visible=$false
-  $cancel.Enabled=$false
-  $status.Text='●  READY'
-  $runnerTimer.Stop()
-  $script:RunnerCapture.Dispose()
-  $script:RunnerCapture=$null
-  $script:CurrentProcess=$null
- }
-})
-
-$sendInput.Add_Click({
- try{
-  if($script:CurrentProcess -and -not $script:CurrentProcess.HasExited){
-   $script:CurrentProcess.StandardInput.WriteLine($runnerInput.Text)
-   $script:CurrentProcess.StandardInput.Flush()
-   $runnerInput.Clear()
-   Write-Run '[input sent]'
-  }
- }catch{Write-Run ('Input error: '+$_.Exception.Message)}
-})
-$runnerInput.Add_KeyDown({
- param($control,$eventData)
- [void]$control
- if($eventData.KeyCode -eq [Windows.Forms.Keys]::Enter){
-  $sendInput.PerformClick()
-    $eventData.SuppressKeyPress=$true
- }
-})
-
-$cancel.Add_Click({
- try{
-  if($script:CurrentProcess -and -not $script:CurrentProcess.HasExited){
-   Write-Run 'Cancellation requested by technician.'
-   & taskkill.exe /PID $script:CurrentProcess.Id /T /F | Out-Null
-   $runnerState.Text='CANCELLED'
-   $cancel.Enabled=$false
-  }
- }catch{Write-Run ('Cancel error: '+$_.Exception.Message)}
-})
-$closeRun.Add_Click({Hide-Runner})
-
+$runnerTimer.Add_Tick({Update-RunPanes})
+$status.Cursor='Hand'
+$status.Add_Click({$layout.RowStyles[2].Height=340})
+$form.Add_FormClosing({foreach($pane in $script:RunPanes){Stop-RunPane $pane};$runnerTimer.Stop()})
 function Add-Card($tool){
  $p=New-Object Windows.Forms.Panel
  $p.Width=365
@@ -912,11 +781,6 @@ $form.Add_Resize({
  $brand.Location=New-Object Drawing.Point([Math]::Max(760,$header.ClientSize.Width-285),18)
  $search.Location=New-Object Drawing.Point([Math]::Max(700,$tabsPanel.ClientSize.Width-350),7)
  $info.Location=New-Object Drawing.Point([Math]::Max(520,$pageHead.ClientSize.Width-375),4)
- $runnerState.Location=New-Object Drawing.Point([Math]::Max(760,$runnerHead.ClientSize.Width-270),11)
- $cancel.Location=New-Object Drawing.Point([Math]::Max(860,$runnerHead.ClientSize.Width-170),6)
- $closeRun.Location=New-Object Drawing.Point([Math]::Max(950,$runnerHead.ClientSize.Width-75),6)
- $runnerInput.Size=New-Object Drawing.Size([Math]::Max(300,$runnerInputPanel.ClientSize.Width-145),26)
- $sendInput.Location=New-Object Drawing.Point([Math]::Max(310,$runnerInputPanel.ClientSize.Width-130),5)
  $platform.Location=New-Object Drawing.Point([Math]::Max(780,$footer.ClientSize.Width-245),20)
 })
 

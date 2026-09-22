@@ -3,6 +3,13 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
+
+public static class RunCenterBrand
+{
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    public static extern int SetCurrentProcessExplicitAppUserModelID(string appId);
+}
 
 // Stream readers run in .NET, never PowerShell callbacks on threads without a runspace.
 public sealed class RunCenterProcess : IDisposable

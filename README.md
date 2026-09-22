@@ -9,6 +9,11 @@ to a short location such as `C:\`. Launch `C:\FK\T3CHNRD Digital Field Kit.exe`.
 The PS2EXE-built launcher is tracked on main and included in source downloads.
 Extract the entire ZIP first and keep the `Windows` folder beside the EXE;
 the EXE launches the bundled app and is not a standalone copy of every tool.
+
+Run Center supports two simultaneous tools in separate tabs, each with its own
+output, input, log, and Cancel button. Click the footer status to reopen a hidden
+Run Center. Completion and exit code appear on separate lines. The app window and
+EXE use the same T3DFK icon.
 GitHub's automatic source ZIP adds a long repository/SHA folder name; extracting
 that archive to its default nested destination can exceed Windows path limits.
 Maintainers can create the short package from a committed checkout with

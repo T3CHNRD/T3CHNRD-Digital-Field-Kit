@@ -44,6 +44,10 @@ jobs:
         shell: powershell
         run: |
           & .\Windows\App\Test-LauncherPaths.ps1
+      - name: Verify two independent Run Center tools
+        shell: powershell
+        run: |
+          & .\Windows\App\Test-TwoToolRunner.ps1
       - name: Build branded Windows EXE
         shell: powershell
         run: |

@@ -95,6 +95,15 @@ reports must not be committed.
 
 ## Run Center integration
 
+The current Run Center supports two concurrent tools in independent tabs. Each
+slot owns its process capture, stdin, log, and cancellation state; a third launch
+is blocked until a slot is free. `Test-TwoToolRunner.ps1` exercises the actual
+launch function and UI controls with harmless fixtures, including independent
+input, completion, cancellation, and nonoverlapping status/button bounds.
+The header uses docked layout cells and contrasting buttons, and completion/exit
+code are on separate lines. The footer reopens a hidden Run Center. The T3DFK icon
+is shared by the form and compiled EXE, with a distinct Windows app identity.
+
 All ready PowerShell cards use the same hidden, redirected, STA child process.
 Interactive tools no longer escape into an untracked hidden PowerShell process.
 `Invoke-RunCenterScript.ps1` adapts `Read-Host` to redirected line input and forwards
@@ -102,7 +111,7 @@ named arguments/switches and exit codes. `RunCenterProcess.cs` captures stdout a
 stderr on .NET tasks; a Windows Forms timer updates the UI on its own thread.
 This avoids PowerShell event callbacks on threads without a runspace and displays
 prompts even without a trailing newline. A busy guard prevents a second tool from
-overwriting the current process/log. Cancel still targets the child process tree.
+overwriting occupied process/log slots. Cancel targets only the selected tool's child process tree.
 Elevation relaunch now quotes spaced paths and preserves the selected tool ID.
 Dependency inspection's over-escaped regex is corrected.
 

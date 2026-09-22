@@ -28,6 +28,8 @@ $required=@(
     'Windows\Config\ORIGINAL-SCRIPTS-GIT-SHA1.txt'
     'Windows\Config\ARCHIVE-SOURCES-SHA256.json'
     'Windows\App\RunCenterProcess.cs'
+    'Windows\App\RunCenterUI.ps1'
+    'Windows\App\T3DFK.ico'
     'Windows\App\Invoke-RunCenterScript.ps1'
 )
 foreach($relative in $required){
