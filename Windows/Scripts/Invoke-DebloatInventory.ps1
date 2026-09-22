@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$SelectionFile
 )
@@ -6,10 +6,15 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$toolkitRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$logDir = Join-Path $toolkitRoot 'Logs'
-if (-not (Test-Path $logDir)) {
-    New-Item -Path $logDir -ItemType Directory -Force | Out-Null
+$toolkitRoot = Split-Path -Parent $PSScriptRoot
+$preferredLogDir = if ($env:TTK_REPORT_DIR) { $env:TTK_REPORT_DIR } else { Join-Path $toolkitRoot 'Logs' }
+try {
+    New-Item -Path $preferredLogDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
+    $logDir = $preferredLogDir
+}
+catch {
+    $logDir = Join-Path $env:TEMP 'Windows-Master-Diagnostic-Toolkit-Reports'
+    New-Item -Path $logDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
 }
 
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'

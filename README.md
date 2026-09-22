@@ -1,5 +1,9 @@
 # T3CHNRD Digital Field Kit
 
+The [uploaded archive integration report](docs/ARCHIVE-INTEGRATION.md) documents
+the current 64-tool catalog, original-source hashes, bundled deployment payloads,
+Run Center validation, and remaining site-specific requirements.
+
 T3CHNRD Digital Field Kit is a technician-first Windows diagnostic and repair toolkit designed for portable field use, local workstation support, and structured troubleshooting workflows. It brings together a restored Windows interface, a curated tool catalog, captured output in a Run Center, operational Runbook access, and a strict policy of not inventing missing original scripts.
 
 ## Why this exists

@@ -1,6 +1,8 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 [CmdletBinding()]
-param()
+param(
+    [switch]$CreateMissingProtector
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -58,11 +60,14 @@ try {
             Write-Step "Reviewing BitLocker protectors for $mount."
             $protectors = @($volume.KeyProtector | Where-Object { $_.KeyProtectorType -eq 'RecoveryPassword' })
 
-            if (-not $protectors -and $volume.ProtectionStatus -ne 'Off') {
-                Write-Step "No recovery-password protector found for $mount. Creating one before backup." 'WARN'
+            if (-not $protectors -and $volume.ProtectionStatus -ne 'Off' -and $CreateMissingProtector) {
+                Write-Step "No recovery-password protector found for $mount. CreateMissingProtector was requested, so a protector will be created." 'WARN'
                 Add-BitLockerKeyProtector -MountPoint $mount -RecoveryPasswordProtector -ErrorAction Stop | Out-Null
                 $volume = Get-BitLockerVolume -MountPoint $mount -ErrorAction Stop
                 $protectors = @($volume.KeyProtector | Where-Object { $_.KeyProtectorType -eq 'RecoveryPassword' })
+            }
+            elseif (-not $protectors -and $volume.ProtectionStatus -ne 'Off') {
+                Write-Step "No recovery-password protector found for $mount. Skipping because the safe default does not create new protectors." 'WARN'
             }
 
             if (-not $protectors) {

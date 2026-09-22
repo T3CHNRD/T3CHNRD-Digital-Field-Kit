@@ -1,6 +1,8 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 [CmdletBinding()]
-param()
+param(
+    [switch]$RepairRemovable
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -73,10 +75,12 @@ try {
 
             if ($letter -ieq $systemDrive) {
                 Write-Step "$drive is the Windows system drive. Online scan completed; offline fixes are not forced from the toolkit." 'WARN'
-            } elseif ($volume.DriveType -eq 'Removable') {
-                Write-Step "Attempting non-system removable drive repair with chkdsk $drive /f. Close files on this drive if Windows asks to lock it." 'WARN'
+            } elseif ($volume.DriveType -eq 'Removable' -and $RepairRemovable) {
+                Write-Step "RepairRemovable was requested. Attempting chkdsk $drive /f. Close files on this drive if Windows asks to lock it." 'WARN'
                 & chkdsk.exe $drive /f 2>&1 | ForEach-Object { Write-Step ([string]$_) }
                 Write-Step "chkdsk /f exit code for ${drive}: $LASTEXITCODE."
+            } elseif ($volume.DriveType -eq 'Removable') {
+                Write-Step "$drive is removable. Scan completed; repair was NOT requested."
             } else {
                 Write-Step "$drive is a non-system internal drive. Scan completed; run again after closing open files if repairs are needed." 
             }

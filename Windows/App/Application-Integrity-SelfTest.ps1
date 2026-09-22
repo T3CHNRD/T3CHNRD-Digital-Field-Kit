@@ -25,6 +25,9 @@ $required=@(
     'Windows\App\T3DFK-Windows.ps1',
     'Windows\Config\tools.json',
     'Windows\Config\ORIGINAL-SCRIPTS-GIT-SHA1.txt'
+    'Windows\Config\ARCHIVE-SOURCES-SHA256.json'
+    'Windows\App\RunCenterProcess.cs'
+    'Windows\App\Invoke-RunCenterScript.ps1'
 )
 foreach($relative in $required){
     $path=Join-Path $root $relative
@@ -112,6 +115,19 @@ if(Test-Path -LiteralPath $hashManifest){
         if($actual -eq $expected){Result PASS ("Immutable source hash: $relative")}else{Result FAIL ("Immutable source changed: $relative")}
     }
 }else{Result FAIL 'Immutable original-script manifest is missing.'}
+
+$archiveManifest=Join-Path $root 'Windows\Config\ARCHIVE-SOURCES-SHA256.json'
+try {
+    $archiveFiles=Get-Content -LiteralPath $archiveManifest -Raw -Encoding UTF8 | ConvertFrom-Json
+    foreach($entry in $archiveFiles){
+        $path=Join-Path $root $entry.path
+        if(-not(Test-Path -LiteralPath $path -PathType Leaf)){
+            Result FAIL ("Archive payload missing: "+$entry.path)
+        }elseif((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $entry.sha256){
+            Result FAIL ("Archive payload changed: "+$entry.path)
+        }else{Result PASS ("Exact archive payload: "+$entry.path)}
+    }
+}catch{Result FAIL ("Archive provenance manifest error: "+$_.Exception.Message)}
 
 Write-Output ''
 Write-Output ("SUMMARY: PASS={0} WARN={1} FAIL={2}" -f $pass,$warn,$fail)

@@ -4,15 +4,18 @@
     "name": "Install All Apps",
     "category": "Deployment",
     "originalCategory": "Setup",
-    "description": "Install Google Chrome, Mozilla Firefox, Malwarebytes, AVG, and CCleaner. Win11Debloat and every WinUtil workflow are excluded.",
-    "path": "INSTALLALL",
+    "description": "Run the five bundled application installers in sequence. Their setup windows may require input and Internet access. Excludes WinUtil and Win11Debloat.",
+    "path": "Windows\\Scripts\\Setup\\Install-BundledApp.ps1",
     "risk": "SystemChange",
     "interactive": true,
-    "args": [],
+    "args": [
+      "-All"
+    ],
     "icon": "package",
     "ready": true,
     "sourceStatus": "NEW_VERIFIED_APP_FEATURE",
-    "executionMode": "InApp"
+    "executionMode": "InApp",
+    "requiresAdmin": true
   },
   {
     "id": "tool-01",
@@ -86,7 +89,7 @@
     "args": [],
     "icon": "document",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -101,7 +104,7 @@
     "args": [],
     "icon": "disk",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -116,7 +119,7 @@
     "args": [],
     "icon": "package",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -131,7 +134,7 @@
     "args": [],
     "icon": "document",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -146,7 +149,7 @@
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -161,7 +164,7 @@
     "args": [],
     "icon": "document",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -176,7 +179,7 @@
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -191,7 +194,7 @@
     "args": [],
     "icon": "document",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -206,7 +209,7 @@
     "args": [],
     "icon": "document",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -221,7 +224,7 @@
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -236,7 +239,7 @@
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -251,7 +254,7 @@
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -266,7 +269,7 @@
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -281,7 +284,7 @@
     "args": [],
     "icon": "document",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -296,7 +299,7 @@
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT_FROM_USER_UPLOADED_TOOLKIT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -311,7 +314,7 @@
     "args": [],
     "icon": "document",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -326,7 +329,7 @@
     "args": [],
     "icon": "globe",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -341,7 +344,7 @@
     "args": [],
     "icon": "globe",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -356,7 +359,7 @@
     "args": [],
     "icon": "globe",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -371,7 +374,7 @@
     "args": [],
     "icon": "globe",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -386,7 +389,7 @@
     "args": [],
     "icon": "globe",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -401,7 +404,7 @@
     "args": [],
     "icon": "globe",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -416,7 +419,7 @@
     "args": [],
     "icon": "globe",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT_FROM_USER_UPLOADED_TOOLKIT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -431,7 +434,7 @@
     "args": [],
     "icon": "disk",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -446,7 +449,7 @@
     "args": [],
     "icon": "disk",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -461,7 +464,7 @@
     "args": [],
     "icon": "disk",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -476,7 +479,7 @@
     "args": [],
     "icon": "disk",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -491,7 +494,7 @@
     "args": [],
     "icon": "disk",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -506,7 +509,7 @@
     "args": [],
     "icon": "lock",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -521,7 +524,7 @@
     "args": [],
     "icon": "lock",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -536,7 +539,7 @@
     "args": [],
     "icon": "lock",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -551,7 +554,7 @@
     "args": [],
     "icon": "update",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -566,7 +569,7 @@
     "args": [],
     "icon": "update",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -581,7 +584,7 @@
     "args": [],
     "icon": "disk",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -596,7 +599,7 @@
     "args": [],
     "icon": "update",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -611,7 +614,7 @@
     "args": [],
     "icon": "update",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -620,13 +623,13 @@
     "category": "Optimization",
     "originalCategory": "Updates",
     "description": "Apply the included Secure Boot 2023 remediation workflow.",
-    "path": "Windows\\Scripts\\Maintenance\\Invoke-SecureBoot2023Update.ps1",
+    "path": "Windows\\Scripts\\Maintenance\\Invoke-BundledSecureBootRemediation.ps1",
     "risk": "HighRisk",
     "interactive": false,
     "args": [],
     "icon": "shield",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "ORIGINAL_WITH_LOCAL_REPORT_WRAPPER",
     "executionMode": "InApp"
   },
   {
@@ -640,9 +643,10 @@
     "interactive": false,
     "args": [],
     "icon": "package",
-    "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "RESTORED_FROM_UPLOADED_ARCHIVES",
+    "executionMode": "InApp",
+    "requiresAdmin": true
   },
   {
     "id": "tool-43",
@@ -655,9 +659,10 @@
     "interactive": false,
     "args": [],
     "icon": "package",
-    "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "RESTORED_FROM_UPLOADED_ARCHIVES",
+    "executionMode": "InApp",
+    "requiresAdmin": true
   },
   {
     "id": "tool-44",
@@ -672,84 +677,105 @@
       "-Offline"
     ],
     "icon": "package",
-    "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "RESTORED_FROM_UPLOADED_ARCHIVES",
+    "executionMode": "InApp",
+    "requiresAdmin": true
   },
   {
     "id": "tool-45",
     "name": "Install Google Chrome",
     "category": "Deployment",
     "originalCategory": "Setup",
-    "description": "Launch the bundled Chrome installer supplied in the new-computer setup package.",
-    "path": "R\\Setup\\Apps\\Chrome.exe",
+    "description": "Launch the bundled Chrome installer supplied in the new-computer setup package. The original bootstrap installer may require Internet access; its own setup window will open.",
+    "path": "Windows\\Scripts\\Setup\\Install-BundledApp.ps1",
     "risk": "SystemChange",
     "interactive": true,
-    "args": [],
+    "args": [
+      "-Installer",
+      "ChromeSetup (1).exe"
+    ],
     "icon": "package",
-    "ready": false,
-    "sourceStatus": "THIRD_PARTY_PAYLOAD_NOT_IN_GIT",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "RESTORED_FROM_UPLOADED_ARCHIVES",
+    "executionMode": "InApp",
+    "requiresAdmin": true
   },
   {
     "id": "tool-46",
     "name": "Install Mozilla Firefox",
     "category": "Deployment",
     "originalCategory": "Setup",
-    "description": "Launch the bundled Firefox installer supplied in the new-computer setup package.",
-    "path": "R\\Setup\\Apps\\Firefox.exe",
+    "description": "Launch the bundled Firefox installer supplied in the new-computer setup package. The original bootstrap installer may require Internet access; its own setup window will open.",
+    "path": "Windows\\Scripts\\Setup\\Install-BundledApp.ps1",
     "risk": "SystemChange",
     "interactive": true,
-    "args": [],
+    "args": [
+      "-Installer",
+      "Firefox Installer.exe"
+    ],
     "icon": "package",
-    "ready": false,
-    "sourceStatus": "THIRD_PARTY_PAYLOAD_NOT_IN_GIT",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "RESTORED_FROM_UPLOADED_ARCHIVES",
+    "executionMode": "InApp",
+    "requiresAdmin": true
   },
   {
     "id": "tool-47",
     "name": "Install Malwarebytes",
     "category": "Deployment",
     "originalCategory": "Setup",
-    "description": "Launch the bundled Malwarebytes installer supplied in the new-computer setup package.",
-    "path": "R\\Setup\\Apps\\Malwarebytes.exe",
+    "description": "Launch the bundled Malwarebytes installer supplied in the new-computer setup package. The original bootstrap installer may require Internet access; its own setup window will open.",
+    "path": "Windows\\Scripts\\Setup\\Install-BundledApp.ps1",
     "risk": "SystemChange",
     "interactive": true,
-    "args": [],
+    "args": [
+      "-Installer",
+      "MBSetup-8.8.exe"
+    ],
     "icon": "package",
-    "ready": false,
-    "sourceStatus": "THIRD_PARTY_PAYLOAD_NOT_IN_GIT",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "RESTORED_FROM_UPLOADED_ARCHIVES",
+    "executionMode": "InApp",
+    "requiresAdmin": true
   },
   {
     "id": "tool-48",
     "name": "Install AVG Antivirus",
     "category": "Deployment",
     "originalCategory": "Setup",
-    "description": "Launch the bundled AVG Antivirus installer supplied in the new-computer setup package.",
-    "path": "R\\Setup\\Apps\\AVG.exe",
+    "description": "Launch the bundled AVG Antivirus installer supplied in the new-computer setup package. The original bootstrap installer may require Internet access; its own setup window will open.",
+    "path": "Windows\\Scripts\\Setup\\Install-BundledApp.ps1",
     "risk": "SystemChange",
     "interactive": true,
-    "args": [],
+    "args": [
+      "-Installer",
+      "avg_antivirus_free_setup.exe"
+    ],
     "icon": "package",
-    "ready": false,
-    "sourceStatus": "THIRD_PARTY_PAYLOAD_NOT_IN_GIT",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "RESTORED_FROM_UPLOADED_ARCHIVES",
+    "executionMode": "InApp",
+    "requiresAdmin": true
   },
   {
     "id": "tool-49",
     "name": "Install CCleaner",
     "category": "Deployment",
     "originalCategory": "Setup",
-    "description": "Launch the bundled CCleaner installer supplied in the new-computer setup package.",
-    "path": "R\\Setup\\Apps\\CCleaner.exe",
+    "description": "Launch the bundled CCleaner installer supplied in the new-computer setup package. The original bootstrap installer may require Internet access; its own setup window will open.",
+    "path": "Windows\\Scripts\\Setup\\Install-BundledApp.ps1",
     "risk": "SystemChange",
     "interactive": true,
-    "args": [],
+    "args": [
+      "-Installer",
+      "ccsetup_online_setup.exe"
+    ],
     "icon": "package",
-    "ready": false,
-    "sourceStatus": "THIRD_PARTY_PAYLOAD_NOT_IN_GIT",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "RESTORED_FROM_UPLOADED_ARCHIVES",
+    "executionMode": "InApp",
+    "requiresAdmin": true
   },
   {
     "id": "tool-50",
@@ -762,9 +788,10 @@
     "interactive": false,
     "args": [],
     "icon": "package",
-    "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL",
-    "executionMode": "Unavailable"
+    "ready": true,
+    "sourceStatus": "RESTORED_FROM_UPLOADED_ARCHIVES",
+    "executionMode": "InApp",
+    "requiresAdmin": false
   },
   {
     "id": "tool-51",
@@ -778,7 +805,7 @@
     "args": [],
     "icon": "wrench",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -793,8 +820,9 @@
     "args": [],
     "icon": "wrench",
     "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL",
-    "executionMode": "Unavailable"
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
+    "executionMode": "Unavailable",
+    "unavailableReason": "Original requires the ALBL network reporting share and changes scheduled shutdown tasks; site configuration must be reviewed before enabling."
   },
   {
     "id": "tool-53",
@@ -808,8 +836,9 @@
     "args": [],
     "icon": "gear",
     "ready": false,
-    "sourceStatus": "MISSING_ORIGINAL",
-    "executionMode": "Unavailable"
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
+    "executionMode": "Unavailable",
+    "unavailableReason": "Original requires the ALBL Exchange server, Exchange Management Shell, and fixed incident/server settings; not a portable diagnostic."
   },
   {
     "id": "tool-54",
@@ -823,7 +852,7 @@
     "args": [],
     "icon": "wrench",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -838,7 +867,7 @@
     "args": [],
     "icon": "document",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT_FROM_ORIGINAL_TOOLKIT_SOURCE",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -853,7 +882,7 @@
     "args": [],
     "icon": "gear",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT_FROM_ORIGINAL_TOOLKIT_SOURCE",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -868,7 +897,7 @@
     "args": [],
     "icon": "terminal",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT_FROM_USER_UPLOADED_TOOLKIT",
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
     "executionMode": "InApp"
   },
   {
@@ -915,5 +944,59 @@
     "ready": true,
     "sourceStatus": "NEW_VERIFIED_APP_FEATURE",
     "executionMode": "InApp"
+  },
+  {
+    "id": "secure-boot-multi",
+    "name": "Secure Boot Multi-Computer Audit",
+    "category": "Security",
+    "originalCategory": "Security",
+    "description": "Run the supplied multi-computer audit for this PC and save output in Diagnostic-Reports.",
+    "path": "Windows\\Scripts\\Security\\Invoke-BundledSecureBootAudit.ps1",
+    "risk": "ReadOnly",
+    "interactive": false,
+    "args": [
+      "-Mode",
+      "Multi"
+    ],
+    "icon": "gear",
+    "ready": true,
+    "sourceStatus": "RESTORED_FROM_UPLOADED_ARCHIVES",
+    "executionMode": "InApp",
+    "requiresAdmin": true
+  },
+  {
+    "id": "secure-boot-production",
+    "name": "Secure Boot Certificate Audit",
+    "category": "Security",
+    "originalCategory": "Security",
+    "description": "Run the supplied production audit for this PC with a local report directory. Remediation is not enabled.",
+    "path": "Windows\\Scripts\\Security\\Invoke-BundledSecureBootAudit.ps1",
+    "risk": "ReadOnly",
+    "interactive": false,
+    "args": [
+      "-Mode",
+      "Production"
+    ],
+    "icon": "gear",
+    "ready": true,
+    "sourceStatus": "RESTORED_FROM_UPLOADED_ARCHIVES",
+    "executionMode": "InApp",
+    "requiresAdmin": true
+  },
+  {
+    "id": "network-subnet-toggle",
+    "name": "Network Subnet Toggle v3",
+    "category": "Network",
+    "originalCategory": "Network",
+    "description": "Original site utility: normal IP 192.168.10.151/24, gateway 192.168.10.1, DNS 192.168.1.11 and 192.168.1.9. Alternate subnet input retains host .151. Review these fixed settings before use.",
+    "path": "Windows\\Scripts\\Network\\Network-Subnet-Toggle-v3.ps1",
+    "risk": "HighRisk",
+    "interactive": true,
+    "args": [],
+    "icon": "gear",
+    "ready": true,
+    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
+    "executionMode": "InApp",
+    "requiresAdmin": true
   }
 ]

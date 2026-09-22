@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     ABCo Master Tool - Hardened Version
     Location: V:\ABCo Systems Documentation\IT Master Documentation
@@ -150,6 +150,6 @@ try {
     Add-Log "FATAL: $($_.Exception.Message)" "ERROR"
 } finally {
     Write-Progress -Activity "Importing to ABCO Documentation" -Completed
-    $script:Log | Out-File -FilePath $LogPath -Encoding UTF8 -Force
     Add-Log "Session Log saved to: $LogPath"
+    $script:Log | Out-File -FilePath $LogPath -Encoding UTF8 -Force
 }

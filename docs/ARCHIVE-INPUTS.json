@@ -1,0 +1,14 @@
+{
+  "windows_script_toolkit.zip": {
+    "sha256": "e4ab99f4c5e64810af32ba0b5af14cfed906767bda60eb1b7a7bea1e26d9ebe7",
+    "entries": 599
+  },
+  "personal_PS_scripts.zip": {
+    "sha256": "2646cd70e305e964e5e58a2fc074acd7bf0c4bd9c72183e91f93875cee4c14e2",
+    "entries": 706
+  },
+  "ections for the tools.zip": {
+    "sha256": "213ce2b285268d383b81d2f6541f211b10a92a725ee265564d594011a9a8692f",
+    "entries": 1338
+  }
+}

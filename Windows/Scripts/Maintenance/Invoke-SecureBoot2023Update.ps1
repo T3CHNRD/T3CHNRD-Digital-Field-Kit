@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Lansweeper deployment script for Windows Secure Boot 2023 certificate update remediation.
 
@@ -22,19 +22,22 @@
       - Test mode only allows Framework_FW1 / Framework_FW1.albl.com
       - Live mode targets other eligible physical Windows client workstations
       - Blocks servers and VMs
+      - Blocks laptops/mobile devices if battery status is unavailable
+      - Blocks laptops/mobile devices unless AC power is connected OR battery is >= MinimumBatteryPercent
+      - Allows desktops/workstations with no battery detected
       - Attempts update even on Legacy/CSM systems
       - Writes Microsoft AvailableUpdates trigger
       - Runs Microsoft Secure-Boot-Update task if present
       - Enables the Secure-Boot-Update task if disabled, and leaves it enabled
       - Logs boot mode and Secure Boot state honestly
-      - Logs to append-safe Desktop TXT report
+      - Logs to append-safe shared CSV
       - Backs up/logs BitLocker recovery key if available
       - Suspends BitLocker only before reboot, only if BitLocker is on
       - Reboots only when -Restart is supplied
       - Optionally registers a one-time SYSTEM startup task with -PostRebootCheck to write a post-reboot CSV row
 
 .EXIT CODES
-    0 = Success / dry-run success / already updated / queued or attempted without immediate reboot
+    0 = Success / already updated / queued or attempted without immediate reboot
     1 = Success, reboot was requested and scheduled
     2 = Machine not eligible
     3 = Unexpected failure
@@ -43,23 +46,23 @@
     6 = Remediation failure
 
 .NOTES
-    Default report directory:
-    Desktop\T3CHNRD-SecureBoot2023
+    Default CSV directory:
+    P:\IT Tracking - Requests_Projects\bootcheck_results\updated_machines
 
     Security note:
-    This toolkit copy writes the report to the signed-in user Desktop and may include the BitLocker recovery key when available.
-    Protect the Desktop report folder accordingly.
+    This script writes the full BitLocker recovery key to the shared CSV when available.
+    Restrict ACLs on the CSV directory accordingly.
 #>
 
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
-    [string]$ScriptVersion = "2026.05.14.1",
+    [string]$ScriptVersion = "2026.05.14.2",
 
-    [string]$SchemaVersion = "2026.05.14.1",
+    [string]$SchemaVersion = "2026.05.14.2",
 
-    [string]$MappedDriveLetter = "",
+    [string]$MappedDriveLetter = "P:",
 
-    [string]$MappedDriveRoot = "",
+    [string]$MappedDriveRoot = "\\alblnetapp02\public",
 
     [Parameter(Mandatory = $false)]
     [ValidateSet("Test", "Live")]
@@ -83,13 +86,13 @@ param(
 
     [int]$PostRebootDelaySeconds = 120,
 
-    [string]$CsvDirectory = (Join-Path ([Environment]::GetFolderPath("Desktop")) "T3CHNRD-SecureBoot2023"),
+    [string]$CsvDirectory = "P:\IT Tracking - Requests_Projects\bootcheck_results\updated_machines",
 
-    [string]$CsvFileName = "SecureBoot2023_Remediation_Results.txt",
+    [string]$CsvFileName = "SecureBoot2023_Remediation_Results.csv",
 
     [bool]$WriteLocalLog = $true,
 
-    [string]$LocalLogDirectory = (Join-Path ([Environment]::GetFolderPath("Desktop")) "T3CHNRD-SecureBoot2023"),
+    [string]$LocalLogDirectory = "C:\ProgramData\ALBL\SecureBoot2023",
 
     [string]$TestComputerName = "Framework_FW1",
 
@@ -105,7 +108,9 @@ param(
 
     [int]$AvailableUpdatesValue = 0x5944,
 
-    [int]$SecureBootEventLookbackDays = 30
+    [int]$SecureBootEventLookbackDays = 30,
+
+    [int]$MinimumBatteryPercent = 65
 )
 
 Set-StrictMode -Version 3.0
@@ -159,6 +164,14 @@ $BitLockerStatus = "Unknown"
 $BitLockerRawProtectionStatus = ""
 $BitLockerSuspended = $false
 $BitLockerRecoveryKey = ""
+
+$BatteryCheckRequired = "Unknown"
+$BatteryCheckResult = "Not evaluated"
+$BatteryPercent = ""
+$BatteryStatus = "Unknown"
+$BatteryPowerOnline = "Unknown"
+$BatteryWarning = ""
+$BatteryDeviceCount = 0
 
 $SecureBootTaskExists = $false
 $SecureBootTaskState = "Unknown"
@@ -237,6 +250,14 @@ $CsvColumns = @(
     "UEFIStatus",
     "SecureBootStatus",
     "FirmwareWarning",
+    "BatteryCheckRequired",
+    "BatteryCheckResult",
+    "BatteryPercent",
+    "BatteryStatus",
+    "BatteryPowerOnline",
+    "BatteryWarning",
+    "BatteryDeviceCount",
+    "MinimumBatteryPercent",
     "BitLockerStatus",
     "BitLockerRawProtectionStatus",
     "BitLockerSuspended",
@@ -292,7 +313,6 @@ function Write-LocalLog {
         $logPath = Join-Path $LocalLogDirectory "SecureBoot2023_Remediation.log"
         $line = "{0} [{1}] {2}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss.fff"), $Mode, $Message
         Add-Content -LiteralPath $logPath -Value $line -Encoding UTF8
-        Write-Output $line
     }
     catch {
         $null = $_
@@ -983,6 +1003,182 @@ function Suspend-BitLockerForOneRebootIfNeeded {
     }
 }
 
+function Get-BatteryPowerState {
+    $result = [ordered]@{
+        BatteryDeviceCount = 0
+        BatteryPercent     = ""
+        BatteryStatus      = "Unknown"
+        BatteryPowerOnline = "Unknown"
+        Warning            = ""
+    }
+
+    try {
+        $batteries = Get-CimInstance -ClassName Win32_Battery -ErrorAction Stop
+        if ($batteries) {
+            $batteryList = @($batteries)
+            $result.BatteryDeviceCount = $batteryList.Count
+
+            $estimatedCharges = @(
+                $batteryList |
+                    Where-Object { $null -ne $_.EstimatedChargeRemaining } |
+                    ForEach-Object { [int]$_.EstimatedChargeRemaining }
+            )
+
+            if ($estimatedCharges.Count -gt 0) {
+                $result.BatteryPercent = [string]([math]::Min(100, [math]::Max(0, ($estimatedCharges | Measure-Object -Average).Average)))
+            }
+
+            $statusValues = @(
+                $batteryList |
+                    Where-Object { $null -ne $_.BatteryStatus } |
+                    ForEach-Object { [int]$_.BatteryStatus }
+            )
+
+            if ($statusValues.Count -gt 0) {
+                $result.BatteryStatus = (($statusValues | Select-Object -Unique) -join ";")
+
+                # Win32_Battery BatteryStatus common values:
+                # 1 = Discharging
+                # 2 = AC / Not discharging
+                # 6 = Charging
+                # 7 = Charging and High
+                # 8 = Charging and Low
+                # 9 = Charging and Critical
+                # 11 = Partially Charged
+                if ($statusValues | Where-Object { $_ -in @(2, 6, 7, 8, 9) }) {
+                    $result.BatteryPowerOnline = "True"
+                }
+                elseif ($statusValues | Where-Object { $_ -eq 1 }) {
+                    $result.BatteryPowerOnline = "False"
+                }
+            }
+        }
+    }
+    catch {
+        $result.Warning = "Win32_Battery query failed: $($_.Exception.Message)"
+    }
+
+    try {
+        $powerStatus = [System.Windows.Forms.SystemInformation]::PowerStatus
+        if ($powerStatus) {
+            if ($result.BatteryPowerOnline -eq "Unknown") {
+                $result.BatteryPowerOnline = [string]($powerStatus.PowerLineStatus -eq "Online")
+            }
+
+            if ([string]::IsNullOrWhiteSpace($result.BatteryPercent)) {
+                $batteryLifePercent = [double]$powerStatus.BatteryLifePercent
+                if ($batteryLifePercent -ge 0) {
+                    $result.BatteryPercent = [string]([math]::Round($batteryLifePercent * 100, 0))
+                }
+            }
+        }
+    }
+    catch {
+        if ([string]::IsNullOrWhiteSpace($result.Warning)) {
+            $result.Warning = "SystemInformation.PowerStatus query failed: $($_.Exception.Message)"
+        }
+        else {
+            $result.Warning = $result.Warning + " ; SystemInformation.PowerStatus query failed: $($_.Exception.Message)"
+        }
+    }
+
+    return $result
+}
+
+function Test-BatteryGate {
+    param(
+        [int]$PCSystemType,
+        [string]$Model,
+        [string]$Manufacturer,
+        [int]$MinimumBatteryPercent
+    )
+
+    $battery = Get-BatteryPowerState
+
+    $result = [ordered]@{
+        BatteryCheckRequired = "Unknown"
+        BatteryCheckResult   = "Not evaluated"
+        BatteryPercent       = $battery.BatteryPercent
+        BatteryStatus        = $battery.BatteryStatus
+        BatteryPowerOnline   = $battery.BatteryPowerOnline
+        BatteryWarning       = $battery.Warning
+        BatteryDeviceCount   = $battery.BatteryDeviceCount
+        Eligible             = $true
+    }
+
+    $isMobile = $false
+
+    # PCSystemType: 2 = Mobile.
+    if ($PCSystemType -eq 2) {
+        $isMobile = $true
+    }
+
+    if ($Model -match "Laptop|Notebook|Portable|Tablet|Surface|Book|ThinkPad|EliteBook|ProBook|Latitude|Precision|Inspiron|XPS|Yoga|IdeaPad|ThinkBook|Framework") {
+        $isMobile = $true
+    }
+
+    if ($Manufacturer -match "Framework" -and $Model -match "Laptop") {
+        $isMobile = $true
+    }
+
+    if (-not $isMobile) {
+        if ([int]$battery.BatteryDeviceCount -eq 0) {
+            $result.BatteryCheckRequired = "False"
+            $result.BatteryCheckResult = "pass-no-battery-detected-desktop-workstation"
+            $result.Eligible = $true
+            return $result
+        }
+
+        # Desktops/workstations with a UPS or battery-like device still get evaluated,
+        # but a missing battery is not a blocker.
+        $result.BatteryCheckRequired = "True"
+    }
+    else {
+        $result.BatteryCheckRequired = "True"
+    }
+
+    if ($isMobile -and [int]$battery.BatteryDeviceCount -eq 0) {
+        $result.BatteryCheckResult = "fail-no-battery-detected-mobile"
+        $result.BatteryWarning = "Laptop/mobile device detected, but no battery was returned by Windows. Blocking update."
+        $result.Eligible = $false
+        return $result
+    }
+
+    $batteryPercentKnown = -not [string]::IsNullOrWhiteSpace($battery.BatteryPercent)
+    $batteryPercentValue = -1
+    if ($batteryPercentKnown) {
+        [void][int]::TryParse([string]$battery.BatteryPercent, [ref]$batteryPercentValue)
+    }
+
+    $acKnown = $battery.BatteryPowerOnline -ne "Unknown"
+    $acOnline = $battery.BatteryPowerOnline -eq "True"
+    $batteryMeetsThreshold = ($batteryPercentKnown -and $batteryPercentValue -ge $MinimumBatteryPercent)
+
+    if ($isMobile -and (-not $batteryPercentKnown) -and (-not $acKnown)) {
+        $result.BatteryCheckResult = "fail-battery-status-unavailable-mobile"
+        $result.BatteryWarning = "Laptop/mobile device detected, but battery percentage and AC power state could not be determined. Blocking update."
+        $result.Eligible = $false
+        return $result
+    }
+
+    if ($acOnline -or $batteryMeetsThreshold) {
+        $result.BatteryCheckResult = "pass-ac-online-or-battery-at-or-above-threshold"
+        $result.Eligible = $true
+        return $result
+    }
+
+    if ($isMobile) {
+        $result.BatteryCheckResult = "fail-mobile-not-ac-and-battery-below-threshold"
+        $result.BatteryWarning = "Laptop/mobile device is not on AC power and battery is below $MinimumBatteryPercent percent. Blocking update."
+        $result.Eligible = $false
+        return $result
+    }
+
+    # Non-mobile systems with a detected battery but low/no AC are allowed unless explicitly mobile.
+    $result.BatteryCheckResult = "pass-non-mobile-battery-not-blocking"
+    $result.Eligible = $true
+    return $result
+}
 
 function ConvertTo-PowerShellLiteral {
     param(
@@ -995,7 +1191,6 @@ function ConvertTo-PowerShellLiteral {
 
     return "'" + ($Value -replace "'", "''") + "'"
 }
-
 
 function ConvertTo-WindowsArgument {
     param(
@@ -1033,7 +1228,7 @@ function Invoke-PostRebootCheckTaskRegistration {
 
     $helperContent = @"
 Start-Sleep -Seconds $DelaySeconds
-& $(ConvertTo-PowerShellLiteral $ScriptPath) -Mode $(ConvertTo-PowerShellLiteral $Mode) -PostRebootCheck -PostRebootTaskRun -CsvDirectory $(ConvertTo-PowerShellLiteral $CsvDirectory) -CsvFileName $(ConvertTo-PowerShellLiteral $CsvFileName) -LocalLogDirectory $(ConvertTo-PowerShellLiteral $LocalLogDirectory) -PostRebootTaskName $(ConvertTo-PowerShellLiteral $TaskName) -MappedDriveLetter $(ConvertTo-PowerShellLiteral $MappedDriveLetter) -MappedDriveRoot $(ConvertTo-PowerShellLiteral $MappedDriveRoot) -ScriptVersion $(ConvertTo-PowerShellLiteral $ScriptVersion) -SchemaVersion $(ConvertTo-PowerShellLiteral $SchemaVersion)
+& $(ConvertTo-PowerShellLiteral $ScriptPath) -Mode $(ConvertTo-PowerShellLiteral $Mode) -PostRebootCheck -PostRebootTaskRun -CsvDirectory $(ConvertTo-PowerShellLiteral $CsvDirectory) -CsvFileName $(ConvertTo-PowerShellLiteral $CsvFileName) -LocalLogDirectory $(ConvertTo-PowerShellLiteral $LocalLogDirectory) -PostRebootTaskName $(ConvertTo-PowerShellLiteral $TaskName) -MappedDriveLetter $(ConvertTo-PowerShellLiteral $MappedDriveLetter) -MappedDriveRoot $(ConvertTo-PowerShellLiteral $MappedDriveRoot) -ScriptVersion $(ConvertTo-PowerShellLiteral $ScriptVersion) -SchemaVersion $(ConvertTo-PowerShellLiteral $SchemaVersion) -MinimumBatteryPercent $MinimumBatteryPercent
 "@
 
     Set-Content -LiteralPath $helperScript -Value $helperContent -Encoding UTF8 -Force
@@ -1238,7 +1433,9 @@ function Get-EligibilityResult {
         [string]$Model,
         [int]$PCSystemType,
         [string[]]$KnownBadModels,
-        [string[]]$UnsupportedOSVersionPatterns
+        [string[]]$UnsupportedOSVersionPatterns,
+        [bool]$BatteryEligible,
+        [string]$BatteryCheckResult
     )
 
     $reasons = New-Object System.Collections.Generic.List[string]
@@ -1284,6 +1481,10 @@ function Get-EligibilityResult {
         [void]$reasons.Add("Known-bad workstation model excluded: $Model")
     }
 
+    if (-not $BatteryEligible) {
+        [void]$reasons.Add("Battery check failed: $BatteryCheckResult")
+    }
+
     # Only allow workstation/desktop/laptop class systems.
     # 1 = Desktop, 2 = Mobile, 3 = Workstation.
     # Some physical machines report 0 = Unspecified, so do not block solely on 0.
@@ -1316,7 +1517,7 @@ try {
     Write-LocalLog "Local log directory: $LocalLogDirectory"
     Write-LocalLog "Effective mode: $Mode"
     Write-LocalLog "Invocation command: $InvocationCommand"
-    Write-LocalLog "ScriptVersion=$ScriptVersion SchemaVersion=$SchemaVersion"
+    Write-LocalLog "ScriptVersion=$ScriptVersion SchemaVersion=$SchemaVersion MinimumBatteryPercent=$MinimumBatteryPercent"
     if ($ToggleMode) {
         Write-LocalLog "ToggleMode switch was applied. Effective Mode=$Mode"
     }
@@ -1397,6 +1598,22 @@ try {
         $FirmwareWarning = "Secure Boot unsupported or not exposed. Update will be attempted only through available Windows servicing mechanism."
     }
 
+    $batteryGate = Test-BatteryGate `
+        -PCSystemType ([int]$cs.PCSystemType) `
+        -Model $Model `
+        -Manufacturer $Manufacturer `
+        -MinimumBatteryPercent $MinimumBatteryPercent
+
+    $BatteryCheckRequired = $batteryGate.BatteryCheckRequired
+    $BatteryCheckResult = $batteryGate.BatteryCheckResult
+    $BatteryPercent = $batteryGate.BatteryPercent
+    $BatteryStatus = $batteryGate.BatteryStatus
+    $BatteryPowerOnline = $batteryGate.BatteryPowerOnline
+    $BatteryWarning = $batteryGate.BatteryWarning
+    $BatteryDeviceCount = $batteryGate.BatteryDeviceCount
+
+    Write-LocalLog "Battery check result: $BatteryCheckResult; BatteryPercent=$BatteryPercent; ACOnline=$BatteryPowerOnline; BatteryDeviceCount=$BatteryDeviceCount; MinimumBatteryPercent=$MinimumBatteryPercent"
+
     $taskState = Get-SecureBootTaskState
     $SecureBootTaskExists = [bool]$taskState.Exists
     $SecureBootTaskState = [string]$taskState.State
@@ -1437,7 +1654,9 @@ try {
         -Model $Model `
         -PCSystemType ([int]$cs.PCSystemType) `
         -KnownBadModels $KnownBadModels `
-        -UnsupportedOSVersionPatterns $UnsupportedOSVersionPatterns
+        -UnsupportedOSVersionPatterns $UnsupportedOSVersionPatterns `
+        -BatteryEligible ([bool]$batteryGate.Eligible) `
+        -BatteryCheckResult $BatteryCheckResult
 
     $PrecheckResult = $eligibility.Reason
 
@@ -1644,7 +1863,7 @@ finally {
     try {
         $DurationSeconds = [math]::Round(((Get-Date) - $ScriptStart).TotalSeconds, 2)
 
-        $ProductionSafetySummary = "ScriptVersion=$ScriptVersion; SchemaVersion=$SchemaVersion; Mode=$Mode; DryRun=$DryRunEffective; Restart=$Restart; PostRebootCheck=$PostRebootCheck; IsPostRebootCheck=$IsPostRebootCheck; CsvDirectory=$CsvDirectory; ReportingDriveStatus=$ReportingDriveStatus"
+        $ProductionSafetySummary = "ScriptVersion=$ScriptVersion; SchemaVersion=$SchemaVersion; Mode=$Mode; DryRun=$DryRunEffective; Restart=$Restart; PostRebootCheck=$PostRebootCheck; IsPostRebootCheck=$IsPostRebootCheck; CsvDirectory=$CsvDirectory; ReportingDriveStatus=$ReportingDriveStatus; BatteryCheckResult=$BatteryCheckResult; BatteryPercent=$BatteryPercent; BatteryPowerOnline=$BatteryPowerOnline; MinimumBatteryPercent=$MinimumBatteryPercent"
 
         $row = @{
             Timestamp                     = (Get-Date -Format "yyyy-MM-dd HH:mm:ss.fff zzz")
@@ -1682,6 +1901,14 @@ finally {
             UEFIStatus                    = $UEFIStatus
             SecureBootStatus              = $SecureBootStatus
             FirmwareWarning               = $FirmwareWarning
+            BatteryCheckRequired          = $BatteryCheckRequired
+            BatteryCheckResult            = $BatteryCheckResult
+            BatteryPercent                = $BatteryPercent
+            BatteryStatus                 = $BatteryStatus
+            BatteryPowerOnline            = $BatteryPowerOnline
+            BatteryWarning                = $BatteryWarning
+            BatteryDeviceCount            = [string]$BatteryDeviceCount
+            MinimumBatteryPercent         = [string]$MinimumBatteryPercent
             BitLockerStatus               = $BitLockerStatus
             BitLockerRawProtectionStatus  = $BitLockerRawProtectionStatus
             BitLockerSuspended            = [string]$BitLockerSuspended

@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param()
 
 Set-StrictMode -Version Latest
@@ -44,7 +44,9 @@ function Ensure-TaskDirectory {
 function Get-UpdateWorkspace {
     $root = Get-TaskToolkitRoot
     $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-    $basePath = Ensure-TaskDirectory -Path (Join-Path $root 'Logs\UpdateTools')
+    $preferredBase = if ($env:TTK_REPORT_DIR) { Join-Path $env:TTK_REPORT_DIR 'UpdateTools' } else { Join-Path $root 'Logs\UpdateTools' }
+    try { $basePath = Ensure-TaskDirectory -Path $preferredBase }
+    catch { $basePath = Ensure-TaskDirectory -Path (Join-Path $env:TEMP 'Windows-Master-Diagnostic-Toolkit-Updates') }
     $runPath = Ensure-TaskDirectory -Path (Join-Path $basePath $stamp)
 
     return [pscustomobject]@{

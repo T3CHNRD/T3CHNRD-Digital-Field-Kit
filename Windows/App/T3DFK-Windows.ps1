@@ -1,6 +1,6 @@
 ﻿param([string]$ToolkitRoot='',[string]$AutoRunToolId='')
 
-[void]$AutoRunToolId
+if (-not ('RunCenterProcess' -as [type])) { Add-Type -Path (Join-Path $PSScriptRoot 'RunCenterProcess.cs') }
 
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
@@ -10,7 +10,7 @@ $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
 $principal=New-Object Security.Principal.WindowsPrincipal($identity)
 if(-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){
  $psExe=Join-Path $env:SystemRoot 'System32\\WindowsPowerShell\\v1.0\\powershell.exe'
- Start-Process -FilePath $psExe -ArgumentList @('-NoLogo','-NoProfile','-STA','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-File',$PSCommandPath,'-ToolkitRoot',$root) -WorkingDirectory $root -Verb RunAs -WindowStyle Hidden | Out-Null
+ Start-Process -FilePath $psExe -ArgumentList ('-NoLogo -NoProfile -STA -WindowStyle Hidden -ExecutionPolicy Bypass -File "'+$PSCommandPath+'" -ToolkitRoot "'+$root+'" -AutoRunToolId "'+$AutoRunToolId+'"') -WorkingDirectory $root -Verb RunAs -WindowStyle Hidden | Out-Null
  return
 }
 $stateRoot = Join-Path $env:LOCALAPPDATA 'T3DFK'
@@ -541,28 +541,16 @@ function Hide-Runner{
  $layout.RowStyles[2].Height=0
 }
 
-function Invoke-InstallAll{
- $msg='Install All includes only:'+[Environment]::NewLine+[Environment]::NewLine+'Google Chrome'+[Environment]::NewLine+'Mozilla Firefox'+[Environment]::NewLine+'Malwarebytes'+[Environment]::NewLine+'AVG'+[Environment]::NewLine+'CCleaner'+[Environment]::NewLine+[Environment]::NewLine+'Win11Debloat and all WinUtil workflows are excluded.'+[Environment]::NewLine+[Environment]::NewLine+'Continue?'
- if([Windows.Forms.MessageBox]::Show($msg,'Install All Apps','YesNo','Question') -ne 'Yes'){return}
- Show-Runner 'Install All Apps'
- $runnerState.Text='RUNNING'
- foreach($id in @('Google.Chrome','Mozilla.Firefox','Malwarebytes.Malwarebytes','AVG.Antivirus.Free','Piriform.CCleaner')){
-  Write-Run ('Starting winget install: '+$id)
-  try{
-   $p=Start-Process winget.exe -ArgumentList @('install','--id',$id,'--exact','--accept-package-agreements','--accept-source-agreements') -PassThru -Wait -WindowStyle Hidden
-   Write-Run ('Exit code '+$p.ExitCode+': '+$id)
-  }catch{Write-Run ('ERROR: '+$_.Exception.Message)}
-  [Windows.Forms.Application]::DoEvents()
- }
- $runnerState.Text='COMPLETE'
-}
-
 function Start-Tool {
  [CmdletBinding(SupportsShouldProcess=$true)]
  param($tool)
+ if($script:CurrentProcess){
+  [Windows.Forms.MessageBox]::Show('Wait for the current tool to finish or cancel it before starting another.','Run Center busy','OK','Information')|Out-Null
+  return
+ }
  Add-Recent $tool.Id
  if(-not $tool.Ready){
-  [Windows.Forms.MessageBox]::Show('This original tool has not yet been migrated into the clean rebuild. It is deliberately disabled instead of being pointed at an unverified replacement.','Needs migration','OK','Information') | Out-Null
+  [Windows.Forms.MessageBox]::Show($(if($tool.PSObject.Properties.Name -contains 'unavailableReason'){$tool.unavailableReason}else{'This tool is unavailable. See docs/ARCHIVE-INTEGRATION.md for its requirements.'}),'Tool requirements','OK','Information') | Out-Null
   return
  }
  if($tool.Path -eq 'SELFTEST'){
@@ -575,7 +563,6 @@ function Start-Tool {
   $runnerState.Text='COMPLETE | EXIT 0'
   return
  }
- if($tool.Path -eq 'INSTALLALL'){Invoke-InstallAll;return}
  if($tool.Risk -ne 'ReadOnly'){
   if([Windows.Forms.MessageBox]::Show('This tool can change system configuration. Continue?',$tool.Name,'YesNo','Warning') -ne 'Yes'){return}
  }
@@ -583,7 +570,7 @@ function Start-Tool {
  if(-not(Test-Path $path)){[Windows.Forms.MessageBox]::Show('Missing script: '+$path,'Tool unavailable','OK','Error')|Out-Null;return}
  $scriptText=Get-Content -LiteralPath $path -Raw -ErrorAction SilentlyContinue
  $launchInspectionText=$scriptText
- $dependencyPattern='(?im)^\\s*\\.\\s+\\(Join-Path\\s+\\$PSScriptRoot\\s+[''"]([^''"]+\\.ps1)[''"]\\)'
+ $dependencyPattern='(?im)^\s*\.\s+\(Join-Path\s+\$PSScriptRoot\s+[''"]([^''"]+\.ps1)[''"]\)'
  foreach($match in [regex]::Matches($scriptText,$dependencyPattern)){
   $depPath=Join-Path (Split-Path -Parent $path) $match.Groups[1].Value
   if(Test-Path -LiteralPath $depPath -PathType Leaf){
@@ -600,16 +587,10 @@ function Start-Tool {
                    ($launchInspectionText -match '(?i)\bRead-Host\b|PromptForChoice')
  $toolArgs=@()
  if($tool.PSObject.Properties.Name -contains 'args' -and $tool.args){$toolArgs=@($tool.args)}
- $quotedToolArgs=@($toolArgs | ForEach-Object {'"'+([string]$_).Replace('"','\"')+'"'})
- $mustRunElevated = $script:AdminDefault -or $needsAdmin
+ $explicitAdmin=($tool.PSObject.Properties.Name -contains 'requiresAdmin') -and [bool]$tool.requiresAdmin
+ $mustRunElevated = $script:AdminDefault -or $needsAdmin -or $explicitAdmin
  if($mustRunElevated -and -not (Test-AppAdministrator)){
   Start-ElevatedToolApp $tool
-  return
- }
- if($needsInteractive){
-  try{
-   Start-Process -FilePath (Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe') -ArgumentList @('-NoLogo','-NoProfile','-STA','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-File',$path) -WorkingDirectory $root -WindowStyle Hidden | Out-Null
-  }catch{[Windows.Forms.MessageBox]::Show($_.Exception.Message,'Tool launch failed','OK','Error')|Out-Null}
   return
  }
  Show-Runner $tool.Name $needsInteractive
@@ -622,7 +603,10 @@ function Start-Tool {
  Write-Run ('Launching '+$tool.Name+' as Administrator...')
  $psi=New-Object Diagnostics.ProcessStartInfo
  $psi.FileName=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
- $psi.Arguments=('-NoLogo -NoProfile -ExecutionPolicy Bypass -File "'+$path+'" '+($quotedToolArgs -join ' ')).Trim()
+ $argumentJson=ConvertTo-Json -InputObject @($toolArgs) -Compress
+ $encodedArguments=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($argumentJson))
+ $hostScript=Join-Path $PSScriptRoot 'Invoke-RunCenterScript.ps1'
+ $psi.Arguments='-NoLogo -NoProfile -STA -ExecutionPolicy Bypass -File "'+$hostScript+'" -TargetScript "'+$path+'" -ArgumentsBase64 '+$encodedArguments
  $psi.WorkingDirectory=$root
  $psi.UseShellExecute=$false
  $psi.CreateNoWindow=$true
@@ -632,36 +616,51 @@ function Start-Tool {
  $psi.EnvironmentVariables['TTK_TOOLKIT_ROOT']=$root
  $psi.EnvironmentVariables['TTK_REPORT_DIR']=$reportRoot
  $psi.EnvironmentVariables['TTK_RUNBOOK_DIR']=$runbookRoot
- $p=New-Object Diagnostics.Process
- $p.StartInfo=$psi
- $p.EnableRaisingEvents=$true
- $p.add_OutputDataReceived({param($s,$e) [void]$s; if($e.Data){Add-Content $script:CurrentLog $e.Data;Write-Run $e.Data}})
- $p.add_ErrorDataReceived({param($s,$e) [void]$s; if($e.Data){Add-Content $script:CurrentLog ('ERROR: '+$e.Data);Write-Run ('ERROR: '+$e.Data)}})
- $p.add_Exited({
-  param($s,$e)
-  [void]$e
-  $code=$s.ExitCode
-  Add-Content $script:CurrentLog ('ExitCode: '+$code)
-  $form.BeginInvoke([Action]{
-   $runnerState.Text='COMPLETE | EXIT '+$code
-   $runnerInputPanel.Visible=$false
-   $cancel.Enabled=$false
-   $status.Text='●  READY'
-   $script:CurrentProcess=$null
-  })|Out-Null
- })
- if($p.Start()){
-  $script:CurrentProcess=$p
+ try {
+  $script:RunnerCapture=New-Object RunCenterProcess($psi)
+  $script:RunnerCapture.Start()
+  $script:CurrentProcess=$script:RunnerCapture.Process
   $status.Text='●  RUNNING'
-  Write-Run ('PID: '+$p.Id)
-  $p.BeginOutputReadLine()
-  $p.BeginErrorReadLine()
- }else{
-  Write-Run 'ERROR: The diagnostic process could not be started.'
+  Write-Run ('PID: '+$script:CurrentProcess.Id)
+  $runnerTimer.Start()
+ } catch {
+  Write-Run ('ERROR: '+$_.Exception.Message)
   $runnerState.Text='FAILED TO START'
   $cancel.Enabled=$false
+  $runnerInputPanel.Visible=$false
+  $script:CurrentProcess=$null
+  if($script:RunnerCapture){$script:RunnerCapture.Dispose();$script:RunnerCapture=$null}
  }
 }
+
+# Drain captured text on the UI thread, including prompts without a newline.
+$runnerTimer=New-Object Windows.Forms.Timer
+$runnerTimer.Interval=100
+$runnerTimer.Add_Tick({
+ if(-not $script:RunnerCapture){return}
+ $chunk=''
+ $drained=0
+ while($drained -lt 100 -and $script:RunnerCapture.Output.TryDequeue([ref]$chunk)){
+  $runnerOut.AppendText($chunk)
+  Add-Content -LiteralPath $script:CurrentLog -Value $chunk -NoNewline
+  $drained++
+ }
+ $runnerOut.SelectionStart=$runnerOut.TextLength
+ $runnerOut.ScrollToCaret()
+ if($script:RunnerCapture.Finished -and $script:RunnerCapture.Output.IsEmpty){
+  $code=$script:CurrentProcess.ExitCode
+  Write-Run ([Environment]::NewLine+'Exit code: '+$code)
+  Add-Content -LiteralPath $script:CurrentLog -Value ('ExitCode: '+$code)
+  $runnerState.Text='COMPLETE | EXIT '+$code
+  $runnerInputPanel.Visible=$false
+  $cancel.Enabled=$false
+  $status.Text='●  READY'
+  $runnerTimer.Stop()
+  $script:RunnerCapture.Dispose()
+  $script:RunnerCapture=$null
+  $script:CurrentProcess=$null
+ }
+})
 
 $sendInput.Add_Click({
  try{
@@ -715,7 +714,7 @@ function Add-Card($tool){
  $desc.Location=New-Object Drawing.Point(18,50)
  $p.Controls.Add($desc)
  $risk=New-Object Windows.Forms.Label
- $risk.Text=if($tool.Ready){$tool.Risk.ToUpperInvariant()}else{'NEEDS MIGRATION'}
+ $risk.Text=if($tool.Ready){$tool.Risk.ToUpperInvariant()}else{'REQUIRES CONFIGURATION'}
  $risk.AutoSize=$true
  $risk.Location=New-Object Drawing.Point(18,115)
  $risk.Font=New-Object Drawing.Font('Segoe UI',7.5,[Drawing.FontStyle]::Bold)

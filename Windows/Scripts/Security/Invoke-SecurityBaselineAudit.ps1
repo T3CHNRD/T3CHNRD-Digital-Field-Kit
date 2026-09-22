@@ -1,13 +1,18 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param()
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $toolkitRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$logDir = Join-Path $toolkitRoot 'Logs'
-if (-not (Test-Path -LiteralPath $logDir)) {
-    New-Item -Path $logDir -ItemType Directory -Force | Out-Null
+$preferredLogDir = if ($env:TTK_REPORT_DIR) { $env:TTK_REPORT_DIR } else { Join-Path $toolkitRoot 'Logs' }
+try {
+    New-Item -Path $preferredLogDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
+    $logDir = $preferredLogDir
+}
+catch {
+    $logDir = Join-Path $env:TEMP 'Windows-Master-Diagnostic-Toolkit-Reports'
+    New-Item -Path $logDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
 }
 $reportPath = Join-Path $logDir ("SecurityAudit-{0}-{1}.txt" -f $env:COMPUTERNAME, (Get-Date -Format 'yyyyMMdd-HHmmss'))
 

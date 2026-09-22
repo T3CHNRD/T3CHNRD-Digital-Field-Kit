@@ -30,19 +30,16 @@ jobs:
             $null=[scriptblock]::Create((Get-Content -LiteralPath $_.FullName -Raw))
             Write-Host "PARSE PASS $($_.FullName)"
           }
-      - name: Verify immutable original-script manifest
-        shell: pwsh
+      - name: Verify catalog, original scripts, and exact archive payloads
+        shell: powershell
         run: |
-          Get-Content 'Windows\Config\ORIGINAL-SCRIPTS-GIT-SHA1.txt' | ForEach-Object {
-            if([string]::IsNullOrWhiteSpace($_)){return}
-            $parts=$_ -split '\s+\*',2
-            $expected=$parts[0].Trim()
-            $path=$parts[1].Trim()
-            if(-not(Test-Path -LiteralPath $path)){throw "Missing original script: $path"}
-            $actual=(git hash-object -- "$path").Trim()
-            if($actual -ne $expected){throw "Original script changed: $path"}
-            Write-Host "HASH PASS $path"
-          }
+          $env:TTK_TOOLKIT_ROOT=$PWD.Path
+          & .\Windows\App\Application-Integrity-SelfTest.ps1
+          if($LASTEXITCODE -ne 0){throw 'Application integrity validation failed.'}
+      - name: Verify Run Center transport without running system tools
+        shell: powershell
+        run: |
+          & .\Windows\App\Test-RunCenterProcess.ps1
       - name: Build branded Windows EXE
         shell: powershell
         run: |
