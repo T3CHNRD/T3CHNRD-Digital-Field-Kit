@@ -214,3 +214,9 @@ Planned macOS order remains:
 - [x] STATIC PASS (2026-09-22) - Bundled exact Sleep Hold and Exchange OWA scripts. Both remain disabled pending site configuration; tool help documents the requirements.
 - [x] PASS FROM USER SCREENSHOT (2026-09-22) - Machine Specs / Device Information completed in Run Center; separate broader category tests remain open.
 - [x] STATIC PASS (2026-09-22) - Original missing payload bundling gate completed. Two site-configured tools remain disabled; fully offline operation and final release acceptance are not claimed.
+
+## 2026-09-22 CUSTOM NETWORK CONFIGURATION AND PORTABLE LOGS
+- [x] PASS (mocked network tests) - Subnet Toggle card now runs a configurable replacement: adapter selection, user-entered IPv4/prefix/gateway/DNS, DHCP, validation, confirmation, and prior-configuration snapshot. Archived original remains hash-locked and is no longer launched.
+- [x] PASS (removable-drive write/read) - Actual app path initialization selected G:\ portable test folder\Diagnostic-Reports; wrote/read an AppLogs proof file. Run Center passes this report root to child tools. This verifies app-managed logs, not every original script's independent custom output paths.
+- [ ] NEEDS FIELD TEST - Apply static/DHCP settings on a test adapter and verify connectivity; no live adapter was changed in automated testing.
+

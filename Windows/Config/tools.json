@@ -988,14 +988,14 @@
     "name": "Network Subnet Toggle v3",
     "category": "Network",
     "originalCategory": "Network",
-    "description": "Original site utility: normal IP 192.168.10.151/24, gateway 192.168.10.1, DNS 192.168.1.11 and 192.168.1.9. Alternate subnet input retains host .151. Review these fixed settings before use.",
-    "path": "Windows\\Scripts\\Network\\Network-Subnet-Toggle-v3.ps1",
+    "description": "Choose an adapter and enter an IPv4 address, prefix, optional gateway and DNS servers, or switch to DHCP. No preset network addresses. Records prior settings before applying.",
+    "path": "Windows\\Scripts\\Network\\Set-InteractiveNetworkConfiguration.ps1",
     "risk": "HighRisk",
     "interactive": true,
     "args": [],
     "icon": "gear",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
+    "sourceStatus": "USER_REQUESTED_CUSTOMIZATION",
     "executionMode": "InApp",
     "requiresAdmin": true
   }
