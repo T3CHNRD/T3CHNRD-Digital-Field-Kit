@@ -4,25 +4,26 @@ This is the single source of truth for project tracking. There is only one activ
 
 Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIELD TEST = implemented but not runtime-proven; FAIL = known broken.
 
-## CURRENT STATUS SNAPSHOT - 2026-09-20
+## CURRENT STATUS SNAPSHOT - 2026-09-22
 - Windows-first source tree is clean and synchronized with `origin/main`.
-- Catalog contains 61 entries: 50 ready and 11 disabled pending authoritative payloads.
-- All ready catalog file mappings resolve; virtual actions such as `INSTALLALL` are handled by the app.
+- Catalog contains 64 entries: 62 ready and 2 disabled pending site configuration (24-Hour Sleep Hold and Exchange OWA Diagnostic). Their original scripts are bundled.
+- All ready catalog file mappings resolve. Install All uses the bundled installer wrapper; normal PowerShell tools run through the two-slot Run Center.
 - Runbook contains the index, quick start, troubleshooting, security, networking, repair, deployment, evidence, escalation, and documentation procedures.
 - Branded EXE build, generated icon, startup elevation, diagnostic-console selector, and Run Center lifecycle changes are implemented but still need real Windows field testing.
-- No final release claim is made until the Windows field-test gate and disabled payload review are complete.
+- No final release claim is made until Windows field testing and the unresolved Defender detection of the full GitHub ZIP are addressed. Local repository, individual launcher, and script-only test ZIP scans reported no threats; that does not establish a false positive.
 
 ## ACTIVE GATE - WINDOWS APP
 - [x] STATIC PASS - Top-level portable Windows launcher.
 - [x] STATIC PASS - Top-level graphical Windows installer and uninstall source.
 - [x] STATIC PASS - Original Field Kit UI/UX restored.
-- [x] STATIC PASS - Current 61-entry GUI tool catalog restored and validated.
-- [x] STATIC PASS - 40 immutable restored-script entries have exact original PowerShell source tracked from authoritative sources.
-- [ ] 11 tool entries still lack an authoritative original script/payload body; they remain visible but disabled and must not be recreated.
+- [x] STATIC PASS - Current 64-entry GUI tool catalog restored and validated (62 ready).
+- [x] STATIC PASS - 778 archive-source files (48 scripts and 730 resources) are SHA-256 locked; the original Git blob manifest is also retained.
+- [x] STATIC PASS - Reconcile authoritative archives and bundle the missing original scripts/payloads; record exclusions and file provenance in docs/ARCHIVE-INTEGRATION.md and docs/ARCHIVE-RECONCILIATION.csv.
+- [ ] CONFIGURATION REQUIRED - Adapt and validate Sleep Hold and Exchange OWA for the target site before enabling their cards.
 - [x] STATIC PASS - Create and enforce immutable Git blob SHA-1 manifest for restored original scripts.
 - [x] STATIC PASS - Embedded stdout/stderr capture and exit-code display for compatible noninteractive tools.
 - [x] STATIC PASS - Cancel uses taskkill /T /F on the child process tree.
-- [x] STATIC PASS - Interactive tools launch externally rather than blocking the embedded runner.
+- [x] STATIC PASS - Interactive console input is handled in Run Center; native GUI selectors/tools can open their own windows.
 - [x] STATIC PASS - Application startup requests Administrator elevation; child tools inherit the elevated process by default.
 - [x] STATIC PASS - Compatible tool output remains in the embedded Run Center; interactive selector workflows launch separately without closing the main app.
 - [x] STATIC PASS - Install All includes Chrome, Firefox, Malwarebytes, AVG, CCleaner and excludes Win11Debloat/WinUtil.
@@ -39,7 +40,7 @@ Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIEL
 - [ ] INVESTIGATE - Determine why the main Field Kit window may still close after a tool or script completes; reproduce with the latest elevated packaged EXE and inspect process exit, form lifecycle, and child-process callbacks.
 
 ## 2026-09-20 WINDOWS FIELD-TEST CHECKLIST
-This checklist is the current live hardware gate for the Windows app. Static validation is complete, but final acceptance requires a real Windows machine.
+This checklist tracks remaining live hardware acceptance. Automated Windows UI/runner tests and user screenshots provide partial evidence; they do not close the full device, installer or scaling matrix.
 
 - [ ] Windows UI runtime validation
   - [ ] startup without PowerShell security prompt
@@ -70,6 +71,30 @@ This checklist is the current live hardware gate for the Windows app. Static val
 - [ ] Add offline/local AI only after diagnostic foundations are stable.
 
 
+## 2026-09-22 COMPLETED WORK AND REMAINING VALIDATION
+Evidence: implementation commits d691d35 through fffd892; automated Windows tests, source integrity checks, and user screenshots. PASS below specifies the tested scope and does not imply every bundled tool has been run.
+
+- [x] STATIC PASS - Integrated authoritative archives, category mappings, local setup payloads, source hashes and reconciliation records without inventing replacements.
+- [x] PASS (launcher-path test) - Fixed empty PSScriptRoot startup failure by loading the UI from its actual script path; tested VBS path handling with spaces/apostrophes.
+- [x] STATIC PASS - Included PS2EXE launcher and T3DFK icon on main; shortened resource/package paths and produced script-only test packages.
+- [x] PASS (automated runner tests) - Two simultaneous tool slots with separate input/output/logs, independent cancellation/completion and a third-tool limit.
+- [x] PASS (UI tests/render review) - Readable Cancel/Hide controls and spaced completion/exit-code display; draggable Run Center height with retained session height and bounds.
+- [x] PASS (UI click/persistence tests) - Fixed favorites add/remove, reload and final-favorite removal; search respects the Favorites subset.
+- [x] PASS (chooser test) - Diagnostic consoles start with none selected and open only the selected console; test launches were mocked.
+- [x] PASS (mocked antivirus tests) - Identify registered antivirus, skip unavailable/inactive Defender, retain text/JSON evidence, and invoke active Defender once. No protection disabled; live scan coverage is not claimed.
+- [x] PASS (UI tests) - Added searchable help for all 64 tools and card Help buttons, including requirements for disabled site tools.
+- [x] PASS (UI tests) - Restored Log Files shortcut; added functional Settings folder actions, integrity-check action and persisted Run Center word wrapping. Folder/external-launch actions still need technician acceptance.
+- [x] PASS (UI tests) - Added local AI workspace navigation, chat-draft saving and log preview; analysis-document import/results viewer implemented. No AI provider is connected and no messages/logs are uploaded.
+- [x] PASS (integrity suite) - 1,345 checks passed with zero failures; fixed the false missing-EXE failure for intentional script-launcher packages.
+- [x] PASS (Defender custom scans) - Latest local script-only test ZIP reported no threats. This is scan evidence, not a guarantee of safety.
+- [ ] INVESTIGATE / RELEASE GATE - Full GitHub ZIP reproducibly detected as Trojan:Script/Wacatac.B!ml. Exact offending component and false-positive status remain unconfirmed; do not bypass protection.
+- [ ] NEEDS FIELD TEST - Latest resize/help, favorites persistence, two real simultaneous tools, Settings actions, local drafts after restart and analysis-document import/results preview.
+- [ ] NEEDS FIELD TEST - Real active/passive Defender scenarios and technician review of retained evidence.
+- [ ] NOT CONNECTED - Implement actual AI chat and log analysis after diagnostic foundations are stable. Current workspace is local preparation only.
+
+## HISTORICAL ENTRIES
+Earlier dated sections retain original findings/counts as history. The September 22 snapshot and completion section supersede stale counts and execution details; unchecked field-test items remain open unless explicitly closed with evidence.
+
 ## 2026-09-18 static bug sweep
 
 - [x] STATIC PASS - Root portable launcher, installer launcher, uninstaller launcher, Windows app, config, and integrity-test files are present.
@@ -84,7 +109,7 @@ This checklist is the current live hardware gate for the Windows app. Static val
 - [x] STATIC PASS - Windows installer rewritten to remove malformed function-call syntax and hash-verify copied files.
 - [x] STATIC PASS - Historical HTA integrity test disabled; current Application Integrity Self-Test added.
 - [x] STATIC PASS - Vendor update Toolkit.Settings.psd1 restored.
-- [ ] NEEDS FIELD TEST - Windows launcher/UI startup on actual Windows hardware.
+- [x] PASS FROM USER SCREENSHOTS (2026-09-22) - Windows UI opens and runs reports. Packaged EXE, installation and portability acceptance remain separate open checks.
 - [ ] NEEDS FIELD TEST - Installer/UAC/shortcut/uninstall runtime behavior.
 - [ ] NEEDS FIELD TEST - Individual enabled diagnostic tools.
 - [ ] BLOCKED - GitHub Actions job is failing before step/log details are exposed; do not count CI as PASS.
@@ -139,8 +164,8 @@ Planned macOS order remains:
 - [x] STATIC PASS - Secure Boot Quick Check restored unchanged from the uploaded Windows Master Diagnostic Toolkit and hash-locked.
 - [x] STATIC PASS - Network remote-share utility restored unchanged from the uploaded Windows Master Diagnostic Toolkit and hash-locked.
 - [x] STATIC PASS - PS1-to-EXE utility restored unchanged from the uploaded Windows Master Diagnostic Toolkit and hash-locked.
-- [ ] IN PROGRESS - Reconcile the remaining exact user-supplied Windows Master Diagnostic Toolkit scripts/resources with the current Field Kit catalog.
-- [ ] IN PROGRESS - Restore original deployment resources/workflows from the supplied toolkit without changing Win11Debloat/WinUtil exclusion from Install All.
+- [x] STATIC PASS (2026-09-22) - Reconciled supplied scripts/resources; provenance and excluded inputs documented in the archive reconciliation records.
+- [x] STATIC PASS (2026-09-22) - Restored original deployment resources and wrappers; Install All still excludes Win11Debloat/WinUtil.
 - [ ] NEEDS FIELD TEST - Verify tool cards now populate under Diagnostics, Repair, Optimization, Security, Network, Deployment, and System Management.
 
 
@@ -148,7 +173,7 @@ Planned macOS order remains:
 - [x] PASS FROM FIELD REPRODUCTION - App displayed "Loaded 1 tools (1 ready)" and one card containing concatenated names/descriptions from the entire catalog.
 - [x] ROOT CAUSE - Windows PowerShell 5.1 returned the JSON array as one array object; the UI treated that object as a single tool.
 - [x] STATIC PASS - Catalog loader now explicitly enumerates every JSON entry into $script:ToolCatalog.
-- [ ] NEEDS FIELD TEST - Confirm startup now reports 61 tools and individual cards populate all categories/search.
+- [ ] NEEDS FIELD TEST - Confirm startup now reports 64 tools (62 ready) and individual cards populate all categories/search.
 
 
 ## 2026-09-18 category and in-app execution audit
@@ -167,7 +192,7 @@ Planned macOS order remains:
 - [x] STATIC PASS - Administrator-required tools reopen the Field Kit itself elevated via UAC and auto-run inside the elevated Run Center; no visible PowerShell console is intended.
 - [x] STATIC PASS - Tool-native GUI windows may still appear where the script itself is a GUI tool; this is not a PowerShell console.
 - [x] STATIC PASS - Application Integrity Self-Test now validates category mapping and in-app execution metadata.
-- [ ] NEEDS FIELD TEST - Confirm Device Information Report runs and displays output in Run Center.
+- [x] PASS FROM USER SCREENSHOT (2026-09-22) - Machine Specs / Device Information displayed CPU, RAM, BIOS, Windows and disks in Run Center with exit code 0.
 - [ ] NEEDS FIELD TEST - Confirm one Security tool, one Network tool, one Repair tool, and one Optimization tool run in Run Center.
 - [ ] NEEDS FIELD TEST - Confirm UAC-required tool reopens elevated Field Kit and auto-runs without a visible PowerShell console.
 - [ ] NEEDS FIELD TEST - Confirm in-app input works for Open Remote C$ Share / PS1 to EXE Builder.
@@ -185,7 +210,7 @@ Planned macOS order remains:
 - [x] STATIC PASS - Added self-contained launch wrappers for Win11Debloat, WinUtil, and Open Setup Resources; wrappers expect bundled local resources and do not fetch replacements.
 - [x] STATIC PASS - Current manifest has 61 tools / 50 ready, 0 category mismatches, and 0 ready PowerShell mappings pointing to missing files.
 - [x] STATIC PASS - Current runner has no separate-PowerShell-window branch; it uses hidden PowerShell with stdout/stderr/stdin redirected into Run Center.
-- [ ] IN PROGRESS - Bundle exact original Win11Debloat/WinUtil projects and local application installers from the user-supplied toolkit into the technician package.
-- [ ] IN PROGRESS - Bundle exact original 24-Hour Sleep Hold and Exchange OWA Diagnostic scripts from the user-supplied toolkit.
-- [ ] NEEDS FIELD TEST - Re-test an enabled diagnostic tool after admin-regex fix and confirm output appears only in Run Center.
-- [ ] RELEASE GATE - Do not call Windows self-contained until the remaining 11 disabled payload-backed cards are bundled or intentionally removed.
+- [x] STATIC PASS (2026-09-22) - Bundled original Win11Debloat/WinUtil projects and five supplied vendor installers; bootstrap downloads may still require Internet access.
+- [x] STATIC PASS (2026-09-22) - Bundled exact Sleep Hold and Exchange OWA scripts. Both remain disabled pending site configuration; tool help documents the requirements.
+- [x] PASS FROM USER SCREENSHOT (2026-09-22) - Machine Specs / Device Information completed in Run Center; separate broader category tests remain open.
+- [x] STATIC PASS (2026-09-22) - Original missing payload bundling gate completed. Two site-configured tools remain disabled; fully offline operation and final release acceptance are not claimed.
