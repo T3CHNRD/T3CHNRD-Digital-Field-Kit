@@ -5,7 +5,10 @@ the current 64-tool catalog, original-source hashes, bundled deployment payloads
 Run Center validation, and remaining site-specific requirements.
 
 For Windows Explorer extraction, use the portable **FK.zip** package and extract
-to a short location such as `C:\`. Launch `C:\FK\T3CHNRD Digital Field Kit.vbs`.
+to a short location such as `C:\`. Launch `C:\FK\T3CHNRD Digital Field Kit.exe`.
+The PS2EXE-built launcher is tracked on main and included in source downloads.
+Extract the entire ZIP first and keep the `Windows` folder beside the EXE;
+the EXE launches the bundled app and is not a standalone copy of every tool.
 GitHub's automatic source ZIP adds a long repository/SHA folder name; extracting
 that archive to its default nested destination can exceed Windows path limits.
 Maintainers can create the short package from a committed checkout with

@@ -9,7 +9,10 @@ The canonical task tracker lives in docs/TODO.md.
 The project has one canonical root and one canonical documentation set.
 
 WINDOWS PORTABLE
-Double-click: T3CHNRD Digital Field Kit.vbs
+First use Extract All on the ZIP and extract to a short path such as C:\FKTest.
+Open the extracted folder, then double-click: T3CHNRD Digital Field Kit.exe
+Keep the Windows folder beside the EXE. Do not launch from inside the ZIP.
+The VBS launcher remains available as a fallback.
 
 WINDOWS INSTALL
 Double-click: INSTALL T3CHNRD Digital Field Kit.vbs

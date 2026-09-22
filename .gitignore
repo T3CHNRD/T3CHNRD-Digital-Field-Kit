@@ -6,6 +6,7 @@ Runbook/*
 !Runbook/README.md
 !Runbook/*.md
 T3CHNRD Digital Field Kit*.exe
+!/T3CHNRD Digital Field Kit.exe
 bin/
 obj/
 dist/

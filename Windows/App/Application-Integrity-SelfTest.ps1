@@ -19,6 +19,7 @@ function Result {
 
 Result PASS "Toolkit root: $root"
 $required=@(
+    'T3CHNRD Digital Field Kit.exe',
     'T3CHNRD Digital Field Kit.vbs',
     'INSTALL T3CHNRD Digital Field Kit.vbs',
     'UNINSTALL T3CHNRD Digital Field Kit.vbs',
