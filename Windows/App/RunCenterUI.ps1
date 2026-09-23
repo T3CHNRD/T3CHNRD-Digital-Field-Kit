@@ -38,8 +38,14 @@ function New-RunPane([int]$Number) {
  $pane=[pscustomobject]@{Page=$page;State=$state;Cancel=$cancel;Output=$output;Input=$inputBox;InputPanel=$inputPanel;Send=$send;Capture=$null;Process=$null;Log='';Cancelled=$false;Number=$Number}
  $page.Tag=$pane;$cancel.Tag=$pane;$send.Tag=$pane;$inputBox.Tag=$pane
  $send.Add_Click({param($control) $p=$control.Tag
-  try{if($p.Process -and -not $p.Process.HasExited){$p.Process.StandardInput.WriteLine($p.Input.Text);$p.Process.StandardInput.Flush();$p.Input.Clear()}}
-  catch{Write-Run ('Input error: '+$_.Exception.Message) $p}
+  try{
+   if($p.Process -and -not $p.Process.HasExited){
+    $bytes=[Text.Encoding]::UTF8.GetBytes($p.Input.Text+"`r`n")
+    $p.Process.StandardInput.BaseStream.Write($bytes,0,$bytes.Length)
+    $p.Process.StandardInput.BaseStream.Flush()
+    $p.Input.Clear()
+   }
+  }catch{Write-Run ('Input error: '+$_.Exception.Message) $p}
  })
  $inputBox.Add_KeyDown({param($control,$eventData) if($eventData.KeyCode -eq 'Enter'){$control.Tag.Send.PerformClick();$eventData.SuppressKeyPress=$true}})
  $cancel.Add_Click({param($control) Stop-RunPane $control.Tag})
