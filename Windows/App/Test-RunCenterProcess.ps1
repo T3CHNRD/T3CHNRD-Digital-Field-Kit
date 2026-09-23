@@ -34,8 +34,9 @@ try {
     while([DateTime]::UtcNow -lt $deadline){
         while($capture.Output.TryDequeue([ref]$chunk)){$text+=$chunk}
         if(-not $sent -and $text.Contains('Enter test input')){
-            $capture.Process.StandardInput.WriteLine('hello from Run Center')
-            $capture.Process.StandardInput.Flush()
+            $bytes=[Text.Encoding]::UTF8.GetBytes("hello from Run Center`r`n")
+            $capture.Process.StandardInput.BaseStream.Write($bytes,0,$bytes.Length)
+            $capture.Process.StandardInput.BaseStream.Flush()
             $sent=$true
         }
         if($capture.Finished -and $capture.Output.IsEmpty){break}
