@@ -998,5 +998,39 @@
     "sourceStatus": "USER_REQUESTED_CUSTOMIZATION",
     "executionMode": "InApp",
     "requiresAdmin": true
+  },
+  {
+    "id": "network-corp-diagnostic",
+    "name": "Corporate Network Diagnostic",
+    "category": "Network",
+    "originalCategory": "Network",
+    "description": "Guided corporate LAN/Wi-Fi diagnostic with selectable modes from the included README.",
+    "path": "Windows\\Scripts\\Network\\Invoke-CorpNetworkDiagnostic.ps1",
+    "risk": "SystemChange",
+    "interactive": false,
+    "args": [],
+    "icon": "globe",
+    "ready": true,
+    "sourceStatus": "NEW_FIELD_KIT_TOOL",
+    "executionMode": "InApp",
+    "requiresAdmin": true,
+    "preRunDialog": "CorpNetworkDiagnostic",
+    "readme": "Windows\\Scripts\\Network\\README-CorpNetworkDiagnostic.md"
+  },
+  {
+    "id": "network-wifi-full-reset",
+    "name": "Wi-Fi / TCP-IP Full Reset",
+    "category": "Network",
+    "originalCategory": "Network",
+    "description": "Reset Winsock/TCP-IP, renew Wi-Fi DHCP, flush DNS, restart the Wi-Fi adapter and WLAN AutoConfig, then capture before/after evidence.",
+    "path": "Windows\\Scripts\\Network\\Reset-WiFiNetworkStack.ps1",
+    "risk": "HighRisk",
+    "interactive": false,
+    "args": [],
+    "icon": "globe",
+    "ready": true,
+    "sourceStatus": "NEW_FIELD_KIT_TOOL",
+    "executionMode": "InApp",
+    "requiresAdmin": true
   }
 ]

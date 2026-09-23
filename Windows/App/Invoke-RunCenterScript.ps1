@@ -22,8 +22,28 @@ function global:Read-Host {
 try {
     $arguments=ConvertFrom-Json -InputObject ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($ArgumentsBase64)))
     $tokens=@($arguments | ForEach-Object {
-        if([string]$_ -match '^-[A-Za-z][A-Za-z0-9-]*$'){[string]$_}
-        else{"'"+([string]$_).Replace("'","''")+"'"}
+        $value=[string]$_
+        if($value -match '^-[A-Za-z][A-Za-z0-9-]*
+    $command="& '"+$TargetScript.Replace("'","''")+"' "+($tokens -join ' ')
+    $global:LASTEXITCODE=0
+    & ([scriptblock]::Create($command))
+    exit $LASTEXITCODE
+}catch{
+    [Console]::Error.WriteLine($_.ToString())
+    exit 1
+}
+){$value}
+        elseif($value -match '^\$(?:true|false|null)
+    $command="& '"+$TargetScript.Replace("'","''")+"' "+($tokens -join ' ')
+    $global:LASTEXITCODE=0
+    & ([scriptblock]::Create($command))
+    exit $LASTEXITCODE
+}catch{
+    [Console]::Error.WriteLine($_.ToString())
+    exit 1
+}
+){$value}
+        else{"'"+$value.Replace("'","''")+"'"}
     })
     $command="& '"+$TargetScript.Replace("'","''")+"' "+($tokens -join ' ')
     $global:LASTEXITCODE=0

@@ -508,6 +508,166 @@ function Show-Runner([string]$Name,[bool]$AllowInput,$Pane){
  $Pane.Cancel.Enabled=$false;$Pane.Cancelled=$false
 }
 function Hide-Runner{$layout.RowStyles[2].Height=0}
+
+function Show-CorpNetworkDiagnosticOptions {
+ $dialog=New-Object Windows.Forms.Form
+ $dialog.Text='Corporate Network Diagnostic - Run Options'
+ $dialog.StartPosition='CenterParent'
+ $dialog.Size=New-Object Drawing.Size(680,560)
+ $dialog.MinimumSize=New-Object Drawing.Size(680,560)
+ $dialog.MaximumSize=New-Object Drawing.Size(680,560)
+ $dialog.FormBorderStyle='FixedDialog'
+ $dialog.MaximizeBox=$false
+ $dialog.MinimizeBox=$false
+ $dialog.ShowInTaskbar=$false
+
+ $title=New-Object Windows.Forms.Label
+ $title.Text='Choose how to run the Corporate Network Diagnostic'
+ $title.Font=New-Object Drawing.Font('Segoe UI',13,[Drawing.FontStyle]::Bold)
+ $title.AutoSize=$true
+ $title.Location=New-Object Drawing.Point(20,18)
+ $dialog.Controls.Add($title)
+
+ $intro=New-Object Windows.Forms.Label
+ $intro.Text='These options match README-CorpNetworkDiagnostic.md. The selected mode will run inside the Field Kit Run Center.'
+ $intro.Size=New-Object Drawing.Size(620,44)
+ $intro.Location=New-Object Drawing.Point(20,52)
+ $dialog.Controls.Add($intro)
+
+ $modeLabel=New-Object Windows.Forms.Label
+ $modeLabel.Text='Run mode:'
+ $modeLabel.AutoSize=$true
+ $modeLabel.Location=New-Object Drawing.Point(20,104)
+ $dialog.Controls.Add($modeLabel)
+
+ $mode=New-Object Windows.Forms.ComboBox
+ $mode.DropDownStyle='DropDownList'
+ $mode.Size=New-Object Drawing.Size(620,28)
+ $mode.Location=New-Object Drawing.Point(20,126)
+ [void]$mode.Items.Add('Full Network Diagnostic')
+ [void]$mode.Items.Add('LAN Cable Connected - Flush DNS / Release / Renew')
+ [void]$mode.Items.Add('Force a Specific LAN Adapter')
+ [void]$mode.Items.Add('Wi-Fi Diagnostic Only')
+ [void]$mode.Items.Add('Force a Specific Wi-Fi Adapter')
+ [void]$mode.Items.Add('LAN Diagnostic Only')
+ [void]$mode.Items.Add('Current-State Snapshot')
+ [void]$mode.Items.Add('Full Diagnostic + LAN Renew')
+ $mode.SelectedIndex=0
+ $dialog.Controls.Add($mode)
+
+ $detail=New-Object Windows.Forms.Label
+ $detail.Size=New-Object Drawing.Size(620,84)
+ $detail.Location=New-Object Drawing.Point(20,164)
+ $detail.BorderStyle='FixedSingle'
+ $detail.Padding=New-Object Windows.Forms.Padding(8)
+ $dialog.Controls.Add($detail)
+
+ $lanLabel=New-Object Windows.Forms.Label
+ $lanLabel.Text='LAN adapter alias (only required for "Force a Specific LAN Adapter"):'
+ $lanLabel.AutoSize=$true
+ $lanLabel.Location=New-Object Drawing.Point(20,260)
+ $dialog.Controls.Add($lanLabel)
+
+ $lanAlias=New-Object Windows.Forms.TextBox
+ $lanAlias.Size=New-Object Drawing.Size(620,26)
+ $lanAlias.Location=New-Object Drawing.Point(20,282)
+ $lanAlias.PlaceholderText='Example: Ethernet'
+ $dialog.Controls.Add($lanAlias)
+
+ $wifiLabel=New-Object Windows.Forms.Label
+ $wifiLabel.Text='Wi-Fi adapter alias (only required for "Force a Specific Wi-Fi Adapter"):'
+ $wifiLabel.AutoSize=$true
+ $wifiLabel.Location=New-Object Drawing.Point(20,320)
+ $dialog.Controls.Add($wifiLabel)
+
+ $wifiAlias=New-Object Windows.Forms.TextBox
+ $wifiAlias.Size=New-Object Drawing.Size(620,26)
+ $wifiAlias.Location=New-Object Drawing.Point(20,342)
+ $wifiAlias.PlaceholderText='Example: Wi-Fi'
+ $dialog.Controls.Add($wifiAlias)
+
+ $discovery=New-Object Windows.Forms.CheckBox
+ $discovery.Text='Check / enable Network Discovery for Domain and Private profiles'
+ $discovery.Checked=$true
+ $discovery.AutoSize=$true
+ $discovery.Location=New-Object Drawing.Point(20,382)
+ $dialog.Controls.Add($discovery)
+
+ $note=New-Object Windows.Forms.Label
+ $note.Text='Network Discovery is never enabled on Public profiles. AP / MultiAP / Client Isolation is not changed by this script.'
+ $note.Size=New-Object Drawing.Size(620,42)
+ $note.Location=New-Object Drawing.Point(20,410)
+ $dialog.Controls.Add($note)
+
+ $runButton=New-Object Windows.Forms.Button
+ $runButton.Text='RUN'
+ $runButton.Size=New-Object Drawing.Size(120,34)
+ $runButton.Location=New-Object Drawing.Point(390,468)
+ $runButton.DialogResult=[Windows.Forms.DialogResult]::OK
+ $dialog.AcceptButton=$runButton
+ $dialog.Controls.Add($runButton)
+
+ $cancelButton=New-Object Windows.Forms.Button
+ $cancelButton.Text='CANCEL'
+ $cancelButton.Size=New-Object Drawing.Size(120,34)
+ $cancelButton.Location=New-Object Drawing.Point(520,468)
+ $cancelButton.DialogResult=[Windows.Forms.DialogResult]::Cancel
+ $dialog.CancelButton=$cancelButton
+ $dialog.Controls.Add($cancelButton)
+
+ $descriptions=@(
+  'Collect the complete LAN/Wi-Fi/IP/DNS/domain/WLAN diagnostic picture. Does not release/renew the LAN address unless Full Diagnostic + LAN Renew is selected.',
+  'Use after connecting the Ethernet cable. Runs flush DNS, releases and renews the detected wired adapter, then captures ipconfig /all.',
+  'Same LAN renew workflow, but forces the exact wired adapter alias you enter below.',
+  'Focus on wireless adapter, driver, profiles, visible BSSIDs, WLAN AutoConfig events and wlanreport.',
+  'Same Wi-Fi diagnostic, but forces the exact wireless adapter alias you enter below.',
+  'Focus on the wired adapter without performing DHCP release/renew.',
+  'Capture the current network state without intentionally running the LAN DHCP renew sequence.',
+  'Run the full diagnostic collection and also perform the wired LAN flush/release/renew sequence. Connect the LAN cable first.'
+ )
+ $updateDetail={
+  $detail.Text=$descriptions[$mode.SelectedIndex]
+  $lanAlias.Enabled=($mode.SelectedIndex -eq 2)
+  $wifiAlias.Enabled=($mode.SelectedIndex -eq 4)
+ }
+ $mode.Add_SelectedIndexChanged($updateDetail)
+ & $updateDetail
+
+ while($true){
+  $result=$dialog.ShowDialog($form)
+  if($result -ne [Windows.Forms.DialogResult]::OK){
+   $dialog.Dispose()
+   return [pscustomobject]@{Cancelled=$true;Args=@()}
+  }
+  if($mode.SelectedIndex -eq 2 -and [string]::IsNullOrWhiteSpace($lanAlias.Text)){
+   [Windows.Forms.MessageBox]::Show('Enter the LAN adapter alias, for example Ethernet.','LAN adapter required','OK','Warning')|Out-Null
+   continue
+  }
+  if($mode.SelectedIndex -eq 4 -and [string]::IsNullOrWhiteSpace($wifiAlias.Text)){
+   [Windows.Forms.MessageBox]::Show('Enter the Wi-Fi adapter alias, for example Wi-Fi.','Wi-Fi adapter required','OK','Warning')|Out-Null
+   continue
+  }
+  break
+ }
+
+ $args=@()
+ switch($mode.SelectedIndex){
+  0 { $args=@('-Action','All') }
+  1 { $args=@('-Action','RenewLAN') }
+  2 { $args=@('-Action','RenewLAN','-LanAlias',$lanAlias.Text.Trim()) }
+  3 { $args=@('-Action','WiFi') }
+  4 { $args=@('-Action','WiFi','-WifiAlias',$wifiAlias.Text.Trim()) }
+  5 { $args=@('-Action','LAN') }
+  6 { $args=@('-Action','Snapshot') }
+  7 { $args=@('-Action','All','-RenewLAN') }
+ }
+ if(-not $discovery.Checked){
+  $args+=@('-EnableNetworkDiscovery','$false')
+ }
+ $dialog.Dispose()
+ return [pscustomobject]@{Cancelled=$false;Args=@($args)}
+}
+
 function Start-Tool {
  [CmdletBinding(SupportsShouldProcess=$true)]
  param($tool)
@@ -551,6 +711,11 @@ function Start-Tool {
  if($mustRunElevated -and -not (Test-AppAdministrator)){
   Start-ElevatedToolApp $tool
   return
+ }
+ if(($tool.PSObject.Properties.Name -contains 'preRunDialog') -and $tool.preRunDialog -eq 'CorpNetworkDiagnostic'){
+  $selection=Show-CorpNetworkDiagnosticOptions
+  if($selection.Cancelled){return}
+  $toolArgs=@($selection.Args)
  }
  Show-Runner $tool.Name $needsInteractive $pane
  $pane.State.Text='RUNNING'
