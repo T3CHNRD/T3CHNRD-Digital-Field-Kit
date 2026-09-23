@@ -4,6 +4,7 @@ param(
     [string]$ArgumentsBase64 = 'W10='
 )
 $ErrorActionPreference='Stop'
+
 # ConsoleHost's Read-Host bypasses redirected stdout when no console exists.
 # Keep original tools unchanged and provide the same line-input contract here.
 function global:Read-Host {
@@ -19,37 +20,32 @@ function global:Read-Host {
     }
     return $answer
 }
+
 try {
     $arguments=ConvertFrom-Json -InputObject ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($ArgumentsBase64)))
+
+    # Build a PowerShell invocation string so named parameters remain named parameters.
+    # Switch names and literal PowerShell booleans are emitted unquoted; ordinary values
+    # are single-quoted and escaped.
     $tokens=@($arguments | ForEach-Object {
         $value=[string]$_
-        if($value -match '^-[A-Za-z][A-Za-z0-9-]*
-    $command="& '"+$TargetScript.Replace("'","''")+"' "+($tokens -join ' ')
-    $global:LASTEXITCODE=0
-    & ([scriptblock]::Create($command))
-    exit $LASTEXITCODE
-}catch{
-    [Console]::Error.WriteLine($_.ToString())
-    exit 1
-}
-){$value}
-        elseif($value -match '^\$(?:true|false|null)
-    $command="& '"+$TargetScript.Replace("'","''")+"' "+($tokens -join ' ')
-    $global:LASTEXITCODE=0
-    & ([scriptblock]::Create($command))
-    exit $LASTEXITCODE
-}catch{
-    [Console]::Error.WriteLine($_.ToString())
-    exit 1
-}
-){$value}
-        else{"'"+$value.Replace("'","''")+"'"}
+        if($value -match '^-[A-Za-z][A-Za-z0-9-]*$'){
+            $value
+        }
+        elseif($value -match '^\$(?:true|false|null)$'){
+            $value
+        }
+        else{
+            "'" + $value.Replace("'","''") + "'"
+        }
     })
-    $command="& '"+$TargetScript.Replace("'","''")+"' "+($tokens -join ' ')
+
+    $command="& '" + $TargetScript.Replace("'","''") + "' " + ($tokens -join ' ')
     $global:LASTEXITCODE=0
     & ([scriptblock]::Create($command))
     exit $LASTEXITCODE
-}catch{
+}
+catch{
     [Console]::Error.WriteLine($_.ToString())
     exit 1
 }
