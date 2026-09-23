@@ -735,6 +735,7 @@ function Start-Tool {
  $psi.RedirectStandardOutput=$true
  $psi.RedirectStandardError=$true
  $psi.RedirectStandardInput=$true
+ $psi.StandardInputEncoding=New-Object Text.UTF8Encoding($false)
  $psi.EnvironmentVariables['TTK_TOOLKIT_ROOT']=$root
  $psi.EnvironmentVariables['TTK_REPORT_DIR']=$reportRoot
  $psi.EnvironmentVariables['TTK_RUNBOOK_DIR']=$runbookRoot
