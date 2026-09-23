@@ -8,6 +8,12 @@ Add-Type -AssemblyName System.Drawing
 if([string]::IsNullOrWhiteSpace($ToolkitRoot)){$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)}else{$root=[IO.Path]::GetFullPath($ToolkitRoot).TrimEnd('\\')}
 $appDirectory=Join-Path $root 'Windows\App'
 $appScriptPath=Join-Path $appDirectory 'T3DFK-Windows.ps1'
+# Remove Mark-of-the-Web from the extracted portable package so trusted local
+# Field Kit scripts do not trigger Windows PowerShell security prompts.
+try{
+ Get-ChildItem -LiteralPath $root -Recurse -File -ErrorAction SilentlyContinue |
+  Unblock-File -ErrorAction SilentlyContinue
+}catch{}
 if (-not ('RunCenterProcess' -as [type])) { Add-Type -Path (Join-Path $appDirectory 'RunCenterProcess.cs') }
 [void][RunCenterBrand]::SetCurrentProcessExplicitAppUserModelID('T3CHNRD.DigitalFieldKit')
 $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
