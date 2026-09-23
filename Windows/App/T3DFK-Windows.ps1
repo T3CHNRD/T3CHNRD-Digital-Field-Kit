@@ -95,10 +95,10 @@ $layout=New-Object Windows.Forms.TableLayoutPanel
 $layout.Dock='Fill'
 $layout.RowCount=4
 $layout.ColumnCount=1
-$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',132)))
-$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Percent',100)))
-$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',0)))
-$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',58)))
+[void]$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',132)))
+[void]$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Percent',100)))
+[void]$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',0)))
+[void]$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',58)))
 $form.Controls.Add($layout)
 
 $header=New-Object Windows.Forms.Panel
@@ -195,8 +195,8 @@ $body=New-Object Windows.Forms.TableLayoutPanel
 $body.Dock='Fill'
 $body.ColumnCount=2
 $body.RowCount=1
-$body.ColumnStyles.Add((New-Object Windows.Forms.ColumnStyle('Absolute',230)))
-$body.ColumnStyles.Add((New-Object Windows.Forms.ColumnStyle('Percent',100)))
+[void]$body.ColumnStyles.Add((New-Object Windows.Forms.ColumnStyle('Absolute',230)))
+[void]$body.ColumnStyles.Add((New-Object Windows.Forms.ColumnStyle('Percent',100)))
 $layout.Controls.Add($body,0,1)
 
 $side=New-Object Windows.Forms.Panel
@@ -262,8 +262,8 @@ $content=New-Object Windows.Forms.TableLayoutPanel
 $content.Dock='Fill'
 $content.RowCount=2
 $content.ColumnCount=1
-$content.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',84)))
-$content.RowStyles.Add((New-Object Windows.Forms.RowStyle('Percent',100)))
+[void]$content.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',84)))
+[void]$content.RowStyles.Add((New-Object Windows.Forms.RowStyle('Percent',100)))
 $content.Padding=New-Object Windows.Forms.Padding(18,12,18,10)
 $content.BackColor=$paper
 $body.Controls.Add($content,1,0)
@@ -315,10 +315,10 @@ $runbook.Dock='Fill'
 $runbook.Visible=$false
 $runbook.RowCount=2
 $runbook.ColumnCount=2
-$runbook.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',48)))
-$runbook.RowStyles.Add((New-Object Windows.Forms.RowStyle('Percent',100)))
-$runbook.ColumnStyles.Add((New-Object Windows.Forms.ColumnStyle('Absolute',340)))
-$runbook.ColumnStyles.Add((New-Object Windows.Forms.ColumnStyle('Percent',100)))
+[void]$runbook.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',48)))
+[void]$runbook.RowStyles.Add((New-Object Windows.Forms.RowStyle('Percent',100)))
+[void]$runbook.ColumnStyles.Add((New-Object Windows.Forms.ColumnStyle('Absolute',340)))
+[void]$runbook.ColumnStyles.Add((New-Object Windows.Forms.ColumnStyle('Percent',100)))
 $viewHost.Controls.Add($runbook)
 
 $rbTools=New-Object Windows.Forms.FlowLayoutPanel
@@ -563,7 +563,7 @@ function Show-CorpNetworkDiagnosticOptions {
  $dialog.Controls.Add($detail)
 
  $lanLabel=New-Object Windows.Forms.Label
- $lanLabel.Text='LAN adapter alias (only required for "Force a Specific LAN Adapter"):'
+ $lanLabel.Text='LAN adapter alias (only required for "Force a Specific LAN Adapter"; example: Ethernet):'
  $lanLabel.AutoSize=$true
  $lanLabel.Location=New-Object Drawing.Point(20,260)
  $dialog.Controls.Add($lanLabel)
@@ -571,11 +571,10 @@ function Show-CorpNetworkDiagnosticOptions {
  $lanAlias=New-Object Windows.Forms.TextBox
  $lanAlias.Size=New-Object Drawing.Size(620,26)
  $lanAlias.Location=New-Object Drawing.Point(20,282)
- $lanAlias.PlaceholderText='Example: Ethernet'
  $dialog.Controls.Add($lanAlias)
 
  $wifiLabel=New-Object Windows.Forms.Label
- $wifiLabel.Text='Wi-Fi adapter alias (only required for "Force a Specific Wi-Fi Adapter"):'
+ $wifiLabel.Text='Wi-Fi adapter alias (only required for "Force a Specific Wi-Fi Adapter"; example: Wi-Fi):'
  $wifiLabel.AutoSize=$true
  $wifiLabel.Location=New-Object Drawing.Point(20,320)
  $dialog.Controls.Add($wifiLabel)
@@ -583,7 +582,6 @@ function Show-CorpNetworkDiagnosticOptions {
  $wifiAlias=New-Object Windows.Forms.TextBox
  $wifiAlias.Size=New-Object Drawing.Size(620,26)
  $wifiAlias.Location=New-Object Drawing.Point(20,342)
- $wifiAlias.PlaceholderText='Example: Wi-Fi'
  $dialog.Controls.Add($wifiAlias)
 
  $discovery=New-Object Windows.Forms.CheckBox
