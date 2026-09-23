@@ -25,7 +25,6 @@ $info.CreateNoWindow=$true
 $info.RedirectStandardOutput=$true
 $info.RedirectStandardError=$true
 $info.RedirectStandardInput=$true
-$info.StandardInputEncoding=New-Object Text.UTF8Encoding($false)
 $info.EnvironmentVariables['TTK_TOOLKIT_ROOT']=$testRoot
 $capture=New-Object RunCenterProcess($info)
 try {
