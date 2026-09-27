@@ -87,6 +87,13 @@ encoding/line endings or were already identical:
 | `Security/Invoke-SecurityBaselineAudit.ps1` | Uses the app report directory and writable fallback. |
 | `Updates/VendorUpdate.Common.ps1` | Uses the app report directory for update workspaces. |
 
+The vendor update helper is an intentional Field Kit adaptation, not an exact
+archive copy. Its upstream source and archive hash remain recorded in the
+reconciliation CSV; its maintained Field Kit content is locked separately in
+`Windows/Config/FIELDKIT-ADAPTATIONS-SHA256.json`. Archive script hashes are
+computed after normalizing CRLF to LF so Windows checkout settings do not create
+false integrity failures; all other bytes remain part of the hash.
+
 Secure Boot remediation is called through `Invoke-BundledSecureBootRemediation.ps1`
 only to set existing report-path parameters to the app's report folder instead of
 the original P: company share. Eligibility and remediation logic are unchanged.

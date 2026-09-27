@@ -17,6 +17,31 @@ function Result {
     switch($Status){'PASS'{$script:pass++}'WARN'{$script:warn++}'FAIL'{$script:fail++}}
 }
 
+function Test-SourceHash {
+    param(
+        [Parameter(Mandatory=$true)][string]$Path,
+        [Parameter(Mandatory=$true)][string]$ExpectedHash
+    )
+    $bytes=[IO.File]::ReadAllBytes($Path)
+    $sha=[Security.Cryptography.SHA256]::Create()
+    try{$actual=(-join ($sha.ComputeHash($bytes)|ForEach-Object {$_.ToString('x2')}))}finally{$sha.Dispose()}
+    if($actual -eq $ExpectedHash){return $true}
+    if([IO.Path]::GetExtension($Path) -in @('.ps1','.psm1','.psd1')){
+        $normalized=[System.Collections.Generic.List[byte]]::new()
+        for($i=0;$i -lt $bytes.Length;$i++){
+            if($bytes[$i] -eq 13 -and $i+1 -lt $bytes.Length -and $bytes[$i+1] -eq 10){
+                $normalized.Add([byte]10)
+                $i++
+            }else{$normalized.Add($bytes[$i])}
+        }
+        $bytes=$normalized.ToArray()
+        $sha=[Security.Cryptography.SHA256]::Create()
+        try{$actual=(-join ($sha.ComputeHash($bytes)|ForEach-Object {$_.ToString('x2')}))}finally{$sha.Dispose()}
+        return ($actual -eq $ExpectedHash)
+    }
+    return $false
+}
+
 Result PASS "Toolkit root: $root"
 if(Test-Path (Join-Path $root 'T3CHNRD Digital Field Kit.exe')){Result PASS 'Compiled launcher present.'}else{Result PASS 'Script-launcher package: compiled EXE is optional; VBS and app source are checked below.'}
 $required=@(
@@ -27,6 +52,7 @@ $required=@(
     'Windows\Config\tools.json',
     'Windows\Config\ORIGINAL-SCRIPTS-GIT-SHA1.txt'
     'Windows\Config\ARCHIVE-SOURCES-SHA256.json'
+    'Windows\Config\FIELDKIT-ADAPTATIONS-SHA256.json'
     'Windows\App\RunCenterProcess.cs'
     'Windows\App\RunCenterUI.ps1'
     'Windows\App\AIWorkspaceUI.ps1'
@@ -127,11 +153,24 @@ try {
         $path=Join-Path $root $entry.path
         if(-not(Test-Path -LiteralPath $path -PathType Leaf)){
             Result FAIL ("Archive payload missing: "+$entry.path)
-        }elseif((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $entry.sha256){
+        }elseif(-not(Test-SourceHash -Path $path -ExpectedHash $entry.sha256)){
             Result FAIL ("Archive payload changed: "+$entry.path)
-        }else{Result PASS ("Exact archive payload: "+$entry.path)}
+        }else{Result PASS ("Verified archive payload: "+$entry.path)}
     }
 }catch{Result FAIL ("Archive provenance manifest error: "+$_.Exception.Message)}
+
+$adaptationManifest=Join-Path $root 'Windows\Config\FIELDKIT-ADAPTATIONS-SHA256.json'
+try {
+    $adaptations=Get-Content -LiteralPath $adaptationManifest -Raw -Encoding UTF8 | ConvertFrom-Json
+    foreach($entry in $adaptations){
+        $path=Join-Path $root $entry.path
+        if(-not(Test-Path -LiteralPath $path -PathType Leaf)){
+            Result FAIL ("Field Kit adaptation missing: "+$entry.path)
+        }elseif(-not(Test-SourceHash -Path $path -ExpectedHash $entry.sha256)){
+            Result FAIL ("Field Kit adaptation changed: "+$entry.path)
+        }else{Result PASS ("Verified Field Kit adaptation: "+$entry.path)}
+    }
+}catch{Result FAIL ("Field Kit adaptation manifest error: "+$_.Exception.Message)}
 
 Write-Output ''
 Write-Output ("SUMMARY: PASS={0} WARN={1} FAIL={2}" -f $pass,$warn,$fail)

@@ -1,0 +1,8 @@
+[
+  {
+    "source": "personal/personal_PS_scripts/windows master mega diag script/Windows-Master-Diagnostic-Toolkit/Scripts/Updates/VendorUpdate.Common.ps1",
+    "path": "Windows/Scripts/Updates/VendorUpdate.Common.ps1",
+    "sha256": "c565e4ce54bd4eff24fd184b0bb818c963864d13b9dce7abc0447f9af3fd1dff",
+    "reason": "Routes update workspaces through the Field Kit report directory."
+  }
+]

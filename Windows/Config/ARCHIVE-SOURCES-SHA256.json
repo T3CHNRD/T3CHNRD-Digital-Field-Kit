@@ -3875,11 +3875,6 @@
     "sha256": "2eb4b01dd145978a23b87ae32248aeeba06605d5230292489cfd26bae0bd1c07"
   },
   {
-    "source": "personal/personal_PS_scripts/windows master mega diag script/Windows-Master-Diagnostic-Toolkit/Scripts/Updates/VendorUpdate.Common.ps1",
-    "path": "Windows/Scripts/Updates/VendorUpdate.Common.ps1",
-    "sha256": "5eb94119b25b898292ab59059c4680c801c5a6a0f50aa4184ad90ee270788cd6"
-  },
-  {
     "source": "personal/personal_PS_scripts/windows master mega diag script/Windows-Master-Diagnostic-Toolkit/Scripts/Utilities/Invoke-KillerEncryptionHelper.ps1",
     "path": "Windows/Scripts/Utilities/Invoke-KillerEncryptionHelper.ps1",
     "sha256": "a58f46ce349d944e0ab32a11cb1cd3bb24aa5bfa901da5c1bf6b139ad4fc2e31"

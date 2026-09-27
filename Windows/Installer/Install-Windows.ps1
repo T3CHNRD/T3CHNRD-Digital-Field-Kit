@@ -52,14 +52,14 @@ function Copy-VerifiedFile {
 $form=New-Object Windows.Forms.Form
 $form.Text='Install T3CHNRD Digital Field Kit'
 $form.StartPosition='CenterScreen'
-$form.Size=New-Object Drawing.Size(850,560)
-$form.MinimumSize=New-Object Drawing.Size(760,520)
+$form.Size=New-Object Drawing.Size(820,500)
+$form.MinimumSize=New-Object Drawing.Size(780,500)
 $form.Font=New-Object Drawing.Font('Segoe UI',10)
 $form.BackColor=[Drawing.Color]::FromArgb(219,232,241)
 
 $header=New-Object Windows.Forms.Panel
 $header.Dock='Top'
-$header.Height=120
+$header.Height=96
 $header.BackColor=[Drawing.Color]::FromArgb(17,94,137)
 $form.Controls.Add($header)
 
@@ -68,19 +68,19 @@ $title.Text='T3CHNRD Digital Field Kit'
 $title.ForeColor='White'
 $title.Font=New-Object Drawing.Font('Segoe UI',22,[Drawing.FontStyle]::Bold)
 $title.AutoSize=$true
-$title.Location=New-Object Drawing.Point(24,22)
+$title.Location=New-Object Drawing.Point(24,14)
 $header.Controls.Add($title)
 
 $subtitle=New-Object Windows.Forms.Label
 $subtitle.Text='Install or update the Windows app - choose a destination, then continue'
 $subtitle.ForeColor='AliceBlue'
 $subtitle.AutoSize=$true
-$subtitle.Location=New-Object Drawing.Point(28,68)
+$subtitle.Location=New-Object Drawing.Point(28,57)
 $header.Controls.Add($subtitle)
 
 $panel=New-Object Windows.Forms.Panel
-$panel.Location=New-Object Drawing.Point(22,140)
-$panel.Size=New-Object Drawing.Size(790,350)
+$panel.Location=New-Object Drawing.Point(16,104)
+$panel.Size=New-Object Drawing.Size(770,344)
 $panel.Anchor='Top,Bottom,Left,Right'
 $panel.BackColor='White'
 $panel.BorderStyle='FixedSingle'
@@ -100,15 +100,15 @@ try{
     if(-not [string]::IsNullOrWhiteSpace($registeredRoot) -and (Test-Path -LiteralPath $registeredRoot -PathType Container)){$defaultInstallRoot=$registeredRoot}
 }catch{}
 $destination.Text=$defaultInstallRoot
-$destination.Location=New-Object Drawing.Point(22,55)
-$destination.Size=New-Object Drawing.Size(610,28)
+$destination.Location=New-Object Drawing.Point(22,45)
+$destination.Size=New-Object Drawing.Size(565,28)
 $destination.Anchor='Top,Left,Right'
 $panel.Controls.Add($destination)
 
 $browse=New-Object Windows.Forms.Button
 $browse.Text='Browse...'
-$browse.Location=New-Object Drawing.Point(648,53)
-$browse.Size=New-Object Drawing.Size(110,32)
+$browse.Location=New-Object Drawing.Point(602,43)
+$browse.Size=New-Object Drawing.Size(132,32)
 $browse.Anchor='Top,Right'
 $panel.Controls.Add($browse)
 
@@ -116,47 +116,49 @@ $desktop=New-Object Windows.Forms.CheckBox
 $desktop.Text='Create desktop shortcut'
 $desktop.Checked=$true
 $desktop.AutoSize=$true
-$desktop.Location=New-Object Drawing.Point(24,105)
+$desktop.Location=New-Object Drawing.Point(24,82)
 $panel.Controls.Add($desktop)
 
 $launch=New-Object Windows.Forms.CheckBox
 $launch.Text='Launch after installation'
 $launch.Checked=$true
 $launch.AutoSize=$true
-$launch.Location=New-Object Drawing.Point(24,135)
+$launch.Location=New-Object Drawing.Point(24,110)
 $panel.Controls.Add($launch)
 
 $note=New-Object Windows.Forms.Label
 $note.Text='Portable use needs no installation: keep the extracted folder on a USB/SSD and double-click T3CHNRD Digital Field Kit.vbs. Installed mode keeps writable Runbook/report data under ProgramData.'
 $note.ForeColor='DimGray'
-$note.Location=New-Object Drawing.Point(24,175)
-$note.Size=New-Object Drawing.Size(720,58)
+$note.Location=New-Object Drawing.Point(24,145)
+$note.Size=New-Object Drawing.Size(710,48)
 $panel.Controls.Add($note)
 
 $progress=New-Object Windows.Forms.ProgressBar
-$progress.Location=New-Object Drawing.Point(24,248)
-$progress.Size=New-Object Drawing.Size(650,24)
+$progress.Location=New-Object Drawing.Point(24,202)
+$progress.Size=New-Object Drawing.Size(700,22)
 $progress.Anchor='Top,Left,Right'
 $panel.Controls.Add($progress)
 
 $status=New-Object Windows.Forms.Label
 $status.Text='Ready.'
-$status.Location=New-Object Drawing.Point(24,282)
-$status.Size=New-Object Drawing.Size(720,28)
+$status.Location=New-Object Drawing.Point(24,230)
+$status.Size=New-Object Drawing.Size(700,26)
 $panel.Controls.Add($status)
 
 $install=New-Object Windows.Forms.Button
 $install.Text='INSTALL / UPDATE'
 $install.Font=New-Object Drawing.Font('Segoe UI',11,[Drawing.FontStyle]::Bold)
-$install.Location=New-Object Drawing.Point(24,314)
-$install.Size=New-Object Drawing.Size(140,40)
+$install.Location=New-Object Drawing.Point(24,282)
+$install.Size=New-Object Drawing.Size(190,40)
+$install.Anchor='Bottom,Left'
 $install.BackColor='YellowGreen'
 $panel.Controls.Add($install)
 
 $cancel=New-Object Windows.Forms.Button
 $cancel.Text='CANCEL'
-$cancel.Location=New-Object Drawing.Point(176,314)
+$cancel.Location=New-Object Drawing.Point(228,282)
 $cancel.Size=New-Object Drawing.Size(120,40)
+$cancel.Anchor='Bottom,Left'
 $panel.Controls.Add($cancel)
 
 $browse.Add_Click({
@@ -192,12 +194,25 @@ $install.Add_Click({
             }
         }
 
+        $targetExe=Join-Path $target 'T3CHNRD Digital Field Kit.exe'
+        if(Test-Path -LiteralPath $targetExe -PathType Leaf){
+            $probe=$null
+            try{
+                $probe=[IO.File]::Open($targetExe,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+            }catch [IO.IOException]{
+                throw "Close T3CHNRD Digital Field Kit before updating it, then run the installer again. The installed executable is currently in use: $targetExe"
+            }finally{
+                if($probe){$probe.Dispose()}
+            }
+        }
+
         New-Item -ItemType Directory -Force -Path $target|Out-Null
         $files=@(
             Get-ChildItem -LiteralPath $SourceRoot -File -Recurse -Force |
             Where-Object {
                 $_.FullName -notlike (Join-Path $SourceRoot 'Diagnostic-Reports\*') -and
                 $_.FullName -notlike (Join-Path $SourceRoot '.git\*') -and
+                $_.Name -notmatch '^INSTALL T3CHNRD Digital Field Kit.*\.exe$' -and
                 $_.Name -notmatch '^T3CHNRD Digital Field Kit.*TEST.*\.exe$'
             }
         )

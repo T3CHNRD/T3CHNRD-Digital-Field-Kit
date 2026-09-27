@@ -7,15 +7,15 @@ permissions:
   contents: read
 jobs:
   package:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build source package
         run: |
           mkdir -p artifacts
           git archive --format=zip --prefix=FK/ --output=artifacts/FK.zip HEAD
           python -c "import zipfile; z=zipfile.ZipFile('artifacts/FK.zip'); assert max(map(len,z.namelist())) <= 160, 'Portable ZIP path budget exceeded'"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: FK-Portable
           path: artifacts/FK.zip
