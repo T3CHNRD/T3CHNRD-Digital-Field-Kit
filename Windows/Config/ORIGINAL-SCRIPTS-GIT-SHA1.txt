@@ -34,7 +34,6 @@ c4dd193223d9708f095c24df089a325ad2474d39 *Windows/Scripts/Maintenance/Invoke-Sec
 0b31cd74cf9c2afe4b9a404cb6cd22b1d5581848 *Windows/Scripts/Security/Check-SecureBootCert-Quick.ps1
 9efa76a368b77e0bf3f8f9df2ae4317bbe0a6c5c *Windows/Scripts/Network/Open-RemoteAdminShare.ps1
 d4c69a1ef752fc721c7d6446bab7fe80559a2c67 *Windows/Scripts/Invoke-DiskSpaceMonitor.ps1
-7acc5dfe13002b1e162523ace136796d8c0e4b34 *Windows/Scripts/Updates/VendorUpdate.Common.ps1
 ec4afee541b9115e819a60e619b9c1dd9b45810b *Windows/Scripts/Security/Invoke-OrcaSecurityReport.ps1
 ed2e30582e21a0383616002b0b1144d6cb609ac3 *Windows/Scripts/Updates/Invoke-WindowsUpdateTool.ps1
 5ff198571a93bfa7fb7a3e23b9b948b9e24e25d7 *Windows/Scripts/Utilities/Invoke-ps2exe-Portable.ps1

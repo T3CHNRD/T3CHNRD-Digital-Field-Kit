@@ -4,12 +4,14 @@ This is the single source of truth for project tracking. There is only one activ
 
 Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIELD TEST = implemented but not runtime-proven; FAIL = known broken.
 
-## CURRENT STATUS SNAPSHOT - 2026-09-22
-- Windows-first source tree is clean and synchronized with `origin/main`.
+## CURRENT STATUS SNAPSHOT - 2026-09-27
+- Windows-first source is on `main`; this snapshot is updated with the current CI and local validation results below.
 - Catalog contains 64 entries: 62 ready and 2 disabled pending site configuration (24-Hour Sleep Hold and Exchange OWA Diagnostic). Their original scripts are bundled.
 - All ready catalog file mappings resolve. Install All uses the bundled installer wrapper; normal PowerShell tools run through the two-slot Run Center.
 - Runbook contains the index, quick start, troubleshooting, security, networking, repair, deployment, evidence, escalation, and documentation procedures.
 - Branded EXE build, generated icon, startup elevation, diagnostic-console selector, and Run Center lifecycle changes are implemented but still need real Windows field testing.
+- Archive integrity validation now handles Windows CRLF checkout conversion without relaxing content checks; the intentionally adapted vendor-update helper has a separate maintained-source lock.
+- Root GitHub workflows now use Node 24-compatible Actions and a pinned Ubuntu 24.04 runner. Latest hosted validation still needs a successful run after the follow-up manifest correction.
 - No final release claim is made until Windows field testing and the unresolved Defender detection of the full GitHub ZIP are addressed. Local repository, individual launcher, and script-only test ZIP scans reported no threats; that does not establish a false positive.
 
 ## ACTIVE GATE - WINDOWS APP
@@ -36,6 +38,9 @@ Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIEL
 - [ ] NEEDS FIELD TEST - Windows install / shortcuts / installed launch / uninstall.
 - [ ] NEEDS FIELD TEST - every restored Windows diagnostic category.
 - [x] STATIC PASS - Added repeatable branded Windows EXE build with generated T3CHNRD icon; VBS remains the source-only fallback.
+- [x] STATIC PASS - Archive SHA-256 checks tolerate CRLF conversion for PowerShell text while preserving raw-byte checks and separately locking the documented vendor-update adaptation.
+- [x] PASS (automated tests, 2026-09-27) - Run Center process transport/cancellation, launcher paths, two concurrent tools, technician UI workflows, all 64 help pages, AI evidence preview, and MACE cleanup.
+- [x] PASS (integrity/parse, 2026-09-27) - Application integrity self-test: 1,360 passes, zero warnings/failures; all 329 Windows PowerShell files parse.
 - [ ] NEEDS FIELD TEST - Validate packaged EXE startup, taskbar icon, portable root detection, installer shortcuts, and fallback behavior.
 - [ ] INVESTIGATE - Determine why the main Field Kit window may still close after a tool or script completes; reproduce with the latest elevated packaged EXE and inspect process exit, form lifecycle, and child-process callbacks.
 
@@ -45,10 +50,12 @@ This checklist tracks remaining live hardware acceptance. Automated Windows UI/r
 - [ ] Windows UI runtime validation
   - [ ] startup without PowerShell security prompt
   - [ ] minimize / maximize / restore / resize / close
-  - [ ] favorites / recent / categories / search
-  - [ ] Run Center flow
-  - [ ] Runbook flow
+  - [x] automated favorites persistence/removal, Run Center resize bounds, and help navigation/search (Test-TechnicianWorkflows.ps1, 2026-09-27)
+  - [x] automated Run Center process capture, stdin/stdout/stderr, independent tools and cancellation (Test-RunCenterProcess.ps1 and Test-TwoToolRunner.ps1, 2026-09-27)
+  - [x] automated help coverage/search for all 64 tools (Test-TechnicianWorkflows.ps1, 2026-09-27)
+  - [ ] manual category/search and Runbook technician acceptance
 - [ ] Installer and portability checks
+  - [x] PASS FROM FIELD OBSERVATION - Installer correctly blocked replacement while the Field Kit process was still present without a visible window (2026-09-27 screenshot/process check). The actual update remains unverified.
   - [ ] installed launch
   - [ ] uninstall path
   - [ ] USB / external SSD run behavior
@@ -85,12 +92,18 @@ Evidence: implementation commits d691d35 through fffd892; automated Windows test
 - [x] PASS (UI tests) - Added searchable help for all 64 tools and card Help buttons, including requirements for disabled site tools.
 - [x] PASS (UI tests) - Restored Log Files shortcut; added functional Settings folder actions, integrity-check action and persisted Run Center word wrapping. Folder/external-launch actions still need technician acceptance.
 - [x] PASS (UI tests) - Added local AI workspace navigation, chat-draft saving and log preview; analysis-document import/results viewer implemented. No AI provider is connected and no messages/logs are uploaded.
+- [x] PASS (automated UI tests, 2026-09-27) - Fixed the technician workflow test to locate evidence rows by file path rather than the size-decorated display label; all help and evidence-preview assertions pass.
 - [x] PASS (integrity suite) - 1,345 checks passed with zero failures; fixed the false missing-EXE failure for intentional script-launcher packages.
 - [x] PASS (Defender custom scans) - Latest local script-only test ZIP reported no threats. This is scan evidence, not a guarantee of safety.
 - [ ] INVESTIGATE / RELEASE GATE - Full GitHub ZIP reproducibly detected as Trojan:Script/Wacatac.B!ml. Exact offending component and false-positive status remain unconfirmed; do not bypass protection.
 - [ ] NEEDS FIELD TEST - Latest resize/help, favorites persistence, two real simultaneous tools, Settings actions, local drafts after restart and analysis-document import/results preview.
 - [ ] NEEDS FIELD TEST - Real active/passive Defender scenarios and technician review of retained evidence.
 - [ ] NOT CONNECTED - Implement actual AI chat and log analysis after diagnostic foundations are stable. Current workspace is local preparation only.
+
+## 2026-09-27 FOLLOW-UP
+- [ ] NEEDS HOSTED CI PASS - Confirm Windows Package Validation and Source Package both pass on the commit containing the integrity-manifest correction.
+- [ ] NEEDS FIELD TEST - Successfully install/update from the branded installer, verify installed EXE hash and timestamp, shortcuts, launch, and uninstall. Do not count the lock-preflight rejection as an installation pass.
+- [ ] NEEDS FIELD TEST - Complete display-scaling, portable-drive, full UI interaction, and diagnostic-category checks on the target Windows device.
 
 ## HISTORICAL ENTRIES
 Earlier dated sections retain original findings/counts as history. The September 22 snapshot and completion section supersede stale counts and execution details; unchecked field-test items remain open unless explicitly closed with evidence.
