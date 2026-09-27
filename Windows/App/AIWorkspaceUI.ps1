@@ -25,6 +25,22 @@ $saveDraft.Add_Click({
  try{[IO.File]::WriteAllText($draftPath,$chatDraft.Text,[Text.Encoding]::UTF8);$chatStatus.Text='Draft saved locally. AI is not connected; nothing was sent.'}
  catch{$chatStatus.Text='Could not save draft: '+$_.Exception.Message}
 })
+$script:EvidenceTextExtensions=@('.txt','.log','.json','.csv','.md','.xml','.html','.htm','.ps1','.psd1','.ini','.cfg','.yaml','.yml')
+$script:EvidencePreviewLimitBytes=1048576
+function Show-EvidencePreview($Preview,$Entry){
+ if(-not $Entry){return}
+ $file=Get-Item -LiteralPath $Entry.Path -ErrorAction SilentlyContinue
+ if(-not $file){$Preview.Text='This file is no longer available.';return}
+ if($script:EvidenceTextExtensions -notcontains $file.Extension.ToLowerInvariant()){
+  $Preview.Text=('Preview unavailable for {0} files ({1:N0} bytes). Use the containing folder to inspect it with its associated application.' -f $(if($file.Extension){$file.Extension}else{'extensionless'}),$file.Length)
+  return
+ }
+ if($file.Length -gt $script:EvidencePreviewLimitBytes){
+  $Preview.Text=('Preview limited to files up to 1 MiB. This file is {0:N0} bytes.' -f $file.Length)
+  return
+ }
+ try{$Preview.Text=[IO.File]::ReadAllText($file.FullName,[Text.Encoding]::UTF8)}catch{$Preview.Text=$_.Exception.Message}
+}
 function New-EvidenceBrowser($Page){
  $split=New-Object Windows.Forms.SplitContainer
  $split.Dock='Fill';$split.Size=New-Object Drawing.Size(850,400);$split.SplitterDistance=280
@@ -35,8 +51,7 @@ function New-EvidenceBrowser($Page){
  $Page.Controls.Add($bar)
  $list.Tag=$preview
  $list.Add_SelectedIndexChanged({param($sender)
-  $entry=$sender.SelectedItem
-  if($entry){try{$sender.Tag.Text=([IO.File]::ReadAllText($entry.Path))}catch{$sender.Tag.Text=$_.Exception.Message}}
+    Show-EvidencePreview $sender.Tag $sender.SelectedItem
  })
  return [pscustomobject]@{List=$list;Preview=$preview;Bar=$bar}
 }
@@ -44,10 +59,11 @@ $logBrowser=New-EvidenceBrowser $logsPage
 $resultBrowser=New-EvidenceBrowser $resultsPage
 function Update-EvidenceList($Browser,[string]$Directory){
  $Browser.List.Items.Clear()
- foreach($file in @(Get-ChildItem -LiteralPath $Directory -Recurse -File -ErrorAction SilentlyContinue | Where-Object {$_.Extension -in @('.txt','.log','.json','.csv','.md')} | Sort-Object LastWriteTime -Descending)){
-  [void]$Browser.List.Items.Add([pscustomobject]@{Label=$file.FullName.Substring($Directory.Length).TrimStart('\');Path=$file.FullName})
+ foreach($file in @(Get-ChildItem -LiteralPath $Directory -Recurse -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending)){
+  $relative=$file.FullName.Substring($Directory.Length).TrimStart('\')
+  [void]$Browser.List.Items.Add([pscustomobject]@{Label=('{0} ({1:N0} bytes)' -f $relative,$file.Length);Path=$file.FullName})
  }
- $Browser.Preview.Text=if($Browser.List.Items.Count){'Select a file to preview. Logs may contain sensitive information; review before sharing.'}else{'No files yet. AI is not connected and no automatic analysis has run.'}
+ $Browser.Preview.Text=if($Browser.List.Items.Count){'All diagnostic artifacts are listed, including binary files. Select a supported text file to preview. Logs may contain sensitive information; review before sharing. AI is not connected and no automatic analysis has run.'}else{'No files yet. AI is not connected and no automatic analysis has run.'}
 }
 function Add-WorkspaceButton($Parent,[string]$Text,[scriptblock]$Action){
  $button=New-Object Windows.Forms.Button;$button.Text=$Text;$button.AutoSize=$true;$button.Height=34

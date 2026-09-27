@@ -520,6 +520,7 @@ function Invoke-WindowsUpdateInstallation {
 
     Ensure-TaskAdmin
 
+    Write-Output 'Searching Windows Update for pending software and driver updates. This can take several minutes.'
     $availableUpdates = @(Get-PendingWindowsUpdates)
     if ($availableUpdates.Count -eq 0) {
         Write-Output 'No pending Windows updates were found.'
@@ -527,6 +528,10 @@ function Invoke-WindowsUpdateInstallation {
     }
 
     Write-Output ("Pending updates found: {0}" -f $availableUpdates.Count)
+    foreach ($record in $availableUpdates) {
+        $kbText = if ($record.KB.Count) { ' (' + ($record.KB -join ', ') + ')' } else { '' }
+        Write-Output ("Found update: {0}{1}" -f $record.Title,$kbText)
+    }
 
     $skipEntries = @()
     if ($SkipSelectionFile -and (Test-Path -LiteralPath $SkipSelectionFile)) {
@@ -561,11 +566,13 @@ function Invoke-WindowsUpdateInstallation {
     $session = New-Object -ComObject Microsoft.Update.Session
     $downloader = $session.CreateUpdateDownloader()
     $downloader.Updates = $installCollection
+    Write-Output ("Downloading {0} Windows update(s). Windows Update may remain in this phase for several minutes." -f $installCollection.Count)
     $downloadResult = $downloader.Download()
     Write-Output ("Windows Update download result code: {0}" -f $downloadResult.ResultCode)
 
     $installer = $session.CreateUpdateInstaller()
     $installer.Updates = $installCollection
+    Write-Output ("Installing {0} Windows update(s). Do not shut down while installation is in progress." -f $installCollection.Count)
     $installResult = $installer.Install()
     Write-Output ("Windows Update install result code: {0}" -f $installResult.ResultCode)
 

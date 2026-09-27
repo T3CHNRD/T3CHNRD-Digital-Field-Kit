@@ -9,7 +9,7 @@ Optimization > Firmware Update
 
 HOW TO RUN
 Open Tools, choose the category above, and click the tool card.
-Verify the detected hardware and vendor workflow. Use AC power and do not interrupt an update.
+Verify the detected hardware and select its manufacturer. Dell requires Dell Command | Update with `dcu-cli.exe` installed; HP requires HP Image Assistant or HPCMSL; Lenovo requires Lenovo System Update. Framework opens its official support page instead of running a silent firmware installer. If a vendor utility is missing, the workflow stops and reports the vendor's support page without attempting an update. Use AC power and do not interrupt an update.
 
 BEFORE YOU START
 The Windows app requests administrator elevation at startup. This tool can change system settings or data; review its purpose and target before running.

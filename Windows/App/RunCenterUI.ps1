@@ -27,15 +27,22 @@ function New-RunPane([int]$Number) {
  $output.Dock='Fill';$output.ReadOnly=$true;$output.BackColor=[Drawing.Color]::FromArgb(3,13,18)
  $output.ForeColor=[Drawing.Color]::FromArgb(220,237,244);$output.Font=New-Object Drawing.Font('Consolas',10)
  $inputPanel=New-Object Windows.Forms.TableLayoutPanel
- $inputPanel.Dock='Bottom';$inputPanel.Height=44;$inputPanel.ColumnCount=2;$inputPanel.Visible=$false
+ $inputPanel.Height=44;$inputPanel.ColumnCount=2;$inputPanel.Visible=$false
  [void]$inputPanel.ColumnStyles.Add((New-Object Windows.Forms.ColumnStyle('Percent',100)))
  [void]$inputPanel.ColumnStyles.Add((New-Object Windows.Forms.ColumnStyle('Absolute',140)))
  $inputBox=New-Object Windows.Forms.TextBox;$inputBox.Dock='Fill';$inputBox.Font=$output.Font
  $inputBox.Margin=New-Object Windows.Forms.Padding(8)
  $inputPanel.Controls.Add($inputBox,0,0);$inputPanel.Controls.Add($send,1,0)
- $page.Controls.Add($output);$page.Controls.Add($inputPanel);$page.Controls.Add($header)
- $output.BringToFront();$inputPanel.BringToFront();$header.BringToFront()
- $pane=[pscustomobject]@{Page=$page;State=$state;Cancel=$cancel;Output=$output;Input=$inputBox;InputPanel=$inputPanel;Send=$send;Capture=$null;Process=$null;Log='';Cancelled=$false;Number=$Number}
+ $paneLayout=New-Object Windows.Forms.TableLayoutPanel
+ $paneLayout.Dock='Fill';$paneLayout.Margin=New-Object Windows.Forms.Padding(0);$paneLayout.Padding=New-Object Windows.Forms.Padding(0)
+ $paneLayout.ColumnCount=1;$paneLayout.RowCount=3
+ [void]$paneLayout.ColumnStyles.Add((New-Object Windows.Forms.ColumnStyle('Percent',100)))
+ [void]$paneLayout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',70)))
+ [void]$paneLayout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Percent',100)))
+ [void]$paneLayout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',0)))
+ $paneLayout.Controls.Add($header,0,0);$paneLayout.Controls.Add($output,0,1);$paneLayout.Controls.Add($inputPanel,0,2)
+ $page.Controls.Add($paneLayout)
+ $pane=[pscustomobject]@{Page=$page;Layout=$paneLayout;Header=$header;State=$state;Cancel=$cancel;Output=$output;Input=$inputBox;InputPanel=$inputPanel;Send=$send;Capture=$null;Process=$null;Log='';Cancelled=$false;Number=$Number}
  $page.Tag=$pane;$cancel.Tag=$pane;$send.Tag=$pane;$inputBox.Tag=$pane
  $send.Add_Click({param($control) $p=$control.Tag
   try{
@@ -72,8 +79,9 @@ function Update-RunPanes {
    $pane.State.Text=$label+[Environment]::NewLine+'Exit code: '+$code
    Write-Run ("`r`n----------------------------------------`r`n"+$label+"`r`nExit code: "+$code+"`r`n") $pane
    Add-Content -LiteralPath $pane.Log -Value ("`r`n"+$label+' | Exit code: '+$code)
-   $pane.InputPanel.Visible=$false;$pane.Cancel.Enabled=$false
+    $pane.InputPanel.Visible=$false;$pane.Layout.RowStyles[2].Height=0;$pane.Cancel.Enabled=$false
    $pane.Capture.Dispose();$pane.Capture=$null;$pane.Process=$null
+    if((Get-Variable -Name View -Scope Script -ValueOnly -ErrorAction SilentlyContinue) -eq 'AI Workspace'){Update-EvidenceList $logBrowser $reportRoot}
   }
  }
  $count=@($script:RunPanes|Where-Object {$_.Capture}).Count

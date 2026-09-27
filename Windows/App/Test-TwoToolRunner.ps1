@@ -54,6 +54,8 @@ try{
  if($script:RunPanes[0].State.Text -notmatch '^Cancelled'){throw 'First tool cancellation failed.'}
  foreach($i in 0,1){
   $pane=$script:RunPanes[$i]
+    if($pane.Layout.GetRow($pane.Header) -ne 0 -or $pane.Layout.GetRow($pane.Output) -ne 1 -or $pane.Layout.GetRow($pane.InputPanel) -ne 2){throw 'Run Center status, output, and input rows are misaligned.'}
+    if($pane.Output.Height -le 0){throw 'Run Center output area has no visible height.'}
   if($pane.State.Bounds.Right -gt $pane.Cancel.Bounds.Left){throw 'Status overlaps cancel button.'}
   $other=if($i -eq 0){'B'}else{'A'}
   if((Get-Content $pane.Log -Raw) -match "REPLY-$other"){throw 'Logs are mixed.'}

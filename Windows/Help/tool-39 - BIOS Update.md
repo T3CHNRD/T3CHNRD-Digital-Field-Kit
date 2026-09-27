@@ -9,7 +9,7 @@ Optimization > BIOS Update
 
 HOW TO RUN
 Open Tools, choose the category above, and click the tool card.
-Verify the detected manufacturer/model, use AC power, and have recovery keys available. Follow the vendor workflow; do not interrupt a firmware update.
+Verify the detected manufacturer/model and select its vendor workflow. Dell requires Dell Command | Update with `dcu-cli.exe` installed; HP requires HP Image Assistant or HPCMSL; Lenovo requires Lenovo System Update. Framework opens its official support page instead of running a silent BIOS installer. If a vendor utility is missing, the workflow stops and reports the vendor's support page without attempting an update. Use AC power, have recovery keys available, and do not interrupt an update.
 
 BEFORE YOU START
 The Windows app requests administrator elevation at startup. This tool can change system settings or data; review its purpose and target before running.

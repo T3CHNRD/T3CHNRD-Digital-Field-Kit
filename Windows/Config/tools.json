@@ -472,14 +472,14 @@
     "name": "MACE Cleanup",
     "category": "Repair",
     "originalCategory": "Storage",
-    "description": "Run the included cleanup workflow.",
-    "path": "Windows\\Scripts\\Maintenance\\Invoke-MaceCleanup.ps1",
+    "description": "Safely clean temporary files with completed, skipped, and failed counts.",
+    "path": "Windows\\Scripts\\Maintenance\\Invoke-MaceCleanup-FieldKit.ps1",
     "risk": "HighRisk",
     "interactive": false,
     "args": [],
     "icon": "disk",
     "ready": true,
-    "sourceStatus": "RESTORED_EXACT_FROM_UPLOADED_MASTER",
+    "sourceStatus": "FIELD_KIT_REPLACEMENT",
     "executionMode": "InApp"
   },
   {

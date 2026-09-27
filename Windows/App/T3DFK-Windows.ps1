@@ -101,7 +101,7 @@ $layout=New-Object Windows.Forms.TableLayoutPanel
 $layout.Dock='Fill'
 $layout.RowCount=4
 $layout.ColumnCount=1
-[void]$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',132)))
+[void]$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',160)))
 [void]$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Percent',100)))
 [void]$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',0)))
 [void]$layout.RowStyles.Add((New-Object Windows.Forms.RowStyle('Absolute',58)))
@@ -114,7 +114,7 @@ $layout.Controls.Add($header,0,0)
 
 $orb=New-Object Windows.Forms.Panel
 $orb.Size=New-Object Drawing.Size(72,72)
-$orb.Location=New-Object Drawing.Point(28,14)
+$orb.Location=New-Object Drawing.Point(28,20)
 $orb.BackColor=[Drawing.Color]::FromArgb(40,145,210)
 $header.Controls.Add($orb)
 foreach($r in @(
@@ -132,14 +132,14 @@ $title.Text='T3CHNRD Digital Field Kit'
 $title.Font=New-Object Drawing.Font('Segoe UI',23,[Drawing.FontStyle]::Bold)
 $title.ForeColor='White'
 $title.AutoSize=$true
-$title.Location=New-Object Drawing.Point(118,18)
+$title.Location=New-Object Drawing.Point(118,16)
 $header.Controls.Add($title)
 
 $tag=New-Object Windows.Forms.Label
 $tag.Text='Diagnose   |   Repair   |   Optimize   |   Deploy'
 $tag.ForeColor=[Drawing.Color]::FromArgb(220,241,251)
 $tag.AutoSize=$true
-$tag.Location=New-Object Drawing.Point(121,58)
+$tag.Location=New-Object Drawing.Point(121,66)
 $header.Controls.Add($tag)
 
 $brand=New-Object Windows.Forms.Label
@@ -148,7 +148,7 @@ $brand.ForeColor='White'
 $brand.TextAlign='TopRight'
 $brand.Size=New-Object Drawing.Size(260,46)
 $brand.Anchor='Top,Right'
-$brand.Location=New-Object Drawing.Point(1200,18)
+$brand.Location=New-Object Drawing.Point(1200,20)
 $header.Controls.Add($brand)
 
 $tabsPanel=New-Object Windows.Forms.Panel
@@ -417,7 +417,7 @@ $runnerGrip.TextAlign='MiddleCenter';$runnerGrip.ForeColor='White';$runnerGrip.B
 $runnerGrip.Cursor=[Windows.Forms.Cursors]::HSplit
 $runner.Controls.Add($runnerGrip)
 function Set-RunnerHeight([int]$Height){
- $maximum=[Math]::Max(180,$layout.ClientSize.Height-132-58-120)
+ $maximum=[Math]::Max(180,$layout.ClientSize.Height-160-58-120)
  $script:RunnerHeight=[Math]::Max(180,[Math]::Min($Height,$maximum))
  $layout.RowStyles[2].Height=$script:RunnerHeight
 }
@@ -509,6 +509,7 @@ function Show-Runner([string]$Name,[bool]$AllowInput,$Pane){
  Set-RunnerHeight $script:RunnerHeight
  $runnerTabs.SelectedTab=$Pane.Page
  $Pane.Page.Text=$Name
+ $Pane.Layout.RowStyles[2].Height=if($AllowInput){44}else{0}
  $Pane.State.Text='Starting...'
  $Pane.Output.Clear();$Pane.Input.Clear();$Pane.InputPanel.Visible=$AllowInput
  $Pane.Cancel.Enabled=$false;$Pane.Cancelled=$false
@@ -724,10 +725,15 @@ function Start-Tool {
  Show-Runner $tool.Name $needsInteractive $pane
  $pane.State.Text='RUNNING'
  $pane.Cancel.Enabled=$true
+ $toolReportRoot=$reportRoot
  $logDir=Join-Path $reportRoot 'AppLogs'
+ if([string]$tool.category -eq 'Security'){
+  $toolReportRoot=Join-Path $reportRoot 'Security'
+  $logDir=Join-Path $toolReportRoot 'AppLogs'
+ }
  New-Item -ItemType Directory -Force -Path $logDir | Out-Null
  $pane.Log=Join-Path $logDir (((Get-Date -Format 'yyyyMMdd-HHmmss-fff')+'-'+$pane.Number)+'-'+($tool.Name -replace '[^A-Za-z0-9._-]','_')+'.log')
- Set-Content $pane.Log ('Tool: '+$tool.Name)
+ Set-Content $pane.Log @('Tool: '+$tool.Name,'Category: '+[string]$tool.category,'Report directory: '+$toolReportRoot,'Started: '+(Get-Date -Format 'o'))
  Write-Run ('Launching '+$tool.Name+' as Administrator...')
  $psi=New-Object Diagnostics.ProcessStartInfo
  $psi.FileName=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
@@ -742,7 +748,8 @@ function Start-Tool {
  $psi.RedirectStandardError=$true
  $psi.RedirectStandardInput=$true
  $psi.EnvironmentVariables['TTK_TOOLKIT_ROOT']=$root
- $psi.EnvironmentVariables['TTK_REPORT_DIR']=$reportRoot
+ $psi.EnvironmentVariables['TTK_REPORT_DIR']=$toolReportRoot
+ if([string]$tool.category -eq 'Security'){$psi.EnvironmentVariables['TTK_SECURITY_REPORT_DIR']=$toolReportRoot}
  $psi.EnvironmentVariables['TTK_RUNBOOK_DIR']=$runbookRoot
  try {
   $pane.Capture=New-Object RunCenterProcess($psi)

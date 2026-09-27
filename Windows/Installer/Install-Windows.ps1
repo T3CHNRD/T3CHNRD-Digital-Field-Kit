@@ -72,7 +72,7 @@ $title.Location=New-Object Drawing.Point(24,22)
 $header.Controls.Add($title)
 
 $subtitle=New-Object Windows.Forms.Label
-$subtitle.Text='Windows installer - choose a destination, then install'
+$subtitle.Text='Install or update the Windows app - choose a destination, then continue'
 $subtitle.ForeColor='AliceBlue'
 $subtitle.AutoSize=$true
 $subtitle.Location=New-Object Drawing.Point(28,68)
@@ -93,7 +93,13 @@ $label.Location=New-Object Drawing.Point(22,28)
 $panel.Controls.Add($label)
 
 $destination=New-Object Windows.Forms.TextBox
-$destination.Text=Join-Path $env:ProgramFiles 'T3DFK'
+$defaultInstallRoot=Join-Path $env:ProgramFiles 'T3DFK'
+$uninstallKey='HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\T3CHNRDDigitalFieldKit'
+try{
+    $registeredRoot=[string](Get-ItemProperty -LiteralPath $uninstallKey -Name InstallLocation -ErrorAction Stop).InstallLocation
+    if(-not [string]::IsNullOrWhiteSpace($registeredRoot) -and (Test-Path -LiteralPath $registeredRoot -PathType Container)){$defaultInstallRoot=$registeredRoot}
+}catch{}
+$destination.Text=$defaultInstallRoot
 $destination.Location=New-Object Drawing.Point(22,55)
 $destination.Size=New-Object Drawing.Size(610,28)
 $destination.Anchor='Top,Left,Right'
@@ -140,7 +146,7 @@ $status.Size=New-Object Drawing.Size(720,28)
 $panel.Controls.Add($status)
 
 $install=New-Object Windows.Forms.Button
-$install.Text='INSTALL'
+$install.Text='INSTALL / UPDATE'
 $install.Font=New-Object Drawing.Font('Segoe UI',11,[Drawing.FontStyle]::Bold)
 $install.Location=New-Object Drawing.Point(24,314)
 $install.Size=New-Object Drawing.Size(140,40)
@@ -191,7 +197,8 @@ $install.Add_Click({
             Get-ChildItem -LiteralPath $SourceRoot -File -Recurse -Force |
             Where-Object {
                 $_.FullName -notlike (Join-Path $SourceRoot 'Diagnostic-Reports\*') -and
-                $_.FullName -notlike (Join-Path $SourceRoot '.git\*')
+                $_.FullName -notlike (Join-Path $SourceRoot '.git\*') -and
+                $_.Name -notmatch '^T3CHNRD Digital Field Kit.*TEST.*\.exe$'
             }
         )
 
