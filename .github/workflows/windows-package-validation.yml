@@ -10,6 +10,18 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
+      - name: Build and unit-test DivaByte core
+        shell: pwsh
+        run: |
+          $env:CARGO_TARGET_DIR=Join-Path $PWD '.build\divabyte'
+          cargo test --manifest-path DivaByte\Core\Cargo.toml
+          if($LASTEXITCODE -ne 0){throw 'DivaByte Rust unit tests failed.'}
+          cargo build --manifest-path DivaByte\Core\Cargo.toml --release
+          if($LASTEXITCODE -ne 0){throw 'DivaByte Rust build failed.'}
+          $runtime=Join-Path $PWD 'DivaByte\Runtime\windows-x64'
+          New-Item -ItemType Directory -Force -Path $runtime | Out-Null
+          Copy-Item (Join-Path $env:CARGO_TARGET_DIR 'release\divabyte-core.exe') (Join-Path $runtime 'divabyte-core.exe') -Force
+          if(-not(Test-Path (Join-Path $runtime 'divabyte-core.exe'))){throw 'DivaByte core runtime was not staged.'}
       - name: Verify root technician entry points
         shell: pwsh
         run: |
@@ -21,6 +33,7 @@ jobs:
             'Windows\Installer\Install-Windows.ps1',
             'Windows\Config\tools.json',
             'Windows\Config\ORIGINAL-SCRIPTS-GIT-SHA1.txt'
+            'DivaByte\Runtime\windows-x64\divabyte-core.exe'
           )
           foreach($p in $required){if(-not(Test-Path -LiteralPath $p)){throw "Missing: $p"}}
       - name: Parse PowerShell source
@@ -36,6 +49,11 @@ jobs:
           $env:TTK_TOOLKIT_ROOT=$PWD.Path
           & .\Windows\App\Application-Integrity-SelfTest.ps1
           if($LASTEXITCODE -ne 0){throw 'Application integrity validation failed.'}
+      - name: Verify standalone DivaByte core and Windows client
+        shell: powershell
+        run: |
+          & .\Windows\App\Test-DivaByteCore.ps1
+          if($LASTEXITCODE -ne 0){throw 'DivaByte core integration test failed.'}
       - name: Verify Run Center transport without running system tools
         shell: powershell
         run: |
