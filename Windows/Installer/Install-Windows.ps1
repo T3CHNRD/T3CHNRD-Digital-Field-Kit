@@ -187,6 +187,7 @@ $install.Add_Click({
             'UNINSTALL T3CHNRD Digital Field Kit.vbs',
             'Windows\App\T3DFK-Windows.ps1',
             'Windows\Config\tools.json'
+            'DivaByte\Runtime\windows-x64\divabyte-core.exe'
         )
         foreach($relative in $required){
             if(-not(Test-Path -LiteralPath (Join-Path $SourceRoot $relative) -PathType Leaf)){
