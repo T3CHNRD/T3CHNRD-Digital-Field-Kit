@@ -5,7 +5,7 @@ param(
 )
 $ErrorActionPreference='Stop'
 
-$script:RunCenterInputReader=[IO.StreamReader]::new(
+$global:T3DFK_RunCenterInputReader=[IO.StreamReader]::new(
     [Console]::OpenStandardInput(),
     [Text.UTF8Encoding]::new($false),
     $true,
@@ -19,7 +19,7 @@ function global:Read-Host {
     param([object]$Prompt, [switch]$AsSecureString)
     [Console]::Out.WriteLine(([string]$Prompt + ':'))
     [Console]::Out.Flush()
-    $answer=$script:RunCenterInputReader.ReadLine()
+    $answer=$global:T3DFK_RunCenterInputReader.ReadLine()
     if($null -eq $answer){throw 'Run Center input stream was closed.'}
     # Redirected Windows PowerShell stdin can prepend a Unicode BOM/format mark.
     # Remove only leading format/BOM marker characters; preserve normal user input.
