@@ -255,3 +255,13 @@ Planned macOS order remains:
 - [ ] TODO - Add evidence-backed hypothesis loop with supporting evidence, contradicting evidence, unknowns, and technician challenge/correction controls.
 - [ ] TODO - Add DivaByte-generated Runbook update proposals; every write requires technician review/approval.
 - [ ] TODO - Add memory retrieval/ranking so prior confirmed incidents guide investigation without being treated as proof.
+
+
+## 2026-09-28 DIVABYTE CROSS-PLATFORM CORE RULE
+- [x] PROJECT DECISION - DivaByte is one standalone shared core, not separate Windows/macOS AI implementations.
+- [x] STATIC PASS - Added a versioned loopback-only DivaByte Core API contract.
+- [x] STATIC PASS - Windows, macOS Intel, and macOS Apple Silicon are defined as thin clients of the same DivaByte core behavior.
+- [x] PROJECT RULE - Diagnostic reasoning, memory, Runbook logic, research policy/cache, prompts, schemas, evidence handling, and hypothesis logic must live in shared DivaByte core code/assets.
+- [ ] TODO - Implement the DivaByte core once in Rust and compile native binaries for Windows x64, macOS Intel x64, and macOS Apple Silicon arm64.
+- [ ] TODO - Add parity tests that feed the same fixtures to each platform build and compare structured API results.
+- [ ] TODO - Keep platform-specific code limited to UI shell, permissions, file pickers, process launch, and OS-native diagnostic collectors.
