@@ -82,10 +82,6 @@ function Update-RunPanes {
     $pane.InputPanel.Visible=$false;$pane.Layout.RowStyles[2].Height=0;$pane.Cancel.Enabled=$false
    $pane.Capture.Dispose();$pane.Capture=$null;$pane.Process=$null
     if((Get-Variable -Name View -Scope Script -ValueOnly -ErrorAction SilentlyContinue) -eq 'AI Workspace'){Update-EvidenceList $logBrowser $reportRoot}
-   if(-not $pane.Cancelled -and $code -eq 0 -and -not $script:DogMemoryPhotoShown){
-    $script:SuccessfulToolRunCount++
-    if($script:SuccessfulToolRunCount -ge 3){Show-DogMemoryPhoto}
-   }
   }
  }
  $count=@($script:RunPanes|Where-Object {$_.Capture}).Count

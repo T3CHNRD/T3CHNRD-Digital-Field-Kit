@@ -76,7 +76,8 @@ $script:Favorites=@($(foreach($saved in $script:Favorites){
 }) | Select-Object -Unique)
 $script:ReadyToolCount=@($script:ToolCatalog | Where-Object {$_.ready}).Count
 $script:AdminDefault = $true
-$script:SuccessfulToolRunCount=0
+$script:DogMemoryTapCount=0
+$script:DogMemoryLastTap=[DateTime]::MinValue
 $script:DogMemoryPhotoShown=$false
 
 $navy=[Drawing.Color]::FromArgb(7,48,72)
@@ -144,6 +145,15 @@ function Show-DogMemoryPhoto {
  }
 }
 
+function Register-DogMemoryTap {
+ if($script:DogMemoryPhotoShown){return}
+ $now=Get-Date
+ if(($now-$script:DogMemoryLastTap).TotalSeconds -gt 4){$script:DogMemoryTapCount=0}
+ $script:DogMemoryLastTap=$now
+ $script:DogMemoryTapCount++
+ if($script:DogMemoryTapCount -ge 3){Show-DogMemoryPhoto}
+}
+
 $layout=New-Object Windows.Forms.TableLayoutPanel
 $layout.Dock='Fill'
 $layout.RowCount=4
@@ -180,6 +190,8 @@ $title.Font=New-Object Drawing.Font('Segoe UI',23,[Drawing.FontStyle]::Bold)
 $title.ForeColor='White'
 $title.AutoSize=$true
 $title.Location=New-Object Drawing.Point(118,16)
+$title.Cursor='Hand'
+$title.Add_Click({Register-DogMemoryTap})
 $header.Controls.Add($title)
 
 $tag=New-Object Windows.Forms.Label

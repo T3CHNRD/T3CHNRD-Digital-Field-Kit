@@ -7,14 +7,20 @@ import SwiftUI
 final class DogMemoryEasterEgg: ObservableObject {
     @Published var presentedPhoto: DogMemoryPhoto?
 
-    private var successfulToolRunCount = 0
+    private var titleTapCount = 0
+    private var lastTitleTap = Date.distantPast
     private var didPresentPhoto = false
 
-    func recordToolCompletion(exitCode: Int32, wasCancelled: Bool, toolkitRoot: URL) {
-        guard exitCode == 0, !wasCancelled, !didPresentPhoto else { return }
+    func recordTitleTap(toolkitRoot: URL) {
+        guard !didPresentPhoto else { return }
 
-        successfulToolRunCount += 1
-        guard successfulToolRunCount >= 3 else { return }
+        let now = Date()
+        if now.timeIntervalSince(lastTitleTap) > 4 {
+            titleTapCount = 0
+        }
+        lastTitleTap = now
+        titleTapCount += 1
+        guard titleTapCount >= 3 else { return }
 
         let photoDirectory = toolkitRoot.appendingPathComponent("Assets/DogMemories", isDirectory: true)
         let photos = (try? FileManager.default.contentsOfDirectory(

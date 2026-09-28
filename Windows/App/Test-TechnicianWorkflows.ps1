@@ -69,24 +69,20 @@ try {
  foreach($dogPhoto in $dogPhotos){$image=[Drawing.Image]::FromFile($dogPhoto.FullName);try{if($image.Width -le 0 -or $image.Height -le 0){throw "Invalid dog photo: $($dogPhoto.Name)"}}finally{$image.Dispose()}}
  Write-Output 'PASS: all three bundled JPEGs load from the toolkit-relative asset folder.'
  function Show-DogMemoryPhoto{$script:DogMemoryPhotoShown=$true;$script:DogMemoryPhotoInvocations++}
- function Complete-TestTool([int]$ExitCode,[bool]$Cancelled=$false){
-  $pane=$script:RunPanes[0]
-  $capture=[pscustomobject]@{Output=[Collections.Concurrent.ConcurrentQueue[string]]::new();Finished=$true}
-  $capture|Add-Member -MemberType ScriptMethod -Name Dispose -Value {}
-  $pane.Capture=$capture;$pane.Process=[pscustomobject]@{ExitCode=$ExitCode};$pane.Log=Join-Path $testState 'mock-tool.log';$pane.Cancelled=$Cancelled
-  Update-RunPanes
- }
- $script:SuccessfulToolRunCount=0;$script:DogMemoryPhotoShown=$false;$script:DogMemoryPhotoInvocations=0
- Complete-TestTool 1
- Complete-TestTool 0 $true
- if($script:SuccessfulToolRunCount -ne 0 -or $script:DogMemoryPhotoShown){throw 'Failed or cancelled tools counted toward the photo surprise.'}
- Complete-TestTool 0
- Complete-TestTool 0
- if($script:SuccessfulToolRunCount -ne 2 -or $script:DogMemoryPhotoShown){throw 'The photo surprise appeared before three successful tools.'}
- Complete-TestTool 0
- Complete-TestTool 0
- if(-not $script:DogMemoryPhotoShown -or $script:DogMemoryPhotoInvocations -ne 1){throw 'The photo surprise did not appear exactly once after three successful tools.'}
- Write-Output 'PASS: Diva & Tarabyte surprise triggers once after three successful tools; failures and cancellations do not count.'
+ $script:DogMemoryTapCount=0;$script:DogMemoryLastTap=[DateTime]::MinValue;$script:DogMemoryPhotoShown=$false;$script:DogMemoryPhotoInvocations=0
+ $titleClick=$title.GetType().GetMethod('OnClick',[Reflection.BindingFlags]::Instance -bor [Reflection.BindingFlags]::NonPublic)
+ if(-not $titleClick){throw 'Could not invoke the app-title click handler.'}
+ $titleClick.Invoke($title,@([EventArgs]::Empty))
+ $titleClick.Invoke($title,@([EventArgs]::Empty))
+ if($script:DogMemoryPhotoShown -or $script:DogMemoryTapCount -ne 2){throw 'The photo surprise appeared before three title taps.'}
+ $titleClick.Invoke($title,@([EventArgs]::Empty))
+ if(-not $script:DogMemoryPhotoShown -or $script:DogMemoryPhotoInvocations -ne 1){throw 'Three title taps did not show the photo surprise.'}
+ $titleClick.Invoke($title,@([EventArgs]::Empty))
+ if($script:DogMemoryPhotoInvocations -ne 1){throw 'Additional taps showed the photo more than once.'}
+ $script:DogMemoryPhotoShown=$false;$script:DogMemoryTapCount=2;$script:DogMemoryLastTap=(Get-Date).AddSeconds(-5)
+ $titleClick.Invoke($title,@([EventArgs]::Empty))
+ if($script:DogMemoryPhotoShown -or $script:DogMemoryTapCount -ne 1){throw 'A title tap after the timeout did not reset the counter.'}
+ Write-Output 'PASS: three quick app-title taps show one photo; later taps do not repeat it, and a four-second pause resets the count.'
 
 
 }finally{$form.Close();$form.Dispose()}
