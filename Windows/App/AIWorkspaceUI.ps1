@@ -34,6 +34,21 @@ function Set-DivaByteResearchMode([string]$Mode){
  if($script:DivaByteResearchModes -notcontains $Mode){throw "Unsupported DivaByte research mode: $Mode"}
  $script:DivaByteResearchMode=$Mode
  Set-Content -LiteralPath $divaModePath -Value $Mode -Encoding UTF8
+ if($script:DivaByteCoreOnline){
+  try{Invoke-DivaByteApi -Method PUT -Path '/v1/research/mode' -Body @{mode=$Mode} | Out-Null}catch{}
+ }
+}
+
+. (Join-Path $appDirectory 'DivaByteClient.ps1')
+$script:DivaByteCaseId=$null
+$script:DivaByteCoreOnline=Start-DivaByteCore -ToolkitRoot $root -DataRoot $aiRoot -RunbookRoot $runbookRoot -ReportRoot $reportRoot
+if($script:DivaByteCoreOnline){
+ try{
+  $coreStatus=Get-DivaByteCoreStatus
+  if($coreStatus -and $script:DivaByteResearchModes -contains [string]$coreStatus.researchMode){
+   $script:DivaByteResearchMode=[string]$coreStatus.researchMode
+  }
+ }catch{}
 }
 
 $aiPanel=New-Object Windows.Forms.TabControl
@@ -52,7 +67,7 @@ $chatDraft.Multiline=$true;$chatDraft.ScrollBars='Vertical';$chatDraft.Dock='Fil
 $chatPage.Controls.Add($chatDraft)
 $chatStatus=New-Object Windows.Forms.Label
 $chatStatus.Dock='Top';$chatStatus.Height=70
-$chatStatus.Text='DivaByte local foundation is active: drafts, evidence, memory, Runbook editing, and research policy stay on this computer. The local LLM and live research engine are not connected yet.'
+$chatStatus.Text=if($script:DivaByteCoreOnline){'DivaByte Core is online. Local cases, evidence, memory, Runbook knowledge and deterministic analysis are available. Local LLM and live Internet research are not connected yet.'}else{'DivaByte Core is unavailable in this package. Local drafts, evidence browsing, memory and Runbook editing remain available.'}
 $chatPage.Controls.Add($chatStatus)
 
 $modeBar=New-Object Windows.Forms.FlowLayoutPanel;$modeBar.Dock='Top';$modeBar.Height=40
@@ -63,14 +78,78 @@ $researchModeCombo.SelectedItem=$script:DivaByteResearchMode
 [void]$modeBar.Controls.Add($modeLabel);[void]$modeBar.Controls.Add($researchModeCombo)
 $chatPage.Controls.Add($modeBar)
 
+$caseBar=New-Object Windows.Forms.FlowLayoutPanel
+$caseBar.Dock='Bottom';$caseBar.Height=42
+$chatPage.Controls.Add($caseBar)
+
 $saveDraft=New-Object Windows.Forms.Button
-$saveDraft.Dock='Bottom';$saveDraft.Height=38;$saveDraft.Text='Save case notes locally'
-$chatPage.Controls.Add($saveDraft)
+$saveDraft.AutoSize=$true;$saveDraft.Height=34;$saveDraft.Text='Save notes locally'
+[void]$caseBar.Controls.Add($saveDraft)
+
+$newCaseButton=New-Object Windows.Forms.Button
+$newCaseButton.AutoSize=$true;$newCaseButton.Height=34;$newCaseButton.Text='New diagnostic case'
+[void]$caseBar.Controls.Add($newCaseButton)
+
+$addCaseNoteButton=New-Object Windows.Forms.Button
+$addCaseNoteButton.AutoSize=$true;$addCaseNoteButton.Height=34;$addCaseNoteButton.Text='Add note to case'
+[void]$caseBar.Controls.Add($addCaseNoteButton)
+
+$analyzeCaseButton=New-Object Windows.Forms.Button
+$analyzeCaseButton.AutoSize=$true;$analyzeCaseButton.Height=34;$analyzeCaseButton.Text='Analyze case'
+[void]$caseBar.Controls.Add($analyzeCaseButton)
+
+$caseStateLabel=New-Object Windows.Forms.Label
+$caseStateLabel.AutoSize=$true;$caseStateLabel.Padding=New-Object Windows.Forms.Padding(8,8,0,0)
+$caseStateLabel.Text=if($script:DivaByteCoreOnline){'No active case'}else{'Core offline'}
+[void]$caseBar.Controls.Add($caseStateLabel)
+
 $draftPath=Join-Path $aiRoot 'Chat-Draft.txt'
 if(Test-Path -LiteralPath $draftPath){$chatDraft.Text=Get-Content -LiteralPath $draftPath -Raw -Encoding UTF8}
 $saveDraft.Add_Click({
  try{[IO.File]::WriteAllText($draftPath,$chatDraft.Text,[Text.Encoding]::UTF8);$chatStatus.Text='Case notes saved locally in DivaByte. Nothing was uploaded.'}
  catch{$chatStatus.Text='Could not save case notes: '+$_.Exception.Message}
+})
+
+function New-DivaByteCase {
+ if(-not $script:DivaByteCoreOnline){throw 'DivaByte Core is not online.'}
+ $title=($chatDraft.Text -split "(`r`n|`n)")[0].Trim()
+ if([string]::IsNullOrWhiteSpace($title)){$title='Field Kit Diagnostic Case'}
+ $case=Invoke-DivaByteApi -Method POST -Path '/v1/cases' -Body @{title=$title}
+ $script:DivaByteCaseId=[string]$case.id
+ $caseStateLabel.Text='Case: '+$script:DivaByteCaseId.Substring(0,8)
+ $chatStatus.Text='New DivaByte diagnostic case created locally.'
+ return $case
+}
+function Ensure-DivaByteCase {
+ if(-not $script:DivaByteCaseId){[void](New-DivaByteCase)}
+ return $script:DivaByteCaseId
+}
+function Save-DivaByteAnalysisResult($Result){
+ $name='Case-{0}-{1}.json' -f $script:DivaByteCaseId,(Get-Date -Format 'yyyyMMdd-HHmmss')
+ $path=Join-Path $aiResultsRoot $name
+ $Result | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $path -Encoding UTF8
+ Update-EvidenceList $resultBrowser $aiResultsRoot
+ $aiPanel.SelectedTab=$resultsPage
+ return $path
+}
+$newCaseButton.Add_Click({
+ try{[void](New-DivaByteCase)}catch{[Windows.Forms.MessageBox]::Show($_.Exception.Message,'DivaByte case')|Out-Null}
+})
+$addCaseNoteButton.Add_Click({
+ try{
+  $id=Ensure-DivaByteCase
+  if([string]::IsNullOrWhiteSpace($chatDraft.Text)){throw 'Enter a technician note or question first.'}
+  Invoke-DivaByteApi -Method POST -Path ('/v1/cases/'+$id+'/message') -Body @{text=$chatDraft.Text} | Out-Null
+  $chatStatus.Text='Technician note added to the active case. DivaByte will treat it as technician-provided context.'
+ }catch{[Windows.Forms.MessageBox]::Show($_.Exception.Message,'DivaByte case')|Out-Null}
+})
+$analyzeCaseButton.Add_Click({
+ try{
+  $id=Ensure-DivaByteCase
+  $result=Invoke-DivaByteApi -Method POST -Path ('/v1/cases/'+$id+'/analyze') -Body @{}
+  $saved=Save-DivaByteAnalysisResult $result
+  $chatStatus.Text='DivaByte analysis completed locally. Result saved: '+[IO.Path]::GetFileName($saved)
+ }catch{[Windows.Forms.MessageBox]::Show($_.Exception.Message,'DivaByte analysis')|Out-Null}
 })
 
 $script:EvidenceTextExtensions=@('.txt','.log','.json','.csv','.md','.xml','.html','.htm','.ps1','.psd1','.ini','.cfg','.yaml','.yml')
@@ -115,6 +194,15 @@ $logBrowser=New-EvidenceBrowser $logsPage
 $resultBrowser=New-EvidenceBrowser $resultsPage
 $refreshLogs=Add-WorkspaceButton $logBrowser.Bar 'Refresh logs' {Update-EvidenceList $logBrowser $reportRoot}
 $openLogs=Add-WorkspaceButton $logBrowser.Bar 'Open log folder' {Start-Process explorer.exe -ArgumentList ('"'+$reportRoot+'"')}
+$addEvidenceToCase=Add-WorkspaceButton $logBrowser.Bar 'Add selected to case' {
+ try{
+  if(-not $logBrowser.List.SelectedItem){throw 'Select an evidence file first.'}
+  $id=Ensure-DivaByteCase
+  $result=Invoke-DivaByteApi -Method POST -Path ('/v1/cases/'+$id+'/evidence') -Body @{path=$logBrowser.List.SelectedItem.Path}
+  if($result.duplicate){$chatStatus.Text='That evidence file is already attached to the active case.'}
+  else{$chatStatus.Text='Evidence attached to active case: '+[IO.Path]::GetFileName($logBrowser.List.SelectedItem.Path)}
+ }catch{[Windows.Forms.MessageBox]::Show($_.Exception.Message,'DivaByte evidence')|Out-Null}
+}
 $refreshResults=Add-WorkspaceButton $resultBrowser.Bar 'Refresh results' {Update-EvidenceList $resultBrowser $aiResultsRoot}
 $importResult=Add-WorkspaceButton $resultBrowser.Bar 'Import analysis document' {
  $dialog=New-Object Windows.Forms.OpenFileDialog;$dialog.Filter='Analysis documents|*.txt;*.md;*.json;*.csv'
@@ -146,6 +234,10 @@ function Refresh-DivaByteMemory {
 function Add-DivaByteMemoryEntry([string]$Type,[string]$Trust,[string]$Title,[string]$Body,[string]$Source='Technician'){
  if([string]::IsNullOrWhiteSpace($Title)){throw 'Memory title is required.'}
  if([string]::IsNullOrWhiteSpace($Body)){throw 'Memory details are required.'}
+ if($script:DivaByteCoreOnline){
+  $result=Invoke-DivaByteApi -Method POST -Path '/v1/memory' -Body @{type=$Type;trust=$Trust;title=$Title.Trim();body=$Body.Trim();source=$Source}
+  return [string]$result.memory.id
+ }
  $record=[ordered]@{id=[guid]::NewGuid().ToString('N');createdAt=(Get-Date).ToString('o');type=$Type;trust=$Trust;title=$Title.Trim();body=$Body.Trim();source=$Source}
  $path=Join-Path $divaMemoryRoot ((Get-Date -Format 'yyyyMMdd-HHmmss-fff')+'-'+$record.id+'.json')
  $record|ConvertTo-Json -Depth 6|Set-Content -LiteralPath $path -Encoding UTF8
@@ -239,7 +331,7 @@ Refresh-DivaByteRunbook
 
 $settings.Controls.Clear()
 Add-Setting 'Local settings and folders' ('Reports: '+$reportRoot+[Environment]::NewLine+'Preferences: '+$stateRoot+[Environment]::NewLine+'DivaByte: '+$aiRoot)
-Add-Setting 'DivaByte research policy' ('Current mode: '+$script:DivaByteResearchMode+[Environment]::NewLine+'Offline remains fully functional. Internet research is optional and policy-controlled.')
+Add-Setting 'DivaByte core and research policy' ('Core: '+$(if($script:DivaByteCoreOnline){'ONLINE'}else{'UNAVAILABLE'})+[Environment]::NewLine+'Research mode: '+$script:DivaByteResearchMode+[Environment]::NewLine+'Offline remains fully functional. Internet research is optional and policy-controlled.')
 $settingsLogs=Add-WorkspaceButton $settings 'Open diagnostic logs' {Start-Process explorer.exe -ArgumentList ('"'+$reportRoot+'"')}
 $settingsRunbook=Add-WorkspaceButton $settings 'Open runbook folder' {Start-Process explorer.exe -ArgumentList ('"'+$runbookRoot+'"')}
 $settingsAI=Add-WorkspaceButton $settings 'Open DivaByte folder' {Start-Process explorer.exe -ArgumentList ('"'+$aiRoot+'"')}
