@@ -78,7 +78,11 @@ It does not:
 
 The Field Kit automatically detects the administrator requirement.
 
-## Default run
+## HOW TO RUN
+
+From the app, open **System Management -> 24-Hour Sleep Hold** and click the tool card. It runs inside the Field Kit Run Center and requests administrator elevation when needed.
+
+### Default run
 
 Click:
 
