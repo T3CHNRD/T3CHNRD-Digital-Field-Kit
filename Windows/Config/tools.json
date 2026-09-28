@@ -843,8 +843,8 @@
   {
     "id": "tool-54",
     "name": "OneNote Duplicate Cleanup",
-    "category": "MIS",
-    "originalCategory": "MIS",
+    "category": "Misc",
+    "originalCategory": "Misc",
     "description": "Generic OneNote duplicate/untitled-page cleanup with optional staging import; no company, mapped-drive, or fixed notebook dependency.",
     "path": "Windows\\Scripts\\Documentation\\Invoke-MassDuplicateCleanup.ps1",
     "risk": "HighRisk",
@@ -858,8 +858,8 @@
   {
     "id": "tool-55",
     "name": "OneNote Smart-Skip Audit",
-    "category": "MIS",
-    "originalCategory": "MIS",
+    "category": "Misc",
+    "originalCategory": "Misc",
     "description": "Generic OneNote smart-skip staging importer that avoids duplicate page titles and preserves staged source files by default.",
     "path": "Windows\\Scripts\\Documentation\\Master-Audit-Smart-Skip.ps1",
     "risk": "HighRisk",
@@ -873,8 +873,8 @@
   {
     "id": "tool-56",
     "name": "OneNote Master Importer",
-    "category": "MIS",
-    "originalCategory": "MIS",
+    "category": "Misc",
+    "originalCategory": "Misc",
     "description": "Generic OneNote bulk importer for local or network folders into a selected/open notebook and target section.",
     "path": "Windows\\Scripts\\Documentation\\Master-OneNote-Importer.ps1",
     "risk": "HighRisk",
