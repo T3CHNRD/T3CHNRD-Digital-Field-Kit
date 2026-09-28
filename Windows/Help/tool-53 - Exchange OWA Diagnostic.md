@@ -129,7 +129,11 @@ This diagnostic does **not**:
 
 It is intended to collect evidence before a repair decision.
 
-## Running from the app
+## HOW TO RUN
+
+From the app, open **System Management -> Exchange OWA Diagnostic** and click the tool card. It runs read-only inside the Field Kit Run Center.
+
+### Running from the app
 
 Open:
 
