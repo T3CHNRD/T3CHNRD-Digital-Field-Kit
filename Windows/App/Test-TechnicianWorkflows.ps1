@@ -43,8 +43,8 @@ try {
  $rbSearch.Text='Sleep Hold'
  if($rbList.Items.Count -ne 1){throw 'Tool help search failed.'}
  Write-Output 'PASS: Run Center resize bounds, retained height, all 64 tool guides and help search.'
- $script:View='AI Workspace';Update-View
- if(-not $aiPanel.Visible){throw 'AI workspace navigation failed.'}
+ $script:View='DivaByte';Update-View
+ if(-not $aiPanel.Visible){throw 'DivaByte navigation failed.'}
  $draftPath=Join-Path $testState 'draft.txt'
  $chatDraft.Text='Test case question';$saveDraft.PerformClick()
  if((Get-Content $draftPath -Raw) -ne 'Test case question'){throw 'Chat draft did not save.'}
@@ -61,7 +61,7 @@ try {
  foreach($pane in $script:RunPanes){if($pane.Output.WordWrap -ne $wrapOutput.Checked){throw 'Output preference not applied.'}}
  if(-not(Test-Path $wrapPath)){throw 'Output preference did not persist.'}
  if(-not @($sideFlow.Controls | Where-Object Text -eq 'Log Files').Count){throw 'Missing log shortcut.'}
- Write-Output 'PASS: AI workspace navigation, local draft save, log preview and persisted settings.'
+ Write-Output 'PASS: DivaByte navigation, local draft save, log preview and persisted settings.'
 
  $dogPhotoDirectory=Join-Path $root 'Assets/DogMemories'
  $dogPhotos=@(Get-ChildItem -LiteralPath $dogPhotoDirectory -Filter 'Diva-Tarabyte-*.jpg' -File)
