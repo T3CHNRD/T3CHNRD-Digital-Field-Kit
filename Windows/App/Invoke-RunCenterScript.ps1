@@ -13,8 +13,11 @@ function global:Read-Host {
     [Console]::Out.Flush()
     $answer=[Console]::In.ReadLine()
     if($null -eq $answer){throw 'Run Center input stream was closed.'}
-    $prefixChars=[char[]]@([char]0xFEFF,[char]0x200B,[char]0x00EF,[char]0x00BB,[char]0x00BF)
-    $answer=$answer.TrimStart($prefixChars)
+    while($answer.Length -gt 0 -and @(
+        0xFEFF,0x200B,0x00EF,0x00BB,0x00BF,0xFFFD
+    ) -contains [int]$answer[0]){
+        $answer=$answer.Substring(1)
+    }
     if($AsSecureString){
         $secure=New-Object Security.SecureString
         foreach($character in $answer.ToCharArray()){$secure.AppendChar($character)}
