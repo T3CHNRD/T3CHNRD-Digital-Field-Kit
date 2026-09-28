@@ -58,6 +58,7 @@ $required=@(
     'Windows\App\AIWorkspaceUI.ps1'
     'DivaByte\README.md'
     'DivaByte\ARCHITECTURE.md'
+    'DivaByte\CORE-API.md'
     'DivaByte\Config\DivaByte.Settings.json'
     'DivaByte\Schemas\memory-entry.schema.json'
     'DivaByte\Schemas\analysis-result.schema.json'
