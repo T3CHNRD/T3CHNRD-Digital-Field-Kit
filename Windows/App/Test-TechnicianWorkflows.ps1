@@ -51,6 +51,7 @@ try {
  Set-Content (Join-Path $testState 'sample.log') 'Example diagnostic evidence'
  $aiPanel.SelectedTab=$logsPage
  Update-EvidenceList $logBrowser $testState
+ $logBrowser.List.SelectedIndex=-1
  for($i=0;$i -lt $logBrowser.List.Items.Count;$i++){
     if($logBrowser.List.Items[$i].Path -eq (Join-Path $testState 'sample.log')){$logBrowser.List.SelectedIndex=$i;break}
  }
