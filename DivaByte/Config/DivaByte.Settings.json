@@ -1,0 +1,18 @@
+{
+  "name": "DivaByte",
+  "defaultResearchMode": "Ask Before Researching",
+  "supportedResearchModes": [
+    "Offline",
+    "Local + Research",
+    "Ask Before Researching"
+  ],
+  "memoryEnabled": true,
+  "runbookReadEnabled": true,
+  "runbookWriteEnabled": true,
+  "runbookWriteRequiresTechnicianApproval": true,
+  "internetResearchOptional": true,
+  "autoExecuteRepairs": false,
+  "requireEvidenceForConclusions": true,
+  "requireContradictingEvidenceSearch": true,
+  "localInferenceBindAddress": "127.0.0.1"
+}
