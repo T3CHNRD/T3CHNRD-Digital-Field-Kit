@@ -67,9 +67,9 @@ function Get-PowerValue([string]$Scheme,[string]$Subgroup,[string]$Setting){
 }
 function Set-PowerValue([string]$Scheme,[string]$Subgroup,[string]$Setting,[int]$AC,[int]$DC,[bool]$Required=$true){
  $a=powercfg /setacvalueindex $Scheme $Subgroup $Setting ($AC*60) 2>&1
- if($LASTEXITCODE -ne 0){if($Required){throw "Failed setting AC $Setting: $a"}else{return}}
+ if($LASTEXITCODE -ne 0){if($Required){throw "Failed setting AC $($Setting): $a"}else{return}}
  $d=powercfg /setdcvalueindex $Scheme $Subgroup $Setting ($DC*60) 2>&1
- if($LASTEXITCODE -ne 0){if($Required){throw "Failed setting DC $Setting: $d"}else{return}}
+ if($LASTEXITCODE -ne 0){if($Required){throw "Failed setting DC $($Setting): $d"}else{return}}
  powercfg /setactive $Scheme | Out-Null
 }
 function Get-ShutdownTasks {
