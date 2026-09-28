@@ -38,7 +38,7 @@ try {
  if($layout.RowStyles[2].Height -gt ($layout.ClientSize.Height-310)){throw 'Run Center exceeded layout bounds.'}
  foreach($tool in $script:ToolCatalog){
   Show-ToolHelp $tool.Id
-  if(-not $rbView.Text.StartsWith($tool.Name) -or $rbView.Text -notmatch 'HOW TO RUN'){throw ('Missing help for '+$tool.Id)}
+  if($rbView.Text -notmatch ('(?m)^\s*#*\s*'+[regex]::Escape($tool.Name)) -or $rbView.Text -notmatch 'HOW TO RUN'){throw ('Missing help for '+$tool.Id)}
  }
  $rbSearch.Text='Sleep Hold'
  if($rbList.Items.Count -ne 1){throw 'Tool help search failed.'}
