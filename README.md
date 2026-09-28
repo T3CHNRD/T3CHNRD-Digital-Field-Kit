@@ -114,8 +114,10 @@ The repo includes:
 - Windows/Config — catalog manifest and toolkit settings
 - Windows/Installer — install/uninstall workflow
 - Windows/Scripts — restored tool scripts and support utilities
+- Assets/DogMemories — portable JPEGs shared by Windows and Mac apps
 - Runbook — operator documents and support references
 - Diagnostic-Reports — runtime-generated logs and diagnostic reports
+- macOS Shared — Mac dog-memory Easter egg source reused by both targets
 - macOS Intel — placeholder for the future Intel native build
 - macOS Apple Silicon — placeholder for the future Apple Silicon native build
 

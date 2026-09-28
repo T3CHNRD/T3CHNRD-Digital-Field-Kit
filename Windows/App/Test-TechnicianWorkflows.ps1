@@ -63,6 +63,31 @@ try {
  if(-not @($sideFlow.Controls | Where-Object Text -eq 'Log Files').Count){throw 'Missing log shortcut.'}
  Write-Output 'PASS: AI workspace navigation, local draft save, log preview and persisted settings.'
 
+ $dogPhotoDirectory=Join-Path $root 'Assets/DogMemories'
+ $dogPhotos=@(Get-ChildItem -LiteralPath $dogPhotoDirectory -Filter 'Diva-Tarabyte-*.jpg' -File)
+ if($dogPhotos.Count -ne 3){throw "Expected three portable Diva & Tarabyte JPEGs; found $($dogPhotos.Count)."}
+ foreach($dogPhoto in $dogPhotos){$image=[Drawing.Image]::FromFile($dogPhoto.FullName);try{if($image.Width -le 0 -or $image.Height -le 0){throw "Invalid dog photo: $($dogPhoto.Name)"}}finally{$image.Dispose()}}
+ Write-Output 'PASS: all three bundled JPEGs load from the toolkit-relative asset folder.'
+ function Show-DogMemoryPhoto{$script:DogMemoryPhotoShown=$true;$script:DogMemoryPhotoInvocations++}
+ function Complete-TestTool([int]$ExitCode,[bool]$Cancelled=$false){
+  $pane=$script:RunPanes[0]
+  $capture=[pscustomobject]@{Output=[Collections.Concurrent.ConcurrentQueue[string]]::new();Finished=$true}
+  $capture|Add-Member -MemberType ScriptMethod -Name Dispose -Value {}
+  $pane.Capture=$capture;$pane.Process=[pscustomobject]@{ExitCode=$ExitCode};$pane.Log=Join-Path $testState 'mock-tool.log';$pane.Cancelled=$Cancelled
+  Update-RunPanes
+ }
+ $script:SuccessfulToolRunCount=0;$script:DogMemoryPhotoShown=$false;$script:DogMemoryPhotoInvocations=0
+ Complete-TestTool 1
+ Complete-TestTool 0 $true
+ if($script:SuccessfulToolRunCount -ne 0 -or $script:DogMemoryPhotoShown){throw 'Failed or cancelled tools counted toward the photo surprise.'}
+ Complete-TestTool 0
+ Complete-TestTool 0
+ if($script:SuccessfulToolRunCount -ne 2 -or $script:DogMemoryPhotoShown){throw 'The photo surprise appeared before three successful tools.'}
+ Complete-TestTool 0
+ Complete-TestTool 0
+ if(-not $script:DogMemoryPhotoShown -or $script:DogMemoryPhotoInvocations -ne 1){throw 'The photo surprise did not appear exactly once after three successful tools.'}
+ Write-Output 'PASS: Diva & Tarabyte surprise triggers once after three successful tools; failures and cancellations do not count.'
+
 
 }finally{$form.Close();$form.Dispose()}
 '@

@@ -105,6 +105,11 @@ Evidence: implementation commits d691d35 through fffd892; automated Windows test
 - [ ] NEEDS FIELD TEST - Successfully install/update from the branded installer, verify installed EXE hash and timestamp, shortcuts, launch, and uninstall. Do not count the lock-preflight rejection as an installation pass.
 - [ ] NEEDS FIELD TEST - Complete display-scaling, portable-drive, full UI interaction, and diagnostic-category checks on the target Windows device.
 
+## 2026-09-28 PORTABLE DOG-MEMORY EASTER EGG
+- [x] PASS (automated workflow test) - Windows loads three bundled JPEGs relative to the toolkit root and shows one random photo after three successful tool runs; failures and cancellations do not count.
+- [x] STATIC PASS - Added shared SwiftUI helper using the same root-relative JPEGs for both future Mac targets.
+- [ ] NEEDS MAC APP - Compile the shared helper into both native Mac apps, wire it to tool completion and validate from a USB/portable SSD. The Mac app folders remain placeholders, so this integration is not yet runnable.
+
 ## HISTORICAL ENTRIES
 Earlier dated sections retain original findings/counts as history. The September 22 snapshot and completion section supersede stale counts and execution details; unchecked field-test items remain open unless explicitly closed with evidence.
 

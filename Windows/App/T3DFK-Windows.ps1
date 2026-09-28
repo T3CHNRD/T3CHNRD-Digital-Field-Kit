@@ -76,6 +76,8 @@ $script:Favorites=@($(foreach($saved in $script:Favorites){
 }) | Select-Object -Unique)
 $script:ReadyToolCount=@($script:ToolCatalog | Where-Object {$_.ready}).Count
 $script:AdminDefault = $true
+$script:SuccessfulToolRunCount=0
+$script:DogMemoryPhotoShown=$false
 
 $navy=[Drawing.Color]::FromArgb(7,48,72)
 $dark=[Drawing.Color]::FromArgb(3,22,31)
@@ -96,6 +98,51 @@ $form.Font=New-Object Drawing.Font('Segoe UI',10)
 $form.FormBorderStyle='Sizable'
 $form.MaximizeBox=$true
 $form.MinimizeBox=$true
+
+function Show-DogMemoryPhoto {
+ if($script:DogMemoryPhotoShown){return}
+ $script:DogMemoryPhotoShown=$true
+ $photoDirectory=Join-Path $root 'Assets\DogMemories'
+ $photoPaths=@(Get-ChildItem -LiteralPath $photoDirectory -Filter 'Diva-Tarabyte-*.jpg' -File -ErrorAction SilentlyContinue | Sort-Object Name | ForEach-Object FullName)
+ if(-not $photoPaths.Count){return}
+ $loaded=$null;$photo=$null;$dialog=$null
+ try{
+  $loaded=[Drawing.Image]::FromFile(($photoPaths | Get-Random))
+  $photo=New-Object Drawing.Bitmap($loaded)
+
+  $dialog=New-Object Windows.Forms.Form
+  $dialog.Text='A little memory of Diva & Tarabyte'
+  $dialog.StartPosition='CenterParent'
+  $dialog.FormBorderStyle='FixedDialog'
+  $dialog.MaximizeBox=$false
+  $dialog.MinimizeBox=$false
+  $dialog.ShowInTaskbar=$false
+  $dialog.ClientSize=New-Object Drawing.Size(560,700)
+  $dialog.BackColor=[Drawing.Color]::FromArgb(240,246,250)
+  $picture=New-Object Windows.Forms.PictureBox
+  $picture.Location=New-Object Drawing.Point(20,20)
+  $picture.Size=New-Object Drawing.Size(520,600)
+  $picture.SizeMode='Zoom'
+  $picture.BackColor='White'
+  $picture.Image=$photo
+  $dialog.Controls.Add($picture)
+  $caption=New-Object Windows.Forms.Label
+  $caption.Text='Diva & Tarabyte'
+  $caption.Font=New-Object Drawing.Font('Segoe UI',16,[Drawing.FontStyle]::Bold)
+  $caption.ForeColor=[Drawing.Color]::FromArgb(18,40,74)
+  $caption.TextAlign='MiddleCenter'
+  $caption.Location=New-Object Drawing.Point(20,630)
+  $caption.Size=New-Object Drawing.Size(520,44)
+  $dialog.Controls.Add($caption)
+  [void]$dialog.ShowDialog($form)
+ }catch{
+  Write-Run ('Could not show the Diva & Tarabyte photo: '+$_.Exception.Message)
+ }finally{
+  if($dialog){$dialog.Dispose()}
+  if($photo){$photo.Dispose()}
+  if($loaded){$loaded.Dispose()}
+ }
+}
 
 $layout=New-Object Windows.Forms.TableLayoutPanel
 $layout.Dock='Fill'
