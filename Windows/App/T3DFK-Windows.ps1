@@ -286,7 +286,7 @@ $sideFlow.Padding=New-Object Windows.Forms.Padding(10,14,10,10)
 $side.Controls.Add($sideFlow)
 
 $cats=@{}
-foreach($n in @('All Tools','Diagnostics','Repair','Optimization','Security','Network','Deployment','MIS','System Management')){
+foreach($n in @('All Tools','Diagnostics','Repair','Optimization','Security','Network','Deployment','Misc','System Management')){
  $b=New-Object Windows.Forms.Button
  $b.Text=if($n -eq 'Runbook'){'Help / Runbook'}else{$n}
  $b.Size=New-Object Drawing.Size(196,42)
