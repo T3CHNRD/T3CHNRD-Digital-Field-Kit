@@ -126,6 +126,10 @@ Use only when you are sure the staging folder is disposable.
 .\Master-Audit-Smart-Skip.ps1 -RemoveProcessedFiles
 ```
 
+## HOW TO RUN
+
+From the app, open **Misc -> OneNote Smart-Skip Audit** and click the tool card. The default behavior preserves staged source files; use `-RemoveProcessedFiles` only when you intentionally want staged files deleted after processing.
+
 ## Recommended workflow
 
 1. Open the destination notebook in OneNote desktop.
