@@ -1,45 +1,261 @@
-Exchange OWA Diagnostic
-=======================
+# Exchange OWA Diagnostic
 
-WHAT IT DOES
-Site-specific Exchange/OWA troubleshooting utility.
+## What this tool does
 
-LOCATION
-System Management > Exchange OWA Diagnostic
+**Exchange OWA Diagnostic** is a generic, read-only troubleshooting tool for Microsoft Exchange Outlook on the web (OWA), IIS, and related Exchange web services.
 
-HOW TO RUN
-This card is disabled: configuration and validation are required before use.
-Disabled in the app until adapted and validated for the target Exchange environment. The original expects elevated Exchange Management Shell on ALBL-EXCH2019. Configure server name, webmail host/URLs, monitor IP, request ID, incident time and IIS/Exchange log paths. It diagnoses availability without restarting services or recycling pools.
+The Field Kit version is portable and is not tied to a specific company, Exchange server, webmail hostname, monitoring service, IP address, request ID, incident date, or fixed log path.
 
-BEFORE YOU START
-The Windows app requests administrator elevation at startup. This tool is catalogued as read-only.
+## When to use it
 
-RESULTS AND CONTROLS
-Select the tool tab in Run Center to read output and its exit code. Drag the bar above the tabs to resize the panel. Hide panel keeps the tool running. Cancel tool stops its process tree and does not undo completed changes. Up to two tools can run; avoid concurrent tools that change the same settings. Run Center logs are saved under Diagnostic-Reports (ProgramData\T3DFK for an installed copy); individual tools can report additional output locations.
+Use it when users or monitoring report problems such as:
 
-BUNDLED SCRIPT
-Windows\Scripts\Server\Troubleshoot-Exchange-OWA.ps1
-Configured arguments: (defaults)
+- OWA/webmail is unavailable,
+- OWA availability is flapping,
+- the login page opens intermittently,
+- external OWA fails while local OWA works,
+- HTTP 440 appears in monitoring or IIS logs,
+- Exchange web app pools appear unhealthy,
+- you need evidence before deciding whether the problem is IIS, Exchange, DNS, TLS, routing, proxying, or monitoring.
 
-ORIGINAL SCRIPT DOCUMENTATION
-.SYNOPSIS
-    Troubleshoots Exchange OWA/webmail availability flapping.
+## What it checks
 
-.DESCRIPTION
-    This script checks:
-    - IIS app pool state for OWA/ECP/Exchange services
-    - Core IIS and Exchange services
-    - Exchange Server health
-    - Server component state
-    - OWA/ECP virtual directory configuration
-    - DNS resolution for webmail hostname
-    - Local and external OWA HTTP response behavior
-    - IIS W3SVC logs for monitor IP, HTTP 440, OWA path, and request ID
-    - Exchange HttpProxy\Owa logs for monitor IP, HTTP 440, and request ID
-    - Basic notes about possible false-positive monitoring if HTTP 440 is treated as down
+### Windows / PowerShell context
 
-.NOTES
-    Run from elevated Exchange Management Shell on ALBL-EXCH2019.
+Records:
 
-    This script is read-only/diagnostic.
-    It does not restart services, recycle app pools, or change Exchange/IIS configuration.
+- computer name,
+- current user,
+- PowerShell version,
+- elevation state.
+
+### IIS
+
+Attempts to inspect Exchange-related IIS application pools including names associated with:
+
+- OWA,
+- ECP,
+- Autodiscover,
+- MAPI,
+- RPC,
+- Sync,
+- PowerShell,
+- Exchange.
+
+### Services
+
+Lists:
+
+- IIS `W3SVC`,
+- IIS `WAS`,
+- detected `MSExchange*` services.
+
+### Exchange Management Shell
+
+If Exchange cmdlets are available, it uses them automatically.
+
+Possible checks include:
+
+- `Test-ServiceHealth`
+- `Get-ServerHealth`
+- `Get-ServerComponentState`
+- `Get-OwaVirtualDirectory`
+- `Get-EcpVirtualDirectory`
+
+If those cmdlets are unavailable, the rest of the diagnostic still runs.
+
+### HTTP
+
+Tests:
+
+- local OWA, default `https://localhost/owa`,
+- optional external OWA URL.
+
+It records:
+
+- HTTP status,
+- response time,
+- server header when available,
+- request ID when available,
+- error information.
+
+### DNS
+
+If a webmail hostname is supplied, the tool runs DNS resolution for it.
+
+### Windows events
+
+Reviews recent relevant warnings/errors from:
+
+- Application log,
+- System log,
+- IIS/WAS providers,
+- .NET/Application Error,
+- Exchange providers,
+- Schannel,
+- TCP/IP,
+- Service Control Manager.
+
+### IIS / Exchange logs
+
+The script dynamically looks for:
+
+`%SystemDrive%\inetpub\logs\LogFiles`
+
+and, when Exchange is installed, reads the Exchange install path from the registry and looks for:
+
+`Logging\HttpProxy\Owa`
+
+It can search recent logs for:
+
+- OWA requests,
+- HTTP 440,
+- optional monitor IP,
+- optional request ID.
+
+## What it does NOT do
+
+This diagnostic does **not**:
+
+- restart Exchange services,
+- restart IIS,
+- recycle app pools,
+- modify virtual directories,
+- change authentication,
+- change DNS,
+- change firewall rules,
+- modify certificates,
+- modify Exchange configuration.
+
+It is intended to collect evidence before a repair decision.
+
+## Running from the app
+
+Open:
+
+**System Management -> Exchange OWA Diagnostic**
+
+With no parameters, it analyzes the local computer and attempts:
+
+`https://localhost/owa`
+
+This is useful when running directly on an Exchange server.
+
+## Optional parameters
+
+### External OWA URL
+
+```powershell
+.\Troubleshoot-Exchange-OWA-Portable.ps1 -ExternalOwaUrl "https://mail.example.com/owa"
+```
+
+### Webmail hostname
+
+```powershell
+.\Troubleshoot-Exchange-OWA-Portable.ps1 -WebmailHost "mail.example.com"
+```
+
+If only `-WebmailHost` is supplied, the tool builds:
+
+`https://<host>/owa`
+
+for the external OWA test.
+
+### Exchange server name
+
+```powershell
+.\Troubleshoot-Exchange-OWA-Portable.ps1 -ServerName "EXCH01"
+```
+
+### Lookback period
+
+Default:
+
+**24 hours**
+
+Example:
+
+```powershell
+.\Troubleshoot-Exchange-OWA-Portable.ps1 -LookbackHours 12
+```
+
+### Monitor IP
+
+Useful when a monitoring system is repeatedly hitting OWA:
+
+```powershell
+.\Troubleshoot-Exchange-OWA-Portable.ps1 -MonitorIp "192.0.2.25"
+```
+
+### Request ID
+
+Useful when a specific IIS/Exchange request ID is already known:
+
+```powershell
+.\Troubleshoot-Exchange-OWA-Portable.ps1 -RequestId "REQUEST-ID-HERE"
+```
+
+## Understanding HTTP 440
+
+A 440 response in Exchange OWA commonly relates to an OWA login/session timeout.
+
+The tool deliberately does **not** interpret a 440 alone as proof that OWA is down.
+
+Correlate:
+
+- local vs external OWA,
+- IIS app-pool state,
+- Exchange health,
+- monitor IP,
+- request ID,
+- nearby IIS/HttpProxy entries,
+- event logs.
+
+## Reports
+
+When run through the Field Kit, reports are saved under the Field Kit diagnostic report directory in a folder similar to:
+
+`Exchange-OWA_COMPUTERNAME_YYYY-MM-DD_HHMMSS`
+
+Main report:
+
+`Exchange-OWA-Diagnostic.txt`
+
+## How to interpret common patterns
+
+### Local OWA works, external OWA fails
+
+Investigate:
+
+- DNS,
+- firewall,
+- NAT,
+- reverse proxy,
+- load balancer,
+- TLS/certificate path,
+- external routing.
+
+### Local and external OWA both fail
+
+Focus more heavily on:
+
+- IIS,
+- OWA/ECP app pools,
+- Exchange services,
+- Exchange server health,
+- server components,
+- local certificate/service errors.
+
+### Monitoring reports down but users can open OWA
+
+Correlate the monitor IP and HTTP status in IIS/HttpProxy logs. A monitor may be treating an expected authentication/session response as a service outage.
+
+## Preserved original
+
+The original supplied site-specific diagnostic remains unchanged at:
+
+`Windows\Scripts\Server\Troubleshoot-Exchange-OWA.ps1`
+
+The app runs the portable adaptation:
+
+`Windows\Scripts\FieldKit\Troubleshoot-Exchange-OWA-Portable.ps1`
