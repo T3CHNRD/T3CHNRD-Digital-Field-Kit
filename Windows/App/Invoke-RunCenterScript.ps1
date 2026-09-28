@@ -5,13 +5,21 @@ param(
 )
 $ErrorActionPreference='Stop'
 
+$script:RunCenterInputReader=[IO.StreamReader]::new(
+    [Console]::OpenStandardInput(),
+    [Text.UTF8Encoding]::new($false),
+    $true,
+    4096,
+    $true
+)
+
 # ConsoleHost's Read-Host bypasses redirected stdout when no console exists.
 # Keep original tools unchanged and provide the same line-input contract here.
 function global:Read-Host {
     param([object]$Prompt, [switch]$AsSecureString)
     [Console]::Out.WriteLine(([string]$Prompt + ':'))
     [Console]::Out.Flush()
-    $answer=[Console]::In.ReadLine()
+    $answer=$script:RunCenterInputReader.ReadLine()
     if($null -eq $answer){throw 'Run Center input stream was closed.'}
     # Redirected Windows PowerShell stdin can prepend a Unicode BOM/format mark.
     # Remove only leading format/BOM marker characters; preserve normal user input.
