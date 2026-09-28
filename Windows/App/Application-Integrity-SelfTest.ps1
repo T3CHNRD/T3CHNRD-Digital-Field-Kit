@@ -56,6 +56,12 @@ $required=@(
     'Windows\App\RunCenterProcess.cs'
     'Windows\App\RunCenterUI.ps1'
     'Windows\App\AIWorkspaceUI.ps1'
+    'DivaByte\README.md'
+    'DivaByte\ARCHITECTURE.md'
+    'DivaByte\Config\DivaByte.Settings.json'
+    'DivaByte\Schemas\memory-entry.schema.json'
+    'DivaByte\Schemas\analysis-result.schema.json'
+    'DivaByte\Prompts\root-cause-system.md'
     'Windows\App\T3DFK.ico'
     'Windows\App\Invoke-RunCenterScript.ps1'
 )
