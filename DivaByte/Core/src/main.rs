@@ -127,6 +127,7 @@ struct CaseRecord {
 struct MemoryRecord {
     id: String,
     created_at: String,
+    #[serde(rename = "type")]
     entry_type: String,
     trust: String,
     title: String,
