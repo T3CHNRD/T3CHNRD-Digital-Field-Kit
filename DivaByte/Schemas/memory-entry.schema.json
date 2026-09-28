@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DivaByte Memory Entry",
+  "type": "object",
+  "required": [
+    "id",
+    "createdAt",
+    "type",
+    "trust",
+    "title",
+    "body",
+    "source"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string"
+    },
+    "type": {
+      "enum": [
+        "Observation",
+        "Confirmed Root Cause",
+        "Successful Fix",
+        "Failed Fix",
+        "Disproven Hypothesis",
+        "Technician Correction",
+        "Research Note"
+      ]
+    },
+    "trust": {
+      "enum": [
+        "Unverified Note",
+        "Technician Observation",
+        "Confirmed Local Knowledge",
+        "Cached Research"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "body": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidenceIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "researchSources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}
