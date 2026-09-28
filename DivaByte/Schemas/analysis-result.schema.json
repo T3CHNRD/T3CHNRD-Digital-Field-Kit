@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DivaByte Analysis Result",
+  "type": "object",
+  "required": [
+    "incidentSummary",
+    "facts",
+    "hypotheses",
+    "unknowns",
+    "nextDiagnostics"
+  ],
+  "properties": {
+    "incidentSummary": {
+      "type": "string"
+    },
+    "facts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "claim",
+          "evidenceIds"
+        ],
+        "properties": {
+          "claim": {
+            "type": "string"
+          },
+          "evidenceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "hypotheses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "cause",
+          "confidence",
+          "supportingEvidence",
+          "contradictingEvidence",
+          "whatWouldDisproveIt"
+        ],
+        "properties": {
+          "cause": {
+            "type": "string"
+          },
+          "confidence": {
+            "enum": [
+              "Low",
+              "Medium",
+              "High",
+              "Confirmed"
+            ]
+          },
+          "supportingEvidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contradictingEvidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "whatWouldDisproveIt": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "memoryInfluence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "runbookSources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "externalResearch": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "retrievedAt": {
+            "type": "string"
+          },
+          "claim": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nextDiagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tool": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "risk": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
