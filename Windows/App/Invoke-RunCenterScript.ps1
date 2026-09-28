@@ -13,11 +13,9 @@ function global:Read-Host {
     [Console]::Out.Flush()
     $answer=[Console]::In.ReadLine()
     if($null -eq $answer){throw 'Run Center input stream was closed.'}
-    while($answer.Length -gt 0 -and @(
-        0xFEFF,0x200B,0x00EF,0x00BB,0x00BF,0xFFFD
-    ) -contains [int]$answer[0]){
-        $answer=$answer.Substring(1)
-    }
+    # Redirected Windows PowerShell stdin can prepend a Unicode BOM/format mark.
+    # Remove only leading format/BOM marker characters; preserve normal user input.
+    $answer=[Text.RegularExpressions.Regex]::Replace($answer,'^[\p{Cf}\u00EF\u00BB\u00BF\uFFFD]+','')
     if($AsSecureString){
         $secure=New-Object Security.SecureString
         foreach($character in $answer.ToCharArray()){$secure.AppendChar($character)}
