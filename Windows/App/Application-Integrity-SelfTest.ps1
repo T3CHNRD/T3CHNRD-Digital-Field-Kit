@@ -71,7 +71,7 @@ try{
     foreach($entry in $parsed){$tools+=$entry}
     Result PASS ("Tool manifest parsed: {0} entries" -f $tools.Count)
 
-    $allowedCategories=@('Diagnostics','Repair','Optimization','Security','Network','Deployment','MIS','System Management')
+    $allowedCategories=@('Diagnostics','Repair','Optimization','Security','Network','Deployment','Misc','System Management')
     $categoryMap=@{
         Diagnostics='Diagnostics'
         Security='Security'
@@ -81,7 +81,7 @@ try{
         Updates='Optimization'
         Setup='Deployment'
         Advanced='System Management'
-        MIS='MIS'
+        MIS='Misc'
     }
 
     $duplicateIds=@($tools|Group-Object id|Where-Object Count -gt 1)
