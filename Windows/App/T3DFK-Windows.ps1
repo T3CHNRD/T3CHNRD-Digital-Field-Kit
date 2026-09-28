@@ -311,7 +311,7 @@ $sep.Width=190
 $sep.Height=12
 $sep.BorderStyle='Fixed3D'
 $sideFlow.Controls.Add($sep)
-foreach($n in @('Log Files','AI Workspace','Favorites','Recent','Runbook','Settings')){
+foreach($n in @('Log Files','DivaByte','Favorites','Recent','Runbook','Settings')){
  $b=New-Object Windows.Forms.Button
  $b.Text=if($n -eq 'Runbook'){'Help / Runbook'}else{$n}
  $b.Size=New-Object Drawing.Size(196,42)
