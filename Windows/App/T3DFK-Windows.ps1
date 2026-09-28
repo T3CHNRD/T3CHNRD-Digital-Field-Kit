@@ -79,6 +79,11 @@ $script:AdminDefault = $true
 $script:DogMemoryTapCount=0
 $script:DogMemoryLastTap=[DateTime]::MinValue
 $script:DogMemoryPhotoOpen=$false
+$script:DogMemoryPhotoAttribution=@{
+ 'Diva-Tarabyte-01.jpg'='Diva'
+ 'Diva-Tarabyte-02.jpg'='Diva'
+ 'Diva-Tarabyte-03.jpg'='Tarabyte'
+}
 
 $navy=[Drawing.Color]::FromArgb(7,48,72)
 $dark=[Drawing.Color]::FromArgb(3,22,31)
@@ -103,16 +108,18 @@ $form.MinimizeBox=$true
 function Show-DogMemoryPhoto {
  if($script:DogMemoryPhotoOpen){return}
  $photoDirectory=Join-Path $root 'Assets\DogMemories'
- $photoPaths=@(Get-ChildItem -LiteralPath $photoDirectory -Filter 'Diva-Tarabyte-*.jpg' -File -ErrorAction SilentlyContinue | Sort-Object Name | ForEach-Object FullName)
+ $photoPaths=@(Get-ChildItem -LiteralPath $photoDirectory -Filter 'Diva-Tarabyte-*.jpg' -File -ErrorAction SilentlyContinue | Where-Object {$script:DogMemoryPhotoAttribution.ContainsKey($_.Name)} | Sort-Object Name | ForEach-Object FullName)
  if(-not $photoPaths.Count){return}
  $script:DogMemoryPhotoOpen=$true
  $loaded=$null;$photo=$null;$dialog=$null
  try{
-  $loaded=[Drawing.Image]::FromFile(($photoPaths | Get-Random))
+  $selectedPath=$photoPaths | Get-Random
+  $dogName=$script:DogMemoryPhotoAttribution[[IO.Path]::GetFileName($selectedPath)]
+  $loaded=[Drawing.Image]::FromFile($selectedPath)
   $photo=New-Object Drawing.Bitmap($loaded)
 
   $dialog=New-Object Windows.Forms.Form
-  $dialog.Text='A little memory of Diva & Tarabyte'
+  $dialog.Text='A little memory of '+$dogName
   $dialog.StartPosition='CenterParent'
   $dialog.FormBorderStyle='FixedDialog'
   $dialog.MaximizeBox=$false
@@ -128,8 +135,8 @@ function Show-DogMemoryPhoto {
   $picture.Image=$photo
   $dialog.Controls.Add($picture)
   $caption=New-Object Windows.Forms.Label
-  $caption.Text='Diva & Tarabyte'
-  $caption.Font=New-Object Drawing.Font('Segoe UI',16,[Drawing.FontStyle]::Bold)
+  $caption.Text='This app is brought to you by '+$dogName
+  $caption.Font=New-Object Drawing.Font('Segoe UI',13,[Drawing.FontStyle]::Bold)
   $caption.ForeColor=[Drawing.Color]::FromArgb(18,40,74)
   $caption.TextAlign='MiddleCenter'
   $caption.Location=New-Object Drawing.Point(20,630)

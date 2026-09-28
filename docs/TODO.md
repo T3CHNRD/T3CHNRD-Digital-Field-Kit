@@ -106,9 +106,10 @@ Evidence: implementation commits d691d35 through fffd892; automated Windows test
 - [ ] NEEDS FIELD TEST - Complete display-scaling, portable-drive, full UI interaction, and diagnostic-category checks on the target Windows device.
 
 ## 2026-09-28 PORTABLE DOG-MEMORY EASTER EGG
-- [x] PASS (automated workflow test) - Windows title reveals one random bundled JPEG after three quick taps; closing it rearms the gesture for another reveal, and a four-second pause resets the tap count.
-- [x] STATIC PASS - Shared SwiftUI helper uses the same toolkit-root JPEGs and repeatable three-tap title gesture for both future Mac targets.
-- [ ] NEEDS MAC APP - Compile the shared helper into both native Mac apps, wire title taps to `recordTitleTap(toolkitRoot:)` and sheet dismissal to `dismissPhoto()`, and validate from a USB/portable SSD. The Mac app folders remain placeholders, so this integration is not yet runnable.
+- [x] PASS (automated workflow test) - Windows title reveals a random bundled JPEG after three quick taps, captions it "This app is brought to you by Diva/Tarabyte" according to the image, rearms after close, and resets the tap count after four seconds.
+- [x] STATIC PASS - Shared SwiftUI helper uses the same toolkit-root JPEGs, per-photo dog attribution, and repeatable three-tap title gesture for both future Mac targets.
+- [ ] NEEDS MAC APP - Intel: include the shared helper and toolkit-root JPEGs; wire three title taps to `recordTitleTap(toolkitRoot:)`, sheet dismissal to `dismissPhoto()`, and verify the dog-specific caption and repeat trigger from a portable drive.
+- [ ] NEEDS MAC APP - Apple Silicon: include the shared helper and toolkit-root JPEGs; wire three title taps to `recordTitleTap(toolkitRoot:)`, sheet dismissal to `dismissPhoto()`, and verify the dog-specific caption and repeat trigger from a portable drive.
 
 ## HISTORICAL ENTRIES
 Earlier dated sections retain original findings/counts as history. The September 22 snapshot and completion section supersede stale counts and execution details; unchecked field-test items remain open unless explicitly closed with evidence.

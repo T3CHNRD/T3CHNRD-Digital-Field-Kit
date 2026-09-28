@@ -7,6 +7,12 @@ import SwiftUI
 final class DogMemoryEasterEgg: ObservableObject {
     @Published var presentedPhoto: DogMemoryPhoto?
 
+    private static let photoAttribution = [
+        "Diva-Tarabyte-01.jpg": "Diva",
+        "Diva-Tarabyte-02.jpg": "Diva",
+        "Diva-Tarabyte-03.jpg": "Tarabyte"
+    ]
+
     private var titleTapCount = 0
     private var lastTitleTap = Date.distantPast
     private var didPresentPhoto = false
@@ -28,12 +34,14 @@ final class DogMemoryEasterEgg: ObservableObject {
             includingPropertiesForKeys: nil,
             options: [.skipsHiddenFiles]
         ))?.filter {
-            $0.lastPathComponent.hasPrefix("Diva-Tarabyte-") && $0.pathExtension.lowercased() == "jpg"
+            Self.photoAttribution[$0.lastPathComponent] != nil
         }.sorted { $0.lastPathComponent < $1.lastPathComponent } ?? []
 
         guard let photoURL = photos.randomElement(), let image = NSImage(contentsOf: photoURL) else { return }
+        let dogName = Self.photoAttribution[photoURL.lastPathComponent]
+        guard let dogName else { return }
         didPresentPhoto = true
-        presentedPhoto = DogMemoryPhoto(image: image)
+        presentedPhoto = DogMemoryPhoto(image: image, dogName: dogName)
     }
 
     func dismissPhoto() {
@@ -47,6 +55,7 @@ final class DogMemoryEasterEgg: ObservableObject {
 struct DogMemoryPhoto: Identifiable {
     let id = UUID()
     let image: NSImage
+    let dogName: String
 }
 
 struct DogMemoryPhotoSheet: View {
@@ -61,7 +70,7 @@ struct DogMemoryPhotoSheet: View {
                 .scaledToFit()
                 .frame(maxWidth: 800, maxHeight: 680)
 
-            Text("Diva & Tarabyte")
+            Text("This app is brought to you by \(photo.dogName)")
                 .font(.title2.weight(.semibold))
 
             Button("Close") {

@@ -67,7 +67,10 @@ try {
  $dogPhotos=@(Get-ChildItem -LiteralPath $dogPhotoDirectory -Filter 'Diva-Tarabyte-*.jpg' -File)
  if($dogPhotos.Count -ne 3){throw "Expected three portable Diva & Tarabyte JPEGs; found $($dogPhotos.Count)."}
  foreach($dogPhoto in $dogPhotos){$image=[Drawing.Image]::FromFile($dogPhoto.FullName);try{if($image.Width -le 0 -or $image.Height -le 0){throw "Invalid dog photo: $($dogPhoto.Name)"}}finally{$image.Dispose()}}
+ if($script:DogMemoryPhotoAttribution['Diva-Tarabyte-01.jpg'] -ne 'Diva' -or $script:DogMemoryPhotoAttribution['Diva-Tarabyte-02.jpg'] -ne 'Diva' -or $script:DogMemoryPhotoAttribution['Diva-Tarabyte-03.jpg'] -ne 'Tarabyte'){throw 'Dog photo attribution does not match the selected photo.'}
+ if(@($dogPhotos | Where-Object {-not $script:DogMemoryPhotoAttribution.ContainsKey($_.Name)}).Count){throw 'A bundled dog photo has no individual attribution.'}
  Write-Output 'PASS: all three bundled JPEGs load from the toolkit-relative asset folder.'
+ Write-Output 'PASS: each bundled photo maps to its individual dog attribution.'
  function Show-DogMemoryPhoto{$script:DogMemoryPhotoOpen=$true;$script:DogMemoryPhotoInvocations++;$script:DogMemoryPhotoOpen=$false}
  $script:DogMemoryTapCount=0;$script:DogMemoryLastTap=[DateTime]::MinValue;$script:DogMemoryPhotoOpen=$false;$script:DogMemoryPhotoInvocations=0
  $titleClick=$title.GetType().GetMethod('OnClick',[Reflection.BindingFlags]::Instance -bor [Reflection.BindingFlags]::NonPublic)
