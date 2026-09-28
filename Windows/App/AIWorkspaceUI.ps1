@@ -91,8 +91,12 @@ $newCaseButton.AutoSize=$true;$newCaseButton.Height=34;$newCaseButton.Text='New 
 [void]$caseBar.Controls.Add($newCaseButton)
 
 $addCaseNoteButton=New-Object Windows.Forms.Button
-$addCaseNoteButton.AutoSize=$true;$addCaseNoteButton.Height=34;$addCaseNoteButton.Text='Add note to case'
+$addCaseNoteButton.AutoSize=$true;$addCaseNoteButton.Height=34;$addCaseNoteButton.Text='Add note / question'
 [void]$caseBar.Controls.Add($addCaseNoteButton)
+
+$correctCaseButton=New-Object Windows.Forms.Button
+$correctCaseButton.AutoSize=$true;$correctCaseButton.Height=34;$correctCaseButton.Text='Correct DivaByte'
+[void]$caseBar.Controls.Add($correctCaseButton)
 
 $analyzeCaseButton=New-Object Windows.Forms.Button
 $analyzeCaseButton.AutoSize=$true;$analyzeCaseButton.Height=34;$analyzeCaseButton.Text='Analyze case'
@@ -140,8 +144,16 @@ $addCaseNoteButton.Add_Click({
   $id=Ensure-DivaByteCase
   if([string]::IsNullOrWhiteSpace($chatDraft.Text)){throw 'Enter a technician note or question first.'}
   Invoke-DivaByteApi -Method POST -Path ('/v1/cases/'+$id+'/message') -Body @{text=$chatDraft.Text} | Out-Null
-  $chatStatus.Text='Technician note added to the active case. DivaByte will treat it as technician-provided context.'
+  $chatStatus.Text='Technician note/question added. Re-run analysis when you want DivaByte to reconsider it.'
  }catch{[Windows.Forms.MessageBox]::Show($_.Exception.Message,'DivaByte case')|Out-Null}
+})
+$correctCaseButton.Add_Click({
+ try{
+  $id=Ensure-DivaByteCase
+  if([string]::IsNullOrWhiteSpace($chatDraft.Text)){throw 'Enter the correction or disagreement first.'}
+  Invoke-DivaByteApi -Method POST -Path ('/v1/cases/'+$id+'/correction') -Body @{text=$chatDraft.Text} | Out-Null
+  $chatStatus.Text='Correction saved. DivaByte marked this case for re-evaluation; click Analyze case to reconsider the evidence.'
+ }catch{[Windows.Forms.MessageBox]::Show($_.Exception.Message,'DivaByte correction')|Out-Null}
 })
 $analyzeCaseButton.Add_Click({
  try{
@@ -174,23 +186,10 @@ function New-EvidenceBrowser($Page){
  $split.Panel1.Controls.Add($list);$split.Panel2.Controls.Add($preview);$Page.Controls.Add($split)
  $bar=New-Object Windows.Forms.FlowLayoutPanel;$bar.Dock='Top';$bar.Height=42;$Page.Controls.Add($bar)
  $list.Tag=$preview
- $selectionHandler={
-  $entry=$list.SelectedItem
-  if(-not $entry){return}
-  $file=Get-Item -LiteralPath $entry.Path -ErrorAction SilentlyContinue
-  if(-not $file){$preview.Text='This file is no longer available.';return}
-  $textExtensions=@('.txt','.log','.json','.csv','.md','.xml','.html','.htm','.ps1','.psd1','.ini','.cfg','.yaml','.yml')
-  if($textExtensions -notcontains $file.Extension.ToLowerInvariant()){
-   $preview.Text=('Preview unavailable for {0} files ({1:N0} bytes). Use the containing folder to inspect it with its associated application.' -f $(if($file.Extension){$file.Extension}else{'extensionless'}),$file.Length)
-   return
-  }
-  if($file.Length -gt 1048576){
-   $preview.Text=('Preview limited to files up to 1 MiB. This file is {0:N0} bytes.' -f $file.Length)
-   return
-  }
-  try{$preview.Text=[IO.File]::ReadAllText($file.FullName,[Text.Encoding]::UTF8)}catch{$preview.Text=$_.Exception.Message}
- }.GetNewClosure()
- $list.Add_SelectedIndexChanged($selectionHandler)
+ $list.Add_SelectedIndexChanged({
+  param($sender)
+  Show-EvidencePreview $sender.Tag $sender.SelectedItem
+ })
  return [pscustomobject]@{List=$list;Preview=$preview;Bar=$bar}
 }
 function Update-EvidenceList($Browser,[string]$Directory){
