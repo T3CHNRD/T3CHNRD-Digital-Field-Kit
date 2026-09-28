@@ -1,135 +1,155 @@
-#Requires -Version 5.1
-<#
+﻿<#
 .SYNOPSIS
-Generic OneNote duplicate/untitled page cleanup and staging importer.
-
-.DESCRIPTION
-Portable Field Kit tool. It is not tied to a company, mapped drive, notebook name,
-section name, or file server.
-
-Defaults:
-- Uses the first open OneNote notebook when -NotebookName is omitted.
-- Uses the first section in that notebook when -TargetSectionName is omitted.
-- Uses Documents\T3DFK-OneNote-Staging as the optional staging/import folder.
-- Writes logs to TTK_REPORT_DIR when launched from the Field Kit, otherwise to TEMP.
-
-The cleanup removes duplicate page titles and untitled pages from the selected section.
-Files in the staging folder are imported as file attachments when their base name is not
-already present in the section.
-
-.PARAMETER NotebookName
-Optional exact OneNote notebook name.
-
-.PARAMETER TargetSectionName
-Optional exact OneNote section name.
-
-.PARAMETER StagingPath
-Optional staging/import folder.
-
-.PARAMETER AuditOnly
-Report duplicates and untitled pages without deleting or importing anything.
+    ABCo Master Tool - Hardened Version
+    Location: V:\ABCo Systems Documentation\IT Master Documentation
+    Target Section: ABCO Documentation
 #>
+
 [CmdletBinding()]
 param(
- [string]$NotebookName,
- [string]$TargetSectionName,
- [string]$StagingPath=(Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'T3DFK-OneNote-Staging'),
- [switch]$AuditOnly
+    [string]$NotebookName      = "IT Master Documentation",
+    [string]$TargetSectionName = "ABCO Documentation",
+    [string]$StagingPath       = "V:\ABCo Systems Documentation\IT Master Documentation\ABCo_OneNote_Staging",
+    [string]$MasterNotebook    = "V:\ABCo Systems Documentation\IT Master Documentation\Open Notebook.onetoc2",
+    [string]$LogFolder         = "V:\ABCo Systems Documentation\Logs",
+    [switch]$Silent,
+    [switch]$OpenNotebook
 )
 
-Set-StrictMode -Version Latest
-$ErrorActionPreference='Stop'
+$ErrorActionPreference = "Stop"
 
-$ReportRoot=if($env:TTK_REPORT_DIR){$env:TTK_REPORT_DIR}else{Join-Path $env:TEMP 'T3DFK-OneNote'}
-New-Item -ItemType Directory -Path $ReportRoot,$StagingPath -Force | Out-Null
-$LogPath=Join-Path $ReportRoot ("OneNote-DuplicateCleanup_{0}.txt" -f (Get-Date -Format 'yyyy-MM-dd_HHmmss'))
+# -------------------------
+# Logging setup
+# -------------------------
+if (!(Test-Path $LogFolder)) { New-Item -ItemType Directory -Path $LogFolder -Force | Out-Null }
+$LogPath = Join-Path $LogFolder ("Import_Summary_{0}.txt" -f (Get-Date -Format 'yyyyMMdd_HHmm'))
+$script:Log = New-Object System.Collections.Generic.List[string]
 
-function Log([string]$Message){
- $Message | Tee-Object -FilePath $LogPath -Append
-}
-function Get-OneNoteContext {
- $one=New-Object -ComObject OneNote.Application
- [xml]$xml='';$one.GetHierarchy('',2,[ref]$xml)
- $ns=New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
- $ns.AddNamespace('one',$xml.DocumentElement.NamespaceURI)
-
- $nb=if($NotebookName){
-  $xml.SelectSingleNode("//one:Notebook[@name="+[char]34+$NotebookName+[char]34+"]",$ns)
- }else{
-  $xml.SelectSingleNode('//one:Notebook',$ns)
- }
- if(-not $nb){throw 'No matching open OneNote notebook was found. Open the notebook in OneNote desktop and try again.'}
-
- [xml]$sections='';$one.GetHierarchy($nb.ID,1,[ref]$sections)
- $ns2=New-Object System.Xml.XmlNamespaceManager($sections.NameTable)
- $ns2.AddNamespace('one',$sections.DocumentElement.NamespaceURI)
- $sec=if($TargetSectionName){
-  $sections.SelectSingleNode("//one:Section[@name="+[char]34+$TargetSectionName+[char]34+"]",$ns2)
- }else{
-  $sections.SelectSingleNode('//one:Section',$ns2)
- }
- if(-not $sec){throw 'No matching OneNote section was found.'}
-
- [pscustomobject]@{OneNote=$one;Notebook=$nb;Section=$sec;Namespace=$ns2}
+function Add-Log {
+    param([string]$Message, [ValidateSet("INFO","WARN","ERROR")]$Level = "INFO")
+    $line = "[(Get-Date -Format 'HH:mm:ss')][$Level] $Message"
+    $script:Log.Add($line) | Out-Null
+    if (-not $Silent) { Write-Output $line }
 }
 
-$ctx=Get-OneNoteContext
-Log "Notebook: $($ctx.Notebook.name)"
-Log "Section: $($ctx.Section.name)"
-Log "Staging: $StagingPath"
-Log "AuditOnly: $AuditOnly"
+function Escape-XmlAttr([string]$s) { return [System.Security.SecurityElement]::Escape($s) }
 
-[xml]$pages='';$ctx.OneNote.GetHierarchy($ctx.Section.ID,4,[ref]$pages)
-$ns=New-Object System.Xml.XmlNamespaceManager($pages.NameTable)
-$ns.AddNamespace('one',$pages.DocumentElement.NamespaceURI)
-$all=@($pages.SelectNodes('//one:Page',$ns))
+# -------------------------
+# MASS CLEANUP FUNCTION
+# -------------------------
+function Invoke-MassDuplicateCleanup {
+    param($ON, $SectionId)
+    try {
+        Add-Log "Refreshing Section from V: drive for cleanup..."
+        $ON.SyncHierarchy($SectionId) # Force V: drive sync
+        
+        [xml]$pagesXml = ""; $ON.GetHierarchy($SectionId, 4, [ref]$pagesXml)
+        $ns = New-Object System.Xml.XmlNamespaceManager($pagesXml.NameTable)
+        $ns.AddNamespace("one", $pagesXml.DocumentElement.NamespaceURI)
+        $allPages = $pagesXml.SelectNodes("//one:Page", $ns)
 
-$seen=@{}
-$duplicates=0
-$untitled=0
-foreach($page in $all){
- $title=[string]$page.name
- $key=$title.Trim().ToLowerInvariant()
- $isUntitled=[string]::IsNullOrWhiteSpace($title) -or $title -match '^(?i)untitled page$'
- $isDuplicate=(-not $isUntitled) -and $seen.ContainsKey($key)
- if($isUntitled){$untitled++}
- elseif($isDuplicate){$duplicates++}
- else{$seen[$key]=$true}
+        $seenPages = @{} 
+        $deleteCount = 0
+        $current = 0
 
- if($isUntitled -or $isDuplicate){
-  Log ("Candidate: "+$title+" | "+$(if($isUntitled){'Untitled'}else{'Duplicate'}))
-  if(-not $AuditOnly){
-   try{$ctx.OneNote.DeleteHierarchy($page.ID);Log '  Removed.'}
-   catch{Log ("  WARN: "+$_.Exception.Message)}
-  }
- }
+        foreach ($page in $allPages) {
+            $current++
+            $name = $page.name.ToLower().Trim()
+            
+            if (-not $Silent) {
+                Write-Progress -Activity "Cleaning ABCO Documentation" -Status "Checking: $name" -PercentComplete (($current / $allPages.Count) * 100)
+            }
+
+            if ($name -eq "untitled page" -or $seenPages.ContainsKey($name)) {
+                try {
+                    $ON.DeleteHierarchy($page.ID)
+                    $deleteCount++
+                    Start-Sleep -Milliseconds 300 
+                } catch {}
+            } else {
+                $seenPages.Add($name, $true)
+            }
+        }
+        Add-Log "CLEANUP TOTAL: Removed $deleteCount duplicates/untitled pages from ABCO Documentation." "WARN"
+    } catch { Add-Log "Cleanup failed: $($_.Exception.Message)" "ERROR" }
+    finally { Write-Progress -Activity "Cleaning ABCO Documentation" -Completed }
 }
 
-if(-not $AuditOnly){
- $files=@(Get-ChildItem -LiteralPath $StagingPath -File -Recurse -ErrorAction SilentlyContinue)
- foreach($file in $files){
-  $title=$file.BaseName
-  if($seen.ContainsKey($title.ToLowerInvariant())){
-   Log "SKIP existing page: $title"
-   continue
-  }
-  try{
-   $pageId=''
-   $ctx.OneNote.CreateNewPage($ctx.Section.ID,[ref]$pageId)
-   $schema=$pages.DocumentElement.NamespaceURI
-   $escapedPath=[System.Security.SecurityElement]::Escape($file.FullName)
-   $escapedName=[System.Security.SecurityElement]::Escape($file.Name)
-   $escapedTitle=[System.Security.SecurityElement]::Escape($title)
-   $pageXml="<?xml version='1.0'?><one:Page xmlns:one='$schema' ID='$pageId'><one:Title><one:OE><one:T><![CDATA[$escapedTitle]]></one:T></one:OE></one:Title><one:Outline><one:OEChildren><one:OE><one:InsertedFile pathSource='$escapedPath' preferredName='$escapedName'/></one:OE></one:OEChildren></one:Outline></one:Page>"
-   $ctx.OneNote.UpdatePageContent($pageXml)
-   $seen[$title.ToLowerInvariant()]=$true
-   Log "IMPORTED: $($file.FullName)"
-  }catch{Log "ERROR importing $($file.FullName): $($_.Exception.Message)"}
- }
-}
+# -------------------------
+# MAIN LOGIC
+# -------------------------
+try {
+    # 1. Start OneNote
+    if (-not (Get-Process "ONENOTE" -ErrorAction SilentlyContinue)) {
+        Add-Log "Opening OneNote..."
+        Start-Process "onenote.exe" -WindowStyle Minimized
+        Start-Sleep -Seconds 15 
+    }
 
-Log "Duplicate candidates: $duplicates"
-Log "Untitled candidates: $untitled"
-Log "Report: $LogPath"
-Write-Host "[PASS] OneNote duplicate cleanup/audit completed." -ForegroundColor Green
-Write-Host "Report: $LogPath" -ForegroundColor Cyan
+    $ON = New-Object -ComObject OneNote.Application
+
+    # 2. Resolve Notebook & Section on V: Drive
+    [xml]$xmlStr = ""; $ON.GetHierarchy("", 2, [ref]$xmlStr)
+    $ns = New-Object System.Xml.XmlNamespaceManager($xmlStr.NameTable)
+    $ns.AddNamespace("one", $xmlStr.DocumentElement.NamespaceURI)
+    $schema = $xmlStr.DocumentElement.NamespaceURI
+
+    $nb = $xmlStr.SelectSingleNode("//one:Notebook[@name='$NotebookName']", $ns)
+    if ($null -eq $nb) { throw "Notebook '$NotebookName' not found! Please open it manually from the V: drive first." }
+    Add-Log "Connected to Notebook: $($nb.path)"
+
+    [xml]$secXml = ""; $ON.GetHierarchy($nb.ID, 1, [ref]$secXml)
+    $ns2 = New-Object System.Xml.XmlNamespaceManager($secXml.NameTable)
+    $ns2.AddNamespace("one", $secXml.DocumentElement.NamespaceURI)
+    $sec = $secXml.SelectSingleNode("//one:Section[@name='$TargetSectionName']", $ns2)
+    if ($null -eq $sec) { throw "Section '$TargetSectionName' not found in this notebook." }
+    $sectionId = $sec.ID
+
+    # 3. RUN CLEANUP
+    Invoke-MassDuplicateCleanup -ON $ON -SectionId $sectionId
+
+    # 4. PROCESS STAGING FILES
+    $files = Get-ChildItem -Path $StagingPath -File -Recurse -ErrorAction SilentlyContinue
+    if ($files) {
+        Add-Log "Processing $($files.Count) new files..."
+        $fCount = 0
+        foreach ($f in $files) {
+            $fCount++
+            $cleanTitle = $f.BaseName
+            if (-not $Silent) {
+                Write-Progress -Activity "Importing to ABCO Documentation" -Status "File: $cleanTitle" -PercentComplete (($fCount / $files.Count) * 100)
+            }
+
+            # Final Duplicate Pre-Check
+            [xml]$checkXml = ""; $ON.GetHierarchy($sectionId, 4, [ref]$checkXml)
+            if ($checkXml.SelectSingleNode("//one:Page[translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')='$(Escape-XmlAttr $cleanTitle.ToLower())']", $ns)) {
+                Add-Log "SKIPPED: '$cleanTitle' already exists. Cleaning staging." "WARN"
+                Remove-Item -LiteralPath $f.FullName -Force
+                continue
+            }
+
+            # Create Page
+            $newPageId = ""
+            try {
+                $ON.CreateNewPage($sectionId, [ref]$newPageId)
+                $pageXml = "<?xml version='1.0'?><one:Page xmlns:one='$schema' ID='$newPageId'><one:Title><one:OE><one:T><![CDATA[$cleanTitle]]></one:T></one:OE></one:Title><one:Outline><one:OEChildren><one:OE><one:InsertedFile pathSource='$(Escape-XmlAttr $f.FullName)' preferredName='$(Escape-XmlAttr $f.Name)' /></one:OE></one:OEChildren></one:Outline></one:Page>"
+                $ON.UpdatePageContent($pageXml)
+                Start-Sleep -Seconds 2
+                Remove-Item -LiteralPath $f.FullName -Force
+                Add-Log "SUCCESS: Imported '$cleanTitle'."
+            } catch {
+                Add-Log "FAILED: $($f.Name). Moved to archive." "ERROR"
+                if ($newPageId) { try { $ON.DeleteHierarchy($newPageId) } catch {} }
+            }
+        }
+    } else {
+        Add-Log "Staging folder is empty. No new imports needed."
+    }
+
+} catch {
+    Add-Log "FATAL: $($_.Exception.Message)" "ERROR"
+} finally {
+    Write-Progress -Activity "Importing to ABCO Documentation" -Completed
+    Add-Log "Session Log saved to: $LogPath"
+    $script:Log | Out-File -FilePath $LogPath -Encoding UTF8 -Force
+}
