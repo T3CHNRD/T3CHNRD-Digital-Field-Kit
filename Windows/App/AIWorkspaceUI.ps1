@@ -166,7 +166,7 @@ $analyzeCaseButton.Add_Click({
 
 $script:EvidenceTextExtensions=@('.txt','.log','.json','.csv','.md','.xml','.html','.htm','.ps1','.psd1','.ini','.cfg','.yaml','.yml')
 $script:EvidencePreviewLimitBytes=1048576
-function Show-EvidencePreview($Preview,$Entry){
+function script:Show-EvidencePreview($Preview,$Entry){
  if(-not $Entry){return}
  $file=Get-Item -LiteralPath $Entry.Path -ErrorAction SilentlyContinue
  if(-not $file){$Preview.Text='This file is no longer available.';return}
@@ -188,7 +188,7 @@ function New-EvidenceBrowser($Page){
  $list.Tag=$preview
  $list.Add_SelectedIndexChanged({
   param($sender)
-  Show-EvidencePreview $sender.Tag $sender.SelectedItem
+  script:Show-EvidencePreview $sender.Tag $sender.SelectedItem
  })
  return [pscustomobject]@{List=$list;Preview=$preview;Bar=$bar}
 }
