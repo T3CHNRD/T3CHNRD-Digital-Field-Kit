@@ -52,8 +52,8 @@ jobs:
       - name: Verify standalone DivaByte core and Windows client
         shell: powershell
         run: |
+          $ErrorActionPreference='Stop'
           & .\Windows\App\Test-DivaByteCore.ps1
-          if($LASTEXITCODE -ne 0){throw 'DivaByte core integration test failed.'}
       - name: Verify Run Center transport without running system tools
         shell: powershell
         run: |
