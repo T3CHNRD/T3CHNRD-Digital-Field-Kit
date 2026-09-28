@@ -22,3 +22,8 @@ Thumbs.db
 
 # Local technician drafts and imported analysis; never package case data.
 /AI-Workspace/
+
+# Generated DivaByte build/runtime outputs
+.build/
+DivaByte/Core/target/
+DivaByte/Runtime/
