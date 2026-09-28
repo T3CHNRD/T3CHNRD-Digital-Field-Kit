@@ -146,6 +146,10 @@ Optional file limit for testing.
 
 A value of `0` means no limit.
 
+## HOW TO RUN
+
+From the app, open **Misc -> OneNote Master Importer** and click the tool card. For a cautious first test outside the app, use a small source folder and `-MaxFiles 5` or `-MaxFiles 10`.
+
 ## Recommended workflow
 
 1. Open the target notebook in OneNote desktop.
