@@ -81,7 +81,7 @@ function Update-RunPanes {
    Add-Content -LiteralPath $pane.Log -Value ("`r`n"+$label+' | Exit code: '+$code)
     $pane.InputPanel.Visible=$false;$pane.Layout.RowStyles[2].Height=0;$pane.Cancel.Enabled=$false
    $pane.Capture.Dispose();$pane.Capture=$null;$pane.Process=$null
-    if((Get-Variable -Name View -Scope Script -ValueOnly -ErrorAction SilentlyContinue) -eq 'AI Workspace'){Update-EvidenceList $logBrowser $reportRoot}
+    if((Get-Variable -Name View -Scope Script -ValueOnly -ErrorAction SilentlyContinue) -eq 'DivaByte'){Update-EvidenceList $logBrowser $reportRoot}
   }
  }
  $count=@($script:RunPanes|Where-Object {$_.Capture}).Count
