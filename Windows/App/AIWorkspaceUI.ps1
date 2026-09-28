@@ -174,24 +174,23 @@ function New-EvidenceBrowser($Page){
  $split.Panel1.Controls.Add($list);$split.Panel2.Controls.Add($preview);$Page.Controls.Add($split)
  $bar=New-Object Windows.Forms.FlowLayoutPanel;$bar.Dock='Top';$bar.Height=42;$Page.Controls.Add($bar)
  $list.Tag=$preview
- $list.Add_SelectedIndexChanged({
-  $senderControl=$this
-  $previewControl=$senderControl.Tag
-  $entry=$senderControl.SelectedItem
-  if(-not $previewControl -or -not $entry){return}
+ $selectionHandler={
+  $entry=$list.SelectedItem
+  if(-not $entry){return}
   $file=Get-Item -LiteralPath $entry.Path -ErrorAction SilentlyContinue
-  if(-not $file){$previewControl.Text='This file is no longer available.';return}
+  if(-not $file){$preview.Text='This file is no longer available.';return}
   $textExtensions=@('.txt','.log','.json','.csv','.md','.xml','.html','.htm','.ps1','.psd1','.ini','.cfg','.yaml','.yml')
   if($textExtensions -notcontains $file.Extension.ToLowerInvariant()){
-   $previewControl.Text=('Preview unavailable for {0} files ({1:N0} bytes). Use the containing folder to inspect it with its associated application.' -f $(if($file.Extension){$file.Extension}else{'extensionless'}),$file.Length)
+   $preview.Text=('Preview unavailable for {0} files ({1:N0} bytes). Use the containing folder to inspect it with its associated application.' -f $(if($file.Extension){$file.Extension}else{'extensionless'}),$file.Length)
    return
   }
   if($file.Length -gt 1048576){
-   $previewControl.Text=('Preview limited to files up to 1 MiB. This file is {0:N0} bytes.' -f $file.Length)
+   $preview.Text=('Preview limited to files up to 1 MiB. This file is {0:N0} bytes.' -f $file.Length)
    return
   }
-  try{$previewControl.Text=[IO.File]::ReadAllText($file.FullName,[Text.Encoding]::UTF8)}catch{$previewControl.Text=$_.Exception.Message}
- })
+  try{$preview.Text=[IO.File]::ReadAllText($file.FullName,[Text.Encoding]::UTF8)}catch{$preview.Text=$_.Exception.Message}
+ }.GetNewClosure()
+ $list.Add_SelectedIndexChanged($selectionHandler)
  return [pscustomobject]@{List=$list;Preview=$preview;Bar=$bar}
 }
 function Update-EvidenceList($Browser,[string]$Directory){
