@@ -840,7 +840,7 @@ $runnerTimer.Interval=100
 $runnerTimer.Add_Tick({Update-RunPanes})
 $status.Cursor='Hand'
 $status.Add_Click({Set-RunnerHeight $script:RunnerHeight})
-$form.Add_FormClosing({foreach($pane in $script:RunPanes){Stop-RunPane $pane};$runnerTimer.Stop()})
+$form.Add_FormClosing({foreach($pane in $script:RunPanes){Stop-RunPane $pane};$runnerTimer.Stop();if(Get-Command Stop-DivaByteCore -ErrorAction SilentlyContinue){Stop-DivaByteCore}})
 function Add-Card($tool){
  $p=New-Object Windows.Forms.Panel
  $p.Width=365
