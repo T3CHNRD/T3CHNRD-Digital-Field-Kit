@@ -91,7 +91,7 @@ Evidence: implementation commits d691d35 through fffd892; automated Windows test
 - [x] PASS (mocked antivirus tests) - Identify registered antivirus, skip unavailable/inactive Defender, retain text/JSON evidence, and invoke active Defender once. No protection disabled; live scan coverage is not claimed.
 - [x] PASS (UI tests) - Added searchable help for all 64 tools and card Help buttons, including requirements for disabled site tools.
 - [x] PASS (UI tests) - Restored Log Files shortcut; added functional Settings folder actions, integrity-check action and persisted Run Center word wrapping. Folder/external-launch actions still need technician acceptance.
-- [x] PASS (UI tests) - Added local AI workspace navigation, chat-draft saving and log preview; analysis-document import/results viewer implemented. No AI provider is connected and no messages/logs are uploaded.
+- [x] PASS (UI tests) - Added local DivaByte workspace navigation, chat-draft saving and log preview; analysis-document import/results viewer implemented. No AI provider is connected and no messages/logs are uploaded.
 - [x] PASS (automated UI tests, 2026-09-27) - Fixed the technician workflow test to locate evidence rows by file path rather than the size-decorated display label; all help and evidence-preview assertions pass.
 - [x] PASS (integrity suite) - 1,345 checks passed with zero failures; fixed the false missing-EXE failure for intentional script-launcher packages.
 - [x] PASS (Defender custom scans) - Latest local script-only test ZIP reported no threats. This is scan evidence, not a guarantee of safety.
@@ -239,3 +239,19 @@ Planned macOS order remains:
 - [x] PASS (removable-drive write/read) - Actual app path initialization selected G:\ portable test folder\Diagnostic-Reports; wrote/read an AppLogs proof file. Run Center passes this report root to child tools. This verifies app-managed logs, not every original script's independent custom output paths.
 - [ ] NEEDS FIELD TEST - Apply static/DHCP settings on a test adapter and verify connectivity; no live adapter was changed in automated testing.
 
+
+
+## 2026-09-28 DIVABYTE LOCAL-FIRST DIAGNOSTIC ASSISTANT FOUNDATION
+- [x] PROJECT DECISION - The Field Kit diagnostic assistant is named DivaByte in honor of Diva and Tarabyte.
+- [x] STATIC PASS - Replaced the generic user-facing AI Workspace name with DivaByte.
+- [x] STATIC PASS - Added three persisted research modes: Offline, Local + Research, and Ask Before Researching.
+- [x] STATIC PASS - Offline mode includes local evidence browsing, technician-curated persistent memory, and local Runbook add/update editing.
+- [x] STATIC PASS - Added local ResearchCache storage and policy UI; live Internet research is not connected yet and must honor the persisted mode when implemented.
+- [x] STATIC PASS - Added memory types for observations, confirmed root causes, successful fixes, failed fixes, disproven hypotheses, technician corrections, and research notes.
+- [x] STATIC PASS - Added DivaByte architecture, settings, memory schema, analysis schema, and root-cause prompt foundation to the portable package.
+- [ ] NOT CONNECTED - Integrate llama.cpp and the pinned local model after the runtime/model package is added and target hardware benchmarks pass.
+- [ ] NOT CONNECTED - Implement optional Internet research. Internet access must never be required for local diagnosis.
+- [ ] TODO - Cache research with source URL/title/date and enforce explicit permission in Ask Before Researching mode.
+- [ ] TODO - Add evidence-backed hypothesis loop with supporting evidence, contradicting evidence, unknowns, and technician challenge/correction controls.
+- [ ] TODO - Add DivaByte-generated Runbook update proposals; every write requires technician review/approval.
+- [ ] TODO - Add memory retrieval/ranking so prior confirmed incidents guide investigation without being treated as proof.
