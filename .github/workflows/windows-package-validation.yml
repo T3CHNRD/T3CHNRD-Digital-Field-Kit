@@ -68,7 +68,7 @@ jobs:
             'INSTALL T3CHNRD Digital Field Kit.vbs',
             'UNINSTALL T3CHNRD Digital Field Kit.vbs',
             'README - START HERE.txt',
-            'Windows','Runbook','Diagnostic-Reports','macOS Intel','macOS Apple Silicon','docs'
+            'Windows','Runbook','DivaByte','Diagnostic-Reports','macOS Intel','macOS Apple Silicon','docs'
           )
           Compress-Archive -Path $items -DestinationPath 'artifacts\T3CHNRD-Digital-Field-Kit-Windows-Test.zip' -Force
       - uses: actions/upload-artifact@v7
