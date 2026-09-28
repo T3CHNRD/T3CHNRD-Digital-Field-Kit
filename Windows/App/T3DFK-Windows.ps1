@@ -1036,9 +1036,9 @@ function Update-View{
   $info.Visible=$false
   $runbook.Visible=$true
     Update-RunbookList
- }elseif($script:View -eq 'AI Workspace'){
-  $pageTitle.Text='AI Workspace'
-  $pageSub.Text='Local drafts, diagnostic evidence and imported results. AI is not connected.'
+ }elseif($script:View -eq 'DivaByte'){
+  $pageTitle.Text='DivaByte'
+  $pageSub.Text='Local-first diagnostic partner: cases, evidence, memory, Runbook knowledge, research policy and analysis.'
   $info.Visible=$false;$aiPanel.Visible=$true
   Update-EvidenceList $logBrowser $reportRoot
   Update-EvidenceList $resultBrowser $aiResultsRoot
