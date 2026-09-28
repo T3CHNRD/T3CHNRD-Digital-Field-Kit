@@ -1,0 +1,52 @@
+name: DivaByte Cross-Platform Core
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'DivaByte/Core/**'
+      - '.github/workflows/divabyte-core-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows-x64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary: divabyte-core.exe
+          - name: macos-intel
+            os: macos-latest
+            target: x86_64-apple-darwin
+            binary: divabyte-core
+          - name: macos-apple-silicon
+            os: macos-latest
+            target: aarch64-apple-darwin
+            binary: divabyte-core
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Add Rust target
+        shell: bash
+        run: rustup target add ${{ matrix.target }}
+      - name: Test DivaByte core
+        shell: bash
+        run: cargo test --manifest-path DivaByte/Core/Cargo.toml
+      - name: Build DivaByte core
+        shell: bash
+        run: |
+          export CARGO_TARGET_DIR="$GITHUB_WORKSPACE/.build/divabyte"
+          cargo build --manifest-path DivaByte/Core/Cargo.toml --release --target ${{ matrix.target }}
+      - name: Stage artifact
+        shell: bash
+        run: |
+          mkdir -p "artifacts/${{ matrix.name }}"
+          cp ".build/divabyte/${{ matrix.target }}/release/${{ matrix.binary }}" "artifacts/${{ matrix.name }}/${{ matrix.binary }}"
+          cp "DivaByte/CORE-API.md" "artifacts/${{ matrix.name }}/CORE-API.md"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: DivaByte-Core-${{ matrix.name }}
+          path: artifacts/${{ matrix.name }}
