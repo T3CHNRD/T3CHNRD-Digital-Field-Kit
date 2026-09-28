@@ -106,9 +106,9 @@ Evidence: implementation commits d691d35 through fffd892; automated Windows test
 - [ ] NEEDS FIELD TEST - Complete display-scaling, portable-drive, full UI interaction, and diagnostic-category checks on the target Windows device.
 
 ## 2026-09-28 PORTABLE DOG-MEMORY EASTER EGG
-- [x] PASS (automated workflow test) - Windows title reveals one random bundled JPEG after three quick taps; the trigger resets after four seconds and does not repeat in the same session.
-- [x] STATIC PASS - Shared SwiftUI helper uses the same toolkit-root JPEGs and three-tap title gesture for both future Mac targets.
-- [ ] NEEDS MAC APP - Compile the shared helper into both native Mac apps, wire title taps to `recordTitleTap(toolkitRoot:)`, and validate from a USB/portable SSD. The Mac app folders remain placeholders, so this integration is not yet runnable.
+- [x] PASS (automated workflow test) - Windows title reveals one random bundled JPEG after three quick taps; closing it rearms the gesture for another reveal, and a four-second pause resets the tap count.
+- [x] STATIC PASS - Shared SwiftUI helper uses the same toolkit-root JPEGs and repeatable three-tap title gesture for both future Mac targets.
+- [ ] NEEDS MAC APP - Compile the shared helper into both native Mac apps, wire title taps to `recordTitleTap(toolkitRoot:)` and sheet dismissal to `dismissPhoto()`, and validate from a USB/portable SSD. The Mac app folders remain placeholders, so this integration is not yet runnable.
 
 ## HISTORICAL ENTRIES
 Earlier dated sections retain original findings/counts as history. The September 22 snapshot and completion section supersede stale counts and execution details; unchecked field-test items remain open unless explicitly closed with evidence.

@@ -35,6 +35,13 @@ final class DogMemoryEasterEgg: ObservableObject {
         didPresentPhoto = true
         presentedPhoto = DogMemoryPhoto(image: image)
     }
+
+    func dismissPhoto() {
+        presentedPhoto = nil
+        didPresentPhoto = false
+        titleTapCount = 0
+        lastTitleTap = .distantPast
+    }
 }
 
 struct DogMemoryPhoto: Identifiable {
@@ -44,6 +51,7 @@ struct DogMemoryPhoto: Identifiable {
 
 struct DogMemoryPhotoSheet: View {
     let photo: DogMemoryPhoto
+    let onClose: () -> Void
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -57,6 +65,7 @@ struct DogMemoryPhotoSheet: View {
                 .font(.title2.weight(.semibold))
 
             Button("Close") {
+                onClose()
                 dismiss()
             }
         }

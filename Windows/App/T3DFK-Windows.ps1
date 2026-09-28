@@ -78,7 +78,7 @@ $script:ReadyToolCount=@($script:ToolCatalog | Where-Object {$_.ready}).Count
 $script:AdminDefault = $true
 $script:DogMemoryTapCount=0
 $script:DogMemoryLastTap=[DateTime]::MinValue
-$script:DogMemoryPhotoShown=$false
+$script:DogMemoryPhotoOpen=$false
 
 $navy=[Drawing.Color]::FromArgb(7,48,72)
 $dark=[Drawing.Color]::FromArgb(3,22,31)
@@ -101,11 +101,11 @@ $form.MaximizeBox=$true
 $form.MinimizeBox=$true
 
 function Show-DogMemoryPhoto {
- if($script:DogMemoryPhotoShown){return}
- $script:DogMemoryPhotoShown=$true
+ if($script:DogMemoryPhotoOpen){return}
  $photoDirectory=Join-Path $root 'Assets\DogMemories'
  $photoPaths=@(Get-ChildItem -LiteralPath $photoDirectory -Filter 'Diva-Tarabyte-*.jpg' -File -ErrorAction SilentlyContinue | Sort-Object Name | ForEach-Object FullName)
  if(-not $photoPaths.Count){return}
+ $script:DogMemoryPhotoOpen=$true
  $loaded=$null;$photo=$null;$dialog=$null
  try{
   $loaded=[Drawing.Image]::FromFile(($photoPaths | Get-Random))
@@ -142,16 +142,17 @@ function Show-DogMemoryPhoto {
   if($dialog){$dialog.Dispose()}
   if($photo){$photo.Dispose()}
   if($loaded){$loaded.Dispose()}
+  $script:DogMemoryPhotoOpen=$false
  }
 }
 
 function Register-DogMemoryTap {
- if($script:DogMemoryPhotoShown){return}
+ if($script:DogMemoryPhotoOpen){return}
  $now=Get-Date
  if(($now-$script:DogMemoryLastTap).TotalSeconds -gt 4){$script:DogMemoryTapCount=0}
  $script:DogMemoryLastTap=$now
  $script:DogMemoryTapCount++
- if($script:DogMemoryTapCount -ge 3){Show-DogMemoryPhoto}
+ if($script:DogMemoryTapCount -ge 3){$script:DogMemoryTapCount=0;Show-DogMemoryPhoto}
 }
 
 $layout=New-Object Windows.Forms.TableLayoutPanel
