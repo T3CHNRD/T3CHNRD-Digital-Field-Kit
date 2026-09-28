@@ -114,6 +114,10 @@ Recommended first run:
 .\Invoke-MassDuplicateCleanup.ps1 -AuditOnly
 ```
 
+## HOW TO RUN
+
+From the app, open **Misc -> OneNote Duplicate Cleanup** and click the tool card. For the safest first pass, use the standalone parameter `-AuditOnly` when running the script directly so no pages are removed or imported.
+
 ## Recommended workflow
 
 1. Open the target notebook in OneNote desktop.
