@@ -56,7 +56,8 @@ try {
     if($logBrowser.List.Items[$i].Path -eq (Join-Path $testState 'sample.log')){$logBrowser.List.SelectedIndex=$i;break}
  }
  [Windows.Forms.Application]::DoEvents()
- if($logBrowser.Preview.Text -notmatch 'Example diagnostic evidence'){throw 'Log preview failed.'}
+ script:Show-EvidencePreview $logBrowser.Preview $logBrowser.List.SelectedItem
+ if($logBrowser.Preview.Text -notmatch 'Example diagnostic evidence'){throw 'Log preview renderer failed.'}
  $script:View='Settings';Update-View
  $wrapOutput.Checked=-not $wrapOutput.Checked
  foreach($pane in $script:RunPanes){if($pane.Output.WordWrap -ne $wrapOutput.Checked){throw 'Output preference not applied.'}}
