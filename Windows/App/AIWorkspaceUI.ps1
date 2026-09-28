@@ -175,9 +175,9 @@ function New-EvidenceBrowser($Page){
  $bar=New-Object Windows.Forms.FlowLayoutPanel;$bar.Dock='Top';$bar.Height=42;$Page.Controls.Add($bar)
  $list.Tag=$preview
  $list.Add_SelectedIndexChanged({
-  param($sender,$eventArgs)
-  $previewControl=$sender.Tag
-  $entry=$sender.SelectedItem
+  $senderControl=$this
+  $previewControl=$senderControl.Tag
+  $entry=$senderControl.SelectedItem
   if(-not $previewControl -or -not $entry){return}
   $file=Get-Item -LiteralPath $entry.Path -ErrorAction SilentlyContinue
   if(-not $file){$previewControl.Text='This file is no longer available.';return}
