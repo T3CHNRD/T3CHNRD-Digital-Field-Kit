@@ -70,6 +70,10 @@ jobs:
         shell: powershell
         run: |
           & .\Windows\App\Test-TechnicianWorkflows.ps1
+      - name: Verify Microsoft MRT launcher without running a scan
+        shell: powershell
+        run: |
+          & .\Windows\App\Test-MicrosoftMRT.ps1
       - name: Build branded Windows EXE
         shell: powershell
         run: |

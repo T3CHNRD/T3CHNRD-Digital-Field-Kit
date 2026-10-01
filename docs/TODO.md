@@ -4,11 +4,12 @@ This is the single source of truth for project tracking. There is only one activ
 
 Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIELD TEST = implemented but not runtime-proven; FAIL = known broken.
 
-## CURRENT STATUS SNAPSHOT - 2026-09-27
+## CURRENT STATUS SNAPSHOT - 2026-10-01
 - Windows-first source is on `main`; this snapshot is updated with the current CI and local validation results below.
-- Catalog contains 64 entries: 62 ready and 2 disabled pending site configuration (24-Hour Sleep Hold and Exchange OWA Diagnostic). Their original scripts are bundled.
-- All ready catalog file mappings resolve. Install All uses the bundled installer wrapper; normal PowerShell tools run through the two-slot Run Center.
+- Catalog contains 67 entries, all marked ready; all ready file mappings resolve.
+- Install All uses the bundled installer wrapper; normal PowerShell tools run through the two-slot Run Center.
 - Runbook contains the index, quick start, troubleshooting, security, networking, repair, deployment, evidence, escalation, and documentation procedures.
+- DivaByte has a deterministic local analysis core, but no LLM provider is connected. Research selected llama.cpp with Qwen3-4B-Instruct-2507 Q4_K_M for the 16 GB drive budget; weights and runtime are not bundled or benchmarked yet.
 - Branded EXE build, generated icon, startup elevation, diagnostic-console selector, and Run Center lifecycle changes are implemented but still need real Windows field testing.
 - Archive integrity validation now handles Windows CRLF checkout conversion without relaxing content checks; the intentionally adapted vendor-update helper has a separate maintained-source lock.
 - Root GitHub workflows now use Node 24-compatible Actions and a pinned Ubuntu 24.04 runner. Latest hosted validation still needs a successful run after the follow-up manifest correction.
@@ -18,10 +19,11 @@ Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIEL
 - [x] STATIC PASS - Top-level portable Windows launcher.
 - [x] STATIC PASS - Top-level graphical Windows installer and uninstall source.
 - [x] STATIC PASS - Original Field Kit UI/UX restored.
-- [x] STATIC PASS - Current 64-entry GUI tool catalog restored and validated (62 ready).
+- [x] STATIC PASS - Current 67-entry GUI tool catalog validated (67 marked ready).
+- [x] PASS (2026-10-01) - Added Microsoft MRT as a guarded Security tool; verifies the Windows system path and Microsoft signature, then opens its native UI. Mocked valid/invalid-signature tests pass; the real signed UI was opened without starting a scan.
 - [x] STATIC PASS - 778 archive-source files (48 scripts and 730 resources) are SHA-256 locked; the original Git blob manifest is also retained.
 - [x] STATIC PASS - Reconcile authoritative archives and bundle the missing original scripts/payloads; record exclusions and file provenance in docs/ARCHIVE-INTEGRATION.md and docs/ARCHIVE-RECONCILIATION.csv.
-- [ ] CONFIGURATION REQUIRED - Adapt and validate Sleep Hold and Exchange OWA for the target site before enabling their cards.
+- [x] STATIC PASS - Sleep Hold and Exchange OWA use generic portable implementations; live Windows/Exchange field validation remains open.
 - [x] STATIC PASS - Create and enforce immutable Git blob SHA-1 manifest for restored original scripts.
 - [x] STATIC PASS - Embedded stdout/stderr capture and exit-code display for compatible noninteractive tools.
 - [x] STATIC PASS - Cancel uses taskkill /T /F on the child process tree.
@@ -29,13 +31,13 @@ Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIEL
 - [x] STATIC PASS - Application startup requests Administrator elevation; child tools inherit the elevated process by default.
 - [x] STATIC PASS - Compatible tool output remains in the embedded Run Center; interactive selector workflows launch separately without closing the main app.
 - [x] STATIC PASS - Install All includes Chrome, Firefox, Malwarebytes, AVG, CCleaner and excludes Win11Debloat/WinUtil.
-- [ ] NEEDS FIELD TEST - Launch without PowerShell security prompt.
+- [x] PASS (2026-10-01) - Installed app launched successfully from the registered VBS launcher without a PowerShell security prompt. This confirms the current local Windows install is open and responding; it does not close the missing-runtime installer update blocker.
 - [ ] NEEDS FIELD TEST - Minimize/maximize/restore/resize/close.
-- [ ] NEEDS FIELD TEST - Favorites/Recent/categories/search/Run Center/Runbook.
+- [x] PASS (2026-10-01) - Automated UI workflow validated Favorites, Run Center, DivaByte navigation, and the 67 help pages; the current app is responding in the existing installed `11.0-test` build.
 - [ ] NEEDS FIELD TEST - All Tools smooth scrolling.
 - [ ] NEEDS FIELD TEST - 100/125/150/200% display scaling.
 - [ ] NEEDS FIELD TEST - portable local disk / USB / external SSD.
-- [ ] NEEDS FIELD TEST - Windows install / shortcuts / installed launch / uninstall.
+- [ ] NEEDS FIELD TEST - Windows install / shortcuts / uninstall.
 - [ ] NEEDS FIELD TEST - every restored Windows diagnostic category.
 - [x] STATIC PASS - Added repeatable branded Windows EXE build with generated T3CHNRD icon; VBS remains the source-only fallback.
 - [x] STATIC PASS - Archive SHA-256 checks tolerate CRLF conversion for PowerShell text while preserving raw-byte checks and separately locking the documented vendor-update adaptation.
@@ -44,11 +46,19 @@ Status: PASS = runtime-tested; STATIC PASS = source/package verified; NEEDS FIEL
 - [ ] NEEDS FIELD TEST - Validate packaged EXE startup, taskbar icon, portable root detection, installer shortcuts, and fallback behavior.
 - [ ] INVESTIGATE - Determine why the main Field Kit window may still close after a tool or script completes; reproduce with the latest elevated packaged EXE and inspect process exit, form lifecycle, and child-process callbacks.
 
+## 2026-10-01 FOLLOW-UP
+- [x] PASS (automated UI workflow) - All 67 tool help pages and the existing Favorites, Run Center, DivaByte navigation, and mocked Defender workflows pass.
+- [x] PASS (MRT launcher test) - Verified catalog safety metadata, native Windows path selection, Microsoft signature acceptance, and invalid-signature rejection; no MRT scan was started.
+- [x] STATIC PASS - DivaByte deterministic analysis now includes attributed technician messages/corrections and relevant healthy status lines for contradiction checks.
+- [x] STATIC PASS - Local-first LLM research recommendation saved in docs/DIVABYTE-LOCAL-LLM-RECOMMENDATION.md: llama.cpp plus Qwen3-4B-Instruct-2507 Q4_K_M, direct API/no MCP, opt-in cited Internet research, and a 16 GB storage budget.
+- [ ] BLOCKED - Rust tests and a local app package need the Windows DivaByte core executable; `cargo` is not installed, so the local integrity suite reports 1,384 passes and one missing-runtime failure.
+- [ ] BLOCKED - Integrate, download/package, and benchmark the selected model/runtime; current checkout still has no GGUF, llama-server, or DivaByte core executable. The Dell reported 2.82 GiB free RAM at measurement time, so model preflight and context-size testing are required.
+
 ## 2026-09-20 WINDOWS FIELD-TEST CHECKLIST
 This checklist tracks remaining live hardware acceptance. Automated Windows UI/runner tests and user screenshots provide partial evidence; they do not close the full device, installer or scaling matrix.
 
 - [ ] Windows UI runtime validation
-  - [ ] startup without PowerShell security prompt
+  - [x] startup without PowerShell security prompt (confirmed on the existing installed app on 2026-10-01)
   - [ ] minimize / maximize / restore / resize / close
   - [x] automated favorites persistence/removal, Run Center resize bounds, and help navigation/search (Test-TechnicianWorkflows.ps1, 2026-09-27)
   - [x] automated Run Center process capture, stdin/stdout/stderr, independent tools and cancellation (Test-RunCenterProcess.ps1 and Test-TwoToolRunner.ps1, 2026-09-27)
@@ -56,7 +66,7 @@ This checklist tracks remaining live hardware acceptance. Automated Windows UI/r
   - [ ] manual category/search and Runbook technician acceptance
 - [ ] Installer and portability checks
   - [x] PASS FROM FIELD OBSERVATION - Installer correctly blocked replacement while the Field Kit process was still present without a visible window (2026-09-27 screenshot/process check). The actual update remains unverified.
-  - [ ] installed launch
+  - [x] installed launch (confirmed for the current registered `11.0-test` install on 2026-10-01)
   - [ ] uninstall path
   - [ ] USB / external SSD run behavior
   - [ ] display scaling behavior

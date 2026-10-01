@@ -1030,5 +1030,21 @@
     "sourceStatus": "NEW_FIELD_KIT_TOOL",
     "executionMode": "InApp",
     "requiresAdmin": true
+  },
+  {
+    "id": "microsoft-mrt",
+    "name": "Microsoft Windows Malicious Software Removal Tool (MRT)",
+    "category": "Security",
+    "originalCategory": "Security",
+    "description": "Open Microsoft's built-in on-demand malware scanner. Review scan results and approve any removal in the Microsoft tool window.",
+    "path": "Windows\\Scripts\\Security\\Start-MicrosoftMRT.ps1",
+    "risk": "SystemChange",
+    "interactive": false,
+    "args": [],
+    "icon": "shield",
+    "ready": true,
+    "sourceStatus": "WINDOWS_BUILT_IN_MICROSOFT_TOOL",
+    "executionMode": "InApp",
+    "requiresAdmin": true
   }
 ]

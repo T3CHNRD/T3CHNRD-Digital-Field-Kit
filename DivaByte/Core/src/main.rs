@@ -28,6 +28,8 @@ const API_VERSION: &str = "v1";
 const CORE_VERSION: &str = env!("CARGO_PKG_VERSION");
 const MAX_EVIDENCE_PREVIEW: u64 = 1_048_576;
 const MAX_SEARCH_FILE: u64 = 1_048_576;
+const MAX_ANALYSIS_FACTS: usize = 30;
+const MAX_EVIDENCE_FACTS: usize = 20;
 
 #[derive(Parser, Debug)]
 #[command(name = "divabyte-core")]
@@ -83,6 +85,7 @@ struct Fact {
     id: String,
     claim: String,
     evidence_ids: Vec<String>,
+    source: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -463,7 +466,7 @@ async fn analyze_case(
     for evidence in &case.evidence {
         for line in evidence.excerpt.lines() {
             let trimmed = line.trim();
-            if trimmed.is_empty() || !looks_diagnostic(trimmed) {
+            if trimmed.is_empty() || !looks_relevant(trimmed) {
                 continue;
             }
             fact_counter += 1;
@@ -471,27 +474,38 @@ async fn analyze_case(
                 id: format!("E{fact_counter}"),
                 claim: trimmed.chars().take(500).collect(),
                 evidence_ids: vec![evidence.id.clone()],
+                source: "Evidence".to_string(),
             });
-            if facts.len() >= 30 {
+            if facts.len() >= MAX_EVIDENCE_FACTS {
                 break;
             }
         }
-        if facts.len() >= 30 {
+        if facts.len() >= MAX_EVIDENCE_FACTS {
             break;
         }
     }
 
-    let combined = facts
-        .iter()
-        .map(|f| f.claim.to_lowercase())
-        .collect::<Vec<_>>()
-        .join("\n");
+    for (prefix, source, messages) in [
+        ("C", "Technician Correction", &case.corrections),
+        ("M", "Technician Message", &case.messages),
+    ] {
+        for message in messages.iter().rev().take(MAX_ANALYSIS_FACTS - MAX_EVIDENCE_FACTS).rev() {
+            if facts.len() >= MAX_ANALYSIS_FACTS {
+                break;
+            }
+            facts.push(Fact {
+                id: format!("{prefix}{}", facts.len() + 1),
+                claim: message.text.chars().take(500).collect(),
+                evidence_ids: vec![],
+                source: source.to_string(),
+            });
+        }
+    }
 
     let mut hypotheses = Vec::new();
     maybe_add_hypothesis(
         &mut hypotheses,
         &facts,
-        &combined,
         "Network path, DNS, or connectivity interruption",
         &["timeout", "timed out", "dns", "unreachable", "connection reset", "tns-12170", "tns-12535", "network"],
         &["connected", "reachable", "dns succeeded", "success"],
@@ -500,7 +514,6 @@ async fn analyze_case(
     maybe_add_hypothesis(
         &mut hypotheses,
         &facts,
-        &combined,
         "Authentication, certificate, or access-control failure",
         &["authentication", "802.1x", "radius", "certificate", "access denied", "unauthorized", "logon failure", "eap"],
         &["authentication succeeded", "authorized", "certificate valid"],
@@ -509,7 +522,6 @@ async fn analyze_case(
     maybe_add_hypothesis(
         &mut hypotheses,
         &facts,
-        &combined,
         "Storage, filesystem, or I/O problem",
         &["disk", "i/o", "io error", "filesystem", "ntfs", "apfs", "smart", "bad block", "corrupt"],
         &["disk healthy", "filesystem healthy", "no errors found"],
@@ -518,7 +530,6 @@ async fn analyze_case(
     maybe_add_hypothesis(
         &mut hypotheses,
         &facts,
-        &combined,
         "Application or service failure",
         &["service", "crash", "exception", "faulting", "stopped", "terminated", "application error"],
         &["service running", "healthy", "started successfully"],
@@ -571,7 +582,7 @@ async fn analyze_case(
     );
     if !case.corrections.is_empty() {
         unknowns.push(
-            "Technician corrections are present and should be treated as constraints during the next model-assisted analysis."
+            "Technician messages and corrections are included as attributed, unverified facts in this deterministic analysis."
                 .to_string(),
         );
     }
@@ -874,7 +885,7 @@ fn read_limited_text(path: &Path, max_bytes: u64) -> Result<String> {
     Ok(String::from_utf8_lossy(&bytes).to_string())
 }
 
-fn looks_diagnostic(line: &str) -> bool {
+fn looks_relevant(line: &str) -> bool {
     let lower = line.to_lowercase();
     [
         "error",
@@ -895,13 +906,26 @@ fn looks_diagnostic(line: &str) -> bool {
         "unreachable",
     ]
     .iter()
-    .any(|needle| lower.contains(needle))
+    .any(|needle| contains_term(&lower, needle))
+}
+
+fn contains_term(text: &str, term: &str) -> bool {
+    let text = text.to_lowercase();
+    let term = term.to_lowercase();
+    text.match_indices(&term).any(|(start, matched)| {
+        let end = start + matched.len();
+        let is_word = |character: char| character.is_alphanumeric() || character == '_';
+        let starts_with_word = term.chars().next().map_or(false, is_word);
+        let ends_with_word = term.chars().next_back().map_or(false, is_word);
+        let left_boundary = !starts_with_word || text[..start].chars().next_back().map_or(true, |c| !is_word(c));
+        let right_boundary = !ends_with_word || text[end..].chars().next().map_or(true, |c| !is_word(c));
+        left_boundary && right_boundary
+    })
 }
 
 fn maybe_add_hypothesis(
     hypotheses: &mut Vec<Hypothesis>,
     facts: &[Fact],
-    combined: &str,
     cause: &str,
     supporting_terms: &[&str],
     contradicting_terms: &[&str],
@@ -911,7 +935,7 @@ fn maybe_add_hypothesis(
         .iter()
         .filter(|fact| {
             let lower = fact.claim.to_lowercase();
-            supporting_terms.iter().any(|term| lower.contains(term))
+            supporting_terms.iter().any(|term| contains_term(&lower, term))
         })
         .map(|f| f.id.clone())
         .collect();
@@ -922,7 +946,7 @@ fn maybe_add_hypothesis(
         .iter()
         .filter(|fact| {
             let lower = fact.claim.to_lowercase();
-            contradicting_terms.iter().any(|term| lower.contains(term))
+            contradicting_terms.iter().any(|term| contains_term(&lower, term))
         })
         .map(|f| f.id.clone())
         .collect();
@@ -933,7 +957,6 @@ fn maybe_add_hypothesis(
     } else {
         "Low"
     };
-    let _ = combined;
     hypotheses.push(Hypothesis {
         cause: cause.to_string(),
         confidence: confidence.to_string(),
@@ -1127,8 +1150,35 @@ mod tests {
 
     #[test]
     fn diagnostic_lines_are_detected() {
-        assert!(looks_diagnostic("ERROR TNS-12170 connection timed out"));
-        assert!(looks_diagnostic("Warning: disk I/O error"));
-        assert!(!looks_diagnostic("Normal status report"));
+        assert!(looks_relevant("ERROR TNS-12170 connection timed out"));
+        assert!(looks_relevant("Warning: disk I/O error"));
+        assert!(looks_relevant("DNS server reachable; service healthy"));
+        assert!(looks_relevant("TNS-12535"));
+        assert!(!looks_relevant("Normal status report"));
+        assert!(!contains_term("DNS is unreachable", "reachable"));
+        assert!(!contains_term("service disconnected", "connected"));
+    }
+
+    #[test]
+    fn contradictory_evidence_prevents_high_confidence() {
+        let facts = vec![
+            Fact { id: "E1".to_string(), claim: "network timeout".to_string(), evidence_ids: vec![], source: "Evidence".to_string() },
+            Fact { id: "E2".to_string(), claim: "DNS unreachable".to_string(), evidence_ids: vec![], source: "Evidence".to_string() },
+            Fact { id: "E3".to_string(), claim: "connection reset".to_string(), evidence_ids: vec![], source: "Evidence".to_string() },
+            Fact { id: "M1".to_string(), claim: "DNS reachable".to_string(), evidence_ids: vec![], source: "Technician Message".to_string() },
+        ];
+        let mut hypotheses = Vec::new();
+
+        maybe_add_hypothesis(
+            &mut hypotheses,
+            &facts,
+            "Network interruption",
+            &["timeout", "unreachable", "connection reset"],
+            &["reachable"],
+            "Run a focused network diagnostic.",
+        );
+
+        assert_eq!(hypotheses[0].confidence, "Medium");
+        assert_eq!(hypotheses[0].contradicting_evidence, vec!["M1"]);
     }
 }

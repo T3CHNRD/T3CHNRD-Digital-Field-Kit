@@ -38,15 +38,21 @@ try{
     $evidence=Invoke-DivaByteApi -Method POST -Path ('/v1/cases/'+$case.id+'/evidence') -Body @{path=$sample}
     if(-not $evidence.evidence.sha256){throw 'Evidence ingestion did not return a SHA-256.'}
 
+    [void](Invoke-DivaByteApi -Method POST -Path ('/v1/cases/'+$case.id+'/message') -Body @{text='DNS is reachable from the client.'})
+
     $analysis=Invoke-DivaByteApi -Method POST -Path ('/v1/cases/'+$case.id+'/analyze') -Body @{}
     if(@($analysis.facts).Count -lt 2){throw 'DivaByte did not extract diagnostic facts.'}
     $network=@($analysis.hypotheses | Where-Object {$_.cause -match 'Network|DNS|connectivity'})
     if(-not $network.Count){throw 'DivaByte did not create the expected network hypothesis.'}
     if(-not @($network[0].supportingEvidence).Count){throw 'Network hypothesis has no supporting evidence.'}
-    Write-Output 'PASS: evidence ingestion, deterministic fact extraction, and evidence-backed hypothesis generation.'
+    if(-not @($network[0].contradictingEvidence).Count){throw 'Healthy status evidence was not surfaced as a contradiction.'}
+    if(-not @($analysis.facts | Where-Object {$_.source -eq 'Technician Message'}).Count){throw 'Technician observations were omitted from analysis facts.'}
+    Write-Output 'PASS: evidence and technician observations produce attributed, contradictable facts and hypotheses.'
 
     $corrected=Invoke-DivaByteApi -Method POST -Path ('/v1/cases/'+$case.id+'/correction') -Body @{text='Do not assume the database server failed; verify the client/network path.'}
     if($corrected.case.status -ne 'Needs Re-evaluation'){throw 'Technician correction did not reopen the analysis.'}
+    $reanalyzed=Invoke-DivaByteApi -Method POST -Path ('/v1/cases/'+$case.id+'/analyze') -Body @{}
+    if(-not @($reanalyzed.facts | Where-Object {$_.source -eq 'Technician Correction'}).Count){throw 'Technician correction was omitted from re-analysis.'}
     Write-Output 'PASS: technician corrections are retained and force re-evaluation.'
 
     $memory=Invoke-DivaByteApi -Method POST -Path '/v1/memory' -Body @{

@@ -42,7 +42,7 @@ try {
  }
  $rbSearch.Text='Sleep Hold'
  if($rbList.Items.Count -ne 1){throw 'Tool help search failed.'}
- Write-Output 'PASS: Run Center resize bounds, retained height, all 64 tool guides and help search.'
+ Write-Output ('PASS: Run Center resize bounds, retained height, all {0} tool guides and help search.' -f $script:ToolCatalog.Count)
  $script:View='DivaByte';Update-View
  if(-not $aiPanel.Visible){throw 'DivaByte navigation failed.'}
  $draftPath=Join-Path $testState 'draft.txt'

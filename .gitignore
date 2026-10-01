@@ -27,3 +27,15 @@ Thumbs.db
 .build/
 DivaByte/Core/target/
 DivaByte/Runtime/
+
+# Local DivaByte cases, drafts, memory, and imported results
+/DivaByte/Cases/
+/DivaByte/Memory/
+/DivaByte/ResearchCache/
+/DivaByte/Results/
+/DivaByte/RunbookProposals/
+/DivaByte/Sessions/
+/DivaByte/Research-Mode.txt
+/DivaByte/Chat-Draft.txt
+/DivaByte/core-connection.json
+/DivaByte/.legacy-migrated
