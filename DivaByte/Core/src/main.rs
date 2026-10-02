@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use axum::{
     extract::{Path as AxumPath, Query, State},
     http::{HeaderMap, StatusCode},
-    routing::{get, post, put},
+    routing::{get, post},
     Json, Router,
 };
 use chrono::Utc;
@@ -904,6 +904,13 @@ fn looks_relevant(line: &str) -> bool {
         "fault",
         "corrupt",
         "unreachable",
+        "reachable",
+        "healthy",
+        "connected",
+        "succeeded",
+        "success",
+        "authorized",
+        "valid",
     ]
     .iter()
     .any(|needle| contains_term(&lower, needle))
